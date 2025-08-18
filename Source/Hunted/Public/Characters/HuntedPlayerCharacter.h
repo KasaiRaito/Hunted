@@ -13,5 +13,7 @@ UCLASS()
 class HUNTED_API AHuntedPlayerCharacter : public AHuntedBaseCharacter
 {
 	GENERATED_BODY()
-	
+
+protected:
+	virtual void BeginPlay() override;
 };
