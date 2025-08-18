@@ -28,7 +28,7 @@ protected:
 	UCharacterMovementComponent* OwningMovementComponent;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "AnimData|LocomotionData")
-	float GroundSpeed;
+	FVector GroundSpeed;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "AnimData|LocomotionData")
 	bool bHasAccelerations;
