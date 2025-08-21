@@ -49,9 +49,18 @@ void AHuntedPlayerCharacter::SetupPlayerInputComponent(UInputComponent* InPlayer
 
 	PlayerInputComponent->BindNativeInputAction(InputConfigDataAsset, HuntedGameplayTags::InputTag_Move,
 		ETriggerEvent::Triggered, this, &ThisClass::Input_Move);
+	
+	PlayerInputComponent->BindNativeInputAction(InputConfigDataAsset, HuntedGameplayTags::InputTag_Sneak,
+		ETriggerEvent::Triggered, this, &ThisClass::Input_Sneak);
+
+	PlayerInputComponent->BindNativeInputAction(InputConfigDataAsset, HuntedGameplayTags::InputTag_Sprint,
+		ETriggerEvent::Triggered, this, &ThisClass::Input_Sprint);
 
 	PlayerInputComponent->BindNativeInputAction(InputConfigDataAsset, HuntedGameplayTags::InputTag_Look,
 		ETriggerEvent::Triggered, this, &ThisClass::Input_Look);
+
+	PlayerInputComponent->BindNativeInputAction(InputConfigDataAsset, HuntedGameplayTags::InputTag_Crouch,
+		ETriggerEvent::Triggered, this, &ThisClass::Input_Crouch);
 }
 
 void AHuntedPlayerCharacter::BeginPlay()
@@ -62,6 +71,47 @@ void AHuntedPlayerCharacter::BeginPlay()
 }
 
 void AHuntedPlayerCharacter::Input_Move(const FInputActionValue& InputActionValue)
+{
+	if (IsSprint)
+	{
+		GetCharacterMovement()->MaxWalkSpeed = 600.0f;
+	}
+	else if (IsSneak)
+	{
+		GetCharacterMovement()->MaxWalkSpeed = 150.0f;
+	}
+	else if (IsCrouch)
+	{
+		GetCharacterMovement()->MaxWalkSpeed = 100.0f;
+	}
+	else
+	{
+		GetCharacterMovement()->MaxWalkSpeed = 250.0f;
+	}
+
+	// Process movement input
+	ProcessMovementInput(InputActionValue);
+}
+
+void AHuntedPlayerCharacter::Input_Sneak(const FInputActionValue& Sneak)
+{
+	//Debug::Print(TEXT("HuntedPlayerCharacter::Input_Sneak"));
+	IsSneak = Sneak.Get<bool>();
+}
+
+void AHuntedPlayerCharacter::Input_Sprint(const FInputActionValue& Sprint)
+{
+	//Debug::Print(TEXT("HuntedPlayerCharacter::Input_Sprint"));
+	IsSprint = Sprint.Get<bool>();
+}
+
+void AHuntedPlayerCharacter::Input_Crouch(const FInputActionValue& Crouch)
+{
+	//Debug::Print(TEXT("HuntedPlayerCharacter::Input_Crouch"));
+	IsCrouch = Crouch.Get<bool>();
+}
+
+void AHuntedPlayerCharacter::ProcessMovementInput(const FInputActionValue& InputActionValue)
 {
 	const FVector2D MovementVector = InputActionValue.Get<FVector2D>();
 	const FRotator MovementRotator(0.f, Controller->GetControlRotation().Yaw, 0.f);

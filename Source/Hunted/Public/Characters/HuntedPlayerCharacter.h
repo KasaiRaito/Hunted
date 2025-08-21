@@ -35,10 +35,19 @@ private:
 #pragma region Inputs
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "CharacterData", meta = (AllowPrivateAccess = "true"))
 	UDataAsset_InputConfig* InputConfigDataAsset;
-
+	
 	void Input_Move(const FInputActionValue& InputActionValue);
+	void Input_Sneak(const FInputActionValue& Sneak);
+	void Input_Sprint(const FInputActionValue& Sprint);
+	void Input_Crouch(const FInputActionValue& Crouch);
+	
+	void ProcessMovementInput(const FInputActionValue& InputActionValue);
 
 	void Input_Look(const FInputActionValue& InputActionValue);
+
+	bool IsSneak = false;
+	bool IsSprint = false;
+	bool IsCrouch = false;
 	
 #pragma endregion
 };
