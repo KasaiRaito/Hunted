@@ -87,7 +87,7 @@ void AHuntedPlayerCharacter::Input_Look(const FInputActionValue& InputActionValu
 
 	if (LookAxisVector.X != 0.f)
 	{
-		AddControllerYawInput(-LookAxisVector.X);
+		AddControllerYawInput(LookAxisVector.X);
 	}
 	if (LookAxisVector.Y != 0.f)
 	{
