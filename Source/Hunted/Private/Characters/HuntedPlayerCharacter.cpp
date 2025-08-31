@@ -75,23 +75,6 @@ void AHuntedPlayerCharacter::BeginPlay()
 
 void AHuntedPlayerCharacter::Input_Move(const FInputActionValue& InputActionValue)
 {
-	if (IsSprint)
-	{
-		GetCharacterMovement()->MaxWalkSpeed = 600.0f;
-	}
-	else if (IsSneak)
-	{
-		GetCharacterMovement()->MaxWalkSpeed = 150.0f;
-	}
-	else if (IsCrouch)
-	{
-		GetCharacterMovement()->MaxWalkSpeed = 100.0f;
-	}
-	else
-	{
-		GetCharacterMovement()->MaxWalkSpeed = 250.0f;
-	}
-
 	// Process movement input
 	ProcessMovementInput(InputActionValue);
 }
@@ -100,18 +83,43 @@ void AHuntedPlayerCharacter::Input_Sneak(const FInputActionValue& Sneak)
 {
 	//Debug::Print(TEXT("HuntedPlayerCharacter::Input_Sneak"));
 	IsSneak = Sneak.Get<bool>();
+	if (IsSneak)
+	{
+		GetCharacterMovement()->MaxWalkSpeed = SneakSpeed;
+	}
+	else
+	{
+		GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+	}
 }
 
 void AHuntedPlayerCharacter::Input_Sprint(const FInputActionValue& Sprint)
 {
 	//Debug::Print(TEXT("HuntedPlayerCharacter::Input_Sprint"));
 	IsSprint = Sprint.Get<bool>();
+
+	if (IsSprint)
+	{
+		GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
+	}
+	else
+	{
+		GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+	}
 }
 
 void AHuntedPlayerCharacter::Input_Crouch(const FInputActionValue& Crouch)
 {
 	//Debug::Print(TEXT("HuntedPlayerCharacter::Input_Crouch"));
 	IsCrouch = Crouch.Get<bool>();
+	if (IsCrouch)
+	{
+		GetCharacterMovement()->MaxWalkSpeed = CrouchSpeed;
+	}
+	else
+	{
+		GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+	}
 }
 
 void AHuntedPlayerCharacter::Input_Snap(const FInputActionValue& Snap)

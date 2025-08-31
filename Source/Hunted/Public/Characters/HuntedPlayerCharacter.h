@@ -21,6 +21,15 @@ class HUNTED_API AHuntedPlayerCharacter : public AHuntedBaseCharacter
 
 public:
 	AHuntedPlayerCharacter();
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Speed)
+	float SprintSpeed;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Speed)
+	float SneakSpeed;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Speed)
+	float CrouchSpeed;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Speed)
+	float WalkSpeed;
+	
 
 protected:
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
