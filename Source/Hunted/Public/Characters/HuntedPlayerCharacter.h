@@ -40,6 +40,7 @@ private:
 	void Input_Sneak(const FInputActionValue& Sneak);
 	void Input_Sprint(const FInputActionValue& Sprint);
 	void Input_Crouch(const FInputActionValue& Crouch);
+	void Input_Snap(const FInputActionValue& Snap);
 	
 	void ProcessMovementInput(const FInputActionValue& InputActionValue);
 
@@ -49,5 +50,9 @@ private:
 	bool IsSprint = false;
 	bool IsCrouch = false;
 	
+#pragma endregion
+
+#pragma region Functions
+	void SnapFingers();
 #pragma endregion
 };

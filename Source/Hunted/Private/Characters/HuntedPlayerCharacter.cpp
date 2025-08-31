@@ -61,6 +61,9 @@ void AHuntedPlayerCharacter::SetupPlayerInputComponent(UInputComponent* InPlayer
 
 	PlayerInputComponent->BindNativeInputAction(InputConfigDataAsset, HuntedGameplayTags::InputTag_Crouch,
 		ETriggerEvent::Triggered, this, &ThisClass::Input_Crouch);
+
+	PlayerInputComponent->BindNativeInputAction(InputConfigDataAsset, HuntedGameplayTags::InputTag_Snap,
+		ETriggerEvent::Started, this, &ThisClass::Input_Snap);
 }
 
 void AHuntedPlayerCharacter::BeginPlay()
@@ -111,6 +114,14 @@ void AHuntedPlayerCharacter::Input_Crouch(const FInputActionValue& Crouch)
 	IsCrouch = Crouch.Get<bool>();
 }
 
+void AHuntedPlayerCharacter::Input_Snap(const FInputActionValue& Snap)
+{
+	if (Snap.Get<bool>())
+	{
+		SnapFingers();
+	}
+}
+
 void AHuntedPlayerCharacter::ProcessMovementInput(const FInputActionValue& InputActionValue)
 {
 	const FVector2D MovementVector = InputActionValue.Get<FVector2D>();
@@ -143,4 +154,9 @@ void AHuntedPlayerCharacter::Input_Look(const FInputActionValue& InputActionValu
 	{
 		AddControllerPitchInput(LookAxisVector.Y);
 	}
+}
+
+void AHuntedPlayerCharacter::SnapFingers()
+{
+	Debug::Print(TEXT("HuntedPlayerCharacter::SnapFingers"));
 }
