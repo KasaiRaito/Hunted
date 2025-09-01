@@ -28,9 +28,15 @@ AHuntedPlayerCharacter::AHuntedPlayerCharacter()
 
 	GetCharacterMovement()->bOrientRotationToMovement = false;
 	//GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f);
-	GetCharacterMovement()->MaxWalkSpeed = 400.0f;
+	GetCharacterMovement()->MaxWalkSpeed = 250.0f;
 	GetCharacterMovement()->BrakingDecelerationWalking = 2000.0f;
-	
+
+	UpdateStaticMeshList();	
+}
+
+bool AHuntedPlayerCharacter::ReturnIsEcho() const
+{
+	return IsEcho;
 }
 
 void AHuntedPlayerCharacter::SetupPlayerInputComponent(UInputComponent* InPlayerInputComponent)
@@ -49,9 +55,24 @@ void AHuntedPlayerCharacter::SetupPlayerInputComponent(UInputComponent* InPlayer
 
 	PlayerInputComponent->BindNativeInputAction(InputConfigDataAsset, HuntedGameplayTags::InputTag_Move,
 		ETriggerEvent::Triggered, this, &ThisClass::Input_Move);
+	
+	PlayerInputComponent->BindNativeInputAction(InputConfigDataAsset, HuntedGameplayTags::InputTag_Sneak,
+		ETriggerEvent::Triggered, this, &ThisClass::Input_Sneak);
+
+	PlayerInputComponent->BindNativeInputAction(InputConfigDataAsset, HuntedGameplayTags::InputTag_Sprint,
+		ETriggerEvent::Triggered, this, &ThisClass::Input_Sprint);
 
 	PlayerInputComponent->BindNativeInputAction(InputConfigDataAsset, HuntedGameplayTags::InputTag_Look,
 		ETriggerEvent::Triggered, this, &ThisClass::Input_Look);
+
+	PlayerInputComponent->BindNativeInputAction(InputConfigDataAsset, HuntedGameplayTags::InputTag_Crouch,
+		ETriggerEvent::Triggered, this, &ThisClass::Input_Crouch);
+
+	PlayerInputComponent->BindNativeInputAction(InputConfigDataAsset, HuntedGameplayTags::InputTag_Snap,
+		ETriggerEvent::Triggered, this, &ThisClass::Input_Snap);
+
+	PlayerInputComponent->BindNativeInputAction(InputConfigDataAsset, HuntedGameplayTags::InputTag_Echo,
+		ETriggerEvent::Triggered,this, &ThisClass::Input_Echo);
 }
 
 void AHuntedPlayerCharacter::BeginPlay()
@@ -62,6 +83,82 @@ void AHuntedPlayerCharacter::BeginPlay()
 }
 
 void AHuntedPlayerCharacter::Input_Move(const FInputActionValue& InputActionValue)
+{
+	// Process movement input
+	ProcessMovementInput(InputActionValue);
+}
+
+void AHuntedPlayerCharacter::Input_Sneak(const FInputActionValue& Sneak)
+{
+	//Debug::Print(TEXT("HuntedPlayerCharacter::Input_Sneak"));
+	IsSneak = Sneak.Get<bool>();
+	if (IsSneak)
+	{
+		GetCharacterMovement()->MaxWalkSpeed = SneakSpeed;
+	}
+	else
+	{
+		GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+	}
+}
+
+void AHuntedPlayerCharacter::Input_Sprint(const FInputActionValue& Sprint)
+{
+	//Debug::Print(TEXT("HuntedPlayerCharacter::Input_Sprint"));
+	IsSprint = Sprint.Get<bool>();
+
+	if (IsSprint)
+	{
+		GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
+	}
+	else
+	{
+		GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+	}
+}
+
+void AHuntedPlayerCharacter::Input_Crouch(const FInputActionValue& Crouch)
+{
+	//Debug::Print(TEXT("HuntedPlayerCharacter::Input_Crouch"));
+	IsCrouch = Crouch.Get<bool>();
+	if (IsCrouch)
+	{
+		GetCharacterMovement()->MaxWalkSpeed = CrouchSpeed;
+	}
+	else
+	{
+		GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+	}
+}
+
+void AHuntedPlayerCharacter::Input_Snap(const FInputActionValue& Snap)
+{
+	if (Snap.Get<bool>())
+	{
+		Debug::Print(TEXT("HuntedPlayerCharacter::Input_Snap"));
+		SnapFingers();
+	}
+}
+
+void AHuntedPlayerCharacter::Input_Echo(const FInputActionValue& Echo)
+{
+	if (Echo.Get<bool>())
+	{
+		Debug::Print(TEXT("HuntedPlayerCharacter::Input_Echo"));
+		IsEcho = !IsEcho;
+	}
+
+	if (IsEcho)
+	{
+		EnterEcho();
+	}
+	else
+	{
+		ExitEcho();
+	}
+}
+
+void AHuntedPlayerCharacter::ProcessMovementInput(const FInputActionValue& InputActionValue)
 {
 	const FVector2D MovementVector = InputActionValue.Get<FVector2D>();
 	const FRotator MovementRotator(0.f, Controller->GetControlRotation().Yaw, 0.f);
@@ -87,10 +184,92 @@ void AHuntedPlayerCharacter::Input_Look(const FInputActionValue& InputActionValu
 
 	if (LookAxisVector.X != 0.f)
 	{
-		AddControllerYawInput(-LookAxisVector.X);
+		AddControllerYawInput(LookAxisVector.X);
 	}
 	if (LookAxisVector.Y != 0.f)
 	{
 		AddControllerPitchInput(LookAxisVector.Y);
 	}
 }
+
+void AHuntedPlayerCharacter::SnapFingers()
+{
+	Debug::Print(TEXT("HuntedPlayerCharacter::SnapFingers"));
+}
+
+void AHuntedPlayerCharacter::EnterEcho()
+{
+	for (AActor* StaticMeshActor : StaticMeshActors)
+	{
+		if (!StaticMeshActor) continue;
+
+		AStaticMeshActor* MeshActor = Cast<AStaticMeshActor>(StaticMeshActor);
+		if (MeshActor)
+		{
+			UStaticMeshComponent* MeshComp = MeshActor->GetStaticMeshComponent();
+			if (MeshComp && MyEchoMaterial)
+			{
+				int32 NumMats = MeshComp->GetNumMaterials();
+				for (int32 i = 0; i < NumMats; i++)
+				{
+					MeshComp->SetMaterial(i, MyEchoMaterial);
+				}
+			}
+		}
+	}
+}
+
+void AHuntedPlayerCharacter::ExitEcho()
+{
+	for (const FActorMaterialBackup& Backup : OriginalActorMaterials)
+	{
+		if (!Backup.Actor) continue;
+
+		AStaticMeshActor* MeshActor = Cast<AStaticMeshActor>(Backup.Actor);
+		if (MeshActor)
+		{
+			UStaticMeshComponent* MeshComp = MeshActor->GetStaticMeshComponent();
+			if (MeshComp)
+			{
+				for (int32 i = 0; i < Backup.Materials.Num(); i++)
+				{
+					MeshComp->SetMaterial(i, Backup.Materials[i]);
+				}
+			}
+		}
+	}
+}
+
+void AHuntedPlayerCharacter::UpdateStaticMeshList()
+{
+	StaticMeshActors.Empty();
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AStaticMeshActor::StaticClass(), StaticMeshActors);
+
+	OriginalActorMaterials.Empty();
+
+	for (AActor* StaticMeshActor : StaticMeshActors)
+	{
+		if (!StaticMeshActor) continue;
+
+		AStaticMeshActor* MeshActor = Cast<AStaticMeshActor>(StaticMeshActor);
+		if (MeshActor)
+		{
+			UStaticMeshComponent* MeshComp = MeshActor->GetStaticMeshComponent();
+			if (MeshComp)
+			{
+				FActorMaterialBackup Backup;
+				Backup.Actor = MeshActor;
+
+				int32 NumMats = MeshComp->GetNumMaterials();
+				for (int32 i = 0; i < NumMats; i++)
+				{
+					Backup.Materials.Add(MeshComp->GetMaterial(i));
+				}
+
+				OriginalActorMaterials.Add(Backup);
+			}
+		}
+	}
+}
+
+

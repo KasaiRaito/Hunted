@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "Characters/HuntedBaseCharacter.h"
+#include "Kismet/GameplayStatics.h"
+#include "Engine/StaticMeshActor.h"
 #include "HuntedPlayerCharacter.generated.h"
 
 struct FInputActionValue;
@@ -14,6 +16,18 @@ class UDataAsset_InputConfig;
 /**
  * 
  */
+USTRUCT(BlueprintType)
+struct FActorMaterialBackup
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	AActor* Actor;
+
+	UPROPERTY()
+	TArray<UMaterialInterface*> Materials;
+};
+
 UCLASS()
 class HUNTED_API AHuntedPlayerCharacter : public AHuntedBaseCharacter
 {
@@ -21,6 +35,26 @@ class HUNTED_API AHuntedPlayerCharacter : public AHuntedBaseCharacter
 
 public:
 	AHuntedPlayerCharacter();
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Speed)
+	float SprintSpeed = 600.f;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Speed)
+	float SneakSpeed = 150.f;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Speed)
+	float CrouchSpeed = 100.f;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Speed)
+	float WalkSpeed = 250.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Echo") 
+	TArray<AActor*> StaticMeshActors;
+
+	UPROPERTY()
+	TArray<FActorMaterialBackup> OriginalActorMaterials;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Echo")
+	UMaterialInterface* MyEchoMaterial;
+
+	UFUNCTION(BlueprintCallable, Category="Echo")
+	bool ReturnIsEcho() const;
 
 protected:
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
@@ -35,10 +69,36 @@ private:
 #pragma region Inputs
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "CharacterData", meta = (AllowPrivateAccess = "true"))
 	UDataAsset_InputConfig* InputConfigDataAsset;
-
+	
 	void Input_Move(const FInputActionValue& InputActionValue);
+	void Input_Sneak(const FInputActionValue& Sneak);
+	void Input_Sprint(const FInputActionValue& Sprint);
+	void Input_Crouch(const FInputActionValue& Crouch);
+	void Input_Snap(const FInputActionValue& Snap);
+
+	void Input_Echo(const FInputActionValue& Echo);
+	
+	void ProcessMovementInput(const FInputActionValue& InputActionValue);
 
 	void Input_Look(const FInputActionValue& InputActionValue);
+
+	bool IsSneak = false;
+	bool IsSprint = false;
+	bool IsCrouch = false;
+	bool IsEcho = false;
+	
+#pragma endregion
+
+#pragma region Functions
+	void SnapFingers();
+
+	void EnterEcho();
+
+	void ExitEcho();
+
+	void UpdateStaticMeshList();
+
+	
 	
 #pragma endregion
 };
