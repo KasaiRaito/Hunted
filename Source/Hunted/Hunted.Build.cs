@@ -16,6 +16,7 @@ public class Hunted : ModuleRules
 			"InputCore", 
 			"GameplayTags",
 			"EnhancedInput",
+			"GameplayTasks"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });

@@ -10,6 +10,8 @@
 #include "Components/Input/PlayerInputComponent.h"
 #include "HuntedGameplayTags.h"
 
+#include "AbilitySystem/HuntedAbilitySystemComponent.h"
+
 #include "HuntedDebugHelper.h"
 
 AHuntedPlayerCharacter::AHuntedPlayerCharacter()
@@ -31,12 +33,27 @@ AHuntedPlayerCharacter::AHuntedPlayerCharacter()
 	GetCharacterMovement()->MaxWalkSpeed = 250.0f;
 	GetCharacterMovement()->BrakingDecelerationWalking = 2000.0f;
 
-	UpdateStaticMeshList();	
+	UpdateStaticMeshList();
 }
 
-bool AHuntedPlayerCharacter::ReturnIsEcho() const
+bool AHuntedPlayerCharacter::ReturnIsEcho()
 {
 	return IsEcho;
+}
+
+void AHuntedPlayerCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	if (HuntedAbilitySystemComponent && HuntedAttributeSet)
+	{
+		const FString ASCText = FString::Printf(TEXT("Owner Actor: %s, AvatarActor: %s"),
+			*HuntedAbilitySystemComponent->GetOwnerActor()->GetActorLabel(),
+			*HuntedAbilitySystemComponent->GetAvatarActor()->GetActorLabel());
+
+		Debug::Print(TEXT("Ability System Component VALID. ") + ASCText, FColor::Green);
+		Debug::Print(TEXT("Abillity Set VAID"), FColor::Green);
+	}
 }
 
 void AHuntedPlayerCharacter::SetupPlayerInputComponent(UInputComponent* InPlayerInputComponent)
@@ -78,8 +95,6 @@ void AHuntedPlayerCharacter::SetupPlayerInputComponent(UInputComponent* InPlayer
 void AHuntedPlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-
-	Debug::Print(TEXT("HuntedPlayerCharacter::BeginPlay"));
 }
 
 void AHuntedPlayerCharacter::Input_Move(const FInputActionValue& InputActionValue)

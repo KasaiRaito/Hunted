@@ -2,6 +2,8 @@
 
 
 #include "Characters/HuntedBaseCharacter.h"
+#include "AbilitySystem/HuntedAbilitySystemComponent.h"
+#include "AbilitySystem/HuntedAttributeSet.h"
 
 // Sets default values
 AHuntedBaseCharacter::AHuntedBaseCharacter()
@@ -11,5 +13,23 @@ AHuntedBaseCharacter::AHuntedBaseCharacter()
 	PrimaryActorTick.bStartWithTickEnabled = false;
 
 	GetMesh()->bReceivesDecals = false;
+
+	HuntedAbilitySystemComponent = CreateDefaultSubobject<UHuntedAbilitySystemComponent>(FName("HuntedAbilitySystemComponent"));
+	HuntedAttributeSet = CreateDefaultSubobject<UHuntedAttributeSet>(FName("HuntedAttributeSet"));
+}
+
+UAbilitySystemComponent* AHuntedBaseCharacter::GetAbilitySystemComponent() const
+{
+	return GetHuntedAbilitySystemComponent();
+}
+
+void AHuntedBaseCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	if (HuntedAbilitySystemComponent)
+	{
+		HuntedAbilitySystemComponent->InitAbilityActorInfo(this, this);
+	}
 }
 
