@@ -9,8 +9,7 @@
 #include "DataAssets/Input/DataAsset_InputConfig.h"
 #include "Components/Input/PlayerInputComponent.h"
 #include "HuntedGameplayTags.h"
-
-#include "AbilitySystem/HuntedAbilitySystemComponent.h"
+#include "DataAssets/StartUpData/DataAsset_PlayerStartUpData.h"
 
 #include "HuntedDebugHelper.h"
 
@@ -45,14 +44,12 @@ void AHuntedPlayerCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
 
-	if (HuntedAbilitySystemComponent && HuntedAttributeSet)
+	if (!CharacterStartUpData.IsNull())
 	{
-		const FString ASCText = FString::Printf(TEXT("Owner Actor: %s, AvatarActor: %s"),
-			*HuntedAbilitySystemComponent->GetOwnerActor()->GetActorLabel(),
-			*HuntedAbilitySystemComponent->GetAvatarActor()->GetActorLabel());
-
-		Debug::Print(TEXT("Ability System Component VALID. ") + ASCText, FColor::Green);
-		Debug::Print(TEXT("Abillity Set VAID"), FColor::Green);
+		if (UDataAsset_StartUpDataBase* LoadedData = CharacterStartUpData.LoadSynchronous())
+		{
+			LoadedData->GivenToAbilitySystemComponent(HuntedAbilitySystemComponent);
+		}
 	}
 }
 

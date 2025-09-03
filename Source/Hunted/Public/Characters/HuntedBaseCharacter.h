@@ -9,6 +9,7 @@
 
 class UHuntedAbilitySystemComponent;
 class UHuntedAttributeSet;
+class UDataAsset_StartUpDataBase;
 
 UCLASS()
 class HUNTED_API AHuntedBaseCharacter : public ACharacter, public IAbilitySystemInterface
@@ -33,6 +34,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, Blueprintable, Category = "AbilitySystem")
 	UHuntedAttributeSet* HuntedAttributeSet;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "CharacterData")
+	TSoftObjectPtr<UDataAsset_StartUpDataBase> CharacterStartUpData;
 
 public:
 	FORCEINLINE UHuntedAbilitySystemComponent* GetHuntedAbilitySystemComponent() const { return HuntedAbilitySystemComponent; }

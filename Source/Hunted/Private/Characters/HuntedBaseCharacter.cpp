@@ -30,6 +30,7 @@ void AHuntedBaseCharacter::PossessedBy(AController* NewController)
 	if (HuntedAbilitySystemComponent)
 	{
 		HuntedAbilitySystemComponent->InitAbilityActorInfo(this, this);
+		
+		ensureMsgf(!CharacterStartUpData.IsNull(), TEXT("Forgot to Assign STARTUP DATA to %s"), *GetName());
 	}
 }
-
