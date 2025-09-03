@@ -3,6 +3,7 @@
 
 #include "AbilitySystem/Abilities/HuntedGameplayAbility.h"
 #include "AbilitySystem/HuntedAbilitySystemComponent.h"
+#include "Components/Combat/PawnCombatComponent.h"
 
 void UHuntedGameplayAbility::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
 {
@@ -30,4 +31,9 @@ void UHuntedGameplayAbility::EndAbility(const FGameplayAbilitySpecHandle Handle,
 			ActorInfo->AbilitySystemComponent->ClearAbility(Handle);
 		}
 	}
+}
+
+UPawnCombatComponent* UHuntedGameplayAbility::GetPawnCombatComponentFromActorInfo() const
+{
+	return GetAvatarActorFromActorInfo()->FindComponentByClass<UPawnCombatComponent>();
 }

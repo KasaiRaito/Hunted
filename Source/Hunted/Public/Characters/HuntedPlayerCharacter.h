@@ -12,6 +12,7 @@ struct FInputActionValue;
 class USpringArmComponent;
 class UCameraComponent;
 class UDataAsset_InputConfig;
+class UPlayerCombatComponent;
 
 /**
  * 
@@ -53,9 +54,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Echo")
 	UMaterialInterface* MyEchoMaterial;
 
-	UFUNCTION(BlueprintCallable, Category="Echo")
-	bool ReturnIsEcho();
-
 protected:
 	//~ Begin APawn Interface.
 	virtual void PossessedBy(AController* NewController) override;
@@ -66,8 +64,11 @@ protected:
 	
 private:
 #pragma region Components
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* FollowCamera;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+	UPlayerCombatComponent* PlayerCombatComponent;
 #pragma endregion
 
 #pragma region Inputs
@@ -100,9 +101,12 @@ private:
 
 	void ExitEcho();
 
-	void UpdateStaticMeshList();
-
-	
-	
+	void UpdateStaticMeshList();	
 #pragma endregion
+
+public:
+	UFUNCTION(BlueprintCallable, Category="Echo")
+	bool ReturnIsEcho() const { return IsEcho; };
+
+	FORCEINLINE UPlayerCombatComponent* GetPlayerCombatComponent()const { return PlayerCombatComponent; }
 };

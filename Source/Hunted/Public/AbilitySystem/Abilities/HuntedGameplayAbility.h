@@ -10,6 +10,8 @@
  * 
  */
 
+class UPawnCombatComponent;
+
 UENUM(BlueprintType)
 enum class EHuntedAbilityActivationPolicy : uint8
 {
@@ -29,7 +31,10 @@ protected:
 		const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 	//~ End UGameplay Interface
 	
-	UPROPERTY(EditDefaultsOnly, Category= "WarriorAbility")
+	UPROPERTY(EditDefaultsOnly, Category= "HuntedAbility")
 	EHuntedAbilityActivationPolicy AbilityActivationPolicy = EHuntedAbilityActivationPolicy::OnTriggered;
+
+	UFUNCTION(BlueprintPure, Category= "Hunted|Ability")
+	UPawnCombatComponent* GetPawnCombatComponentFromActorInfo() const;
 	
 };

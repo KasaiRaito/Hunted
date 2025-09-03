@@ -10,6 +10,7 @@
 #include "Components/Input/PlayerInputComponent.h"
 #include "HuntedGameplayTags.h"
 #include "DataAssets/StartUpData/DataAsset_PlayerStartUpData.h"
+#include "Components/Combat/PlayerCombatComponent.h"
 
 #include "HuntedDebugHelper.h"
 
@@ -32,12 +33,9 @@ AHuntedPlayerCharacter::AHuntedPlayerCharacter()
 	GetCharacterMovement()->MaxWalkSpeed = 250.0f;
 	GetCharacterMovement()->BrakingDecelerationWalking = 2000.0f;
 
+	PlayerCombatComponent = CreateDefaultSubobject<UPlayerCombatComponent>(TEXT("PlayerCombatComponent"));
+	
 	UpdateStaticMeshList();
-}
-
-bool AHuntedPlayerCharacter::ReturnIsEcho()
-{
-	return IsEcho;
 }
 
 void AHuntedPlayerCharacter::PossessedBy(AController* NewController)
@@ -283,5 +281,3 @@ void AHuntedPlayerCharacter::UpdateStaticMeshList()
 		}
 	}
 }
-
-
