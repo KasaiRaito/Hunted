@@ -9,6 +9,8 @@
 #include "DataAssets/Input/DataAsset_InputConfig.h"
 #include "Components/Input/PlayerInputComponent.h"
 #include "HuntedGameplayTags.h"
+#include "DataAssets/StartUpData/DataAsset_PlayerStartUpData.h"
+#include "Components/Combat/PlayerCombatComponent.h"
 
 #include "HuntedDebugHelper.h"
 
@@ -31,12 +33,22 @@ AHuntedPlayerCharacter::AHuntedPlayerCharacter()
 	GetCharacterMovement()->MaxWalkSpeed = 250.0f;
 	GetCharacterMovement()->BrakingDecelerationWalking = 2000.0f;
 
-	UpdateStaticMeshList();	
+	PlayerCombatComponent = CreateDefaultSubobject<UPlayerCombatComponent>(TEXT("PlayerCombatComponent"));
+	
+	UpdateStaticMeshList();
 }
 
-bool AHuntedPlayerCharacter::ReturnIsEcho() const
+void AHuntedPlayerCharacter::PossessedBy(AController* NewController)
 {
-	return IsEcho;
+	Super::PossessedBy(NewController);
+
+	if (!CharacterStartUpData.IsNull())
+	{
+		if (UDataAsset_StartUpDataBase* LoadedData = CharacterStartUpData.LoadSynchronous())
+		{
+			LoadedData->GivenToAbilitySystemComponent(HuntedAbilitySystemComponent);
+		}
+	}
 }
 
 void AHuntedPlayerCharacter::SetupPlayerInputComponent(UInputComponent* InPlayerInputComponent)
@@ -78,8 +90,6 @@ void AHuntedPlayerCharacter::SetupPlayerInputComponent(UInputComponent* InPlayer
 void AHuntedPlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-
-	Debug::Print(TEXT("HuntedPlayerCharacter::BeginPlay"));
 }
 
 void AHuntedPlayerCharacter::Input_Move(const FInputActionValue& InputActionValue)
@@ -271,5 +281,3 @@ void AHuntedPlayerCharacter::UpdateStaticMeshList()
 		}
 	}
 }
-
-
