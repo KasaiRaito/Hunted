@@ -6,6 +6,7 @@
 #include "Characters/HuntedBaseCharacter.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/StaticMeshActor.h"
+#include "GameplayTagContainer.h"
 #include "HuntedPlayerCharacter.generated.h"
 
 struct FInputActionValue;
@@ -86,6 +87,9 @@ private:
 	void ProcessMovementInput(const FInputActionValue& InputActionValue);
 
 	void Input_Look(const FInputActionValue& InputActionValue);
+
+	void Input_AbilityInputPressed(FGameplayTag InInputTag);
+	void Input_AbilityInputReleased(FGameplayTag InInputTag);
 
 	bool IsSneak = false;
 	bool IsSprint = false;

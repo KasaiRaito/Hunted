@@ -16,7 +16,14 @@ namespace  HuntedGameplayTags
 	
 	UE_DEFINE_GAMEPLAY_TAG(InputTag_Look, "InputTag.Look");
 
-
+	/* Equip / Unequip */
+	UE_DEFINE_GAMEPLAY_TAG(InputTag_Equip_BasicKnife, "InputTag.Equip.BasicKnife");
+	UE_DEFINE_GAMEPLAY_TAG(InputTag_Unequip_BasicKnife, "InputTag.Unequip.BasicKnife");
+	
+	UE_DEFINE_GAMEPLAY_TAG(InputTag_Equip_Gun, "InputTag.Equip.Gun");
+	UE_DEFINE_GAMEPLAY_TAG(InputTag_Unequip_Gun, "InputTag.Unequip.Gun");
+ 
 	/** Player Tags **/
-	UE_DEFINE_GAMEPLAY_TAG(Player_Weapon_Equipped1, "Player.Weapon.Equipped1");
+	UE_DEFINE_GAMEPLAY_TAG(Player_Weapon_BasicKnife, "Player.Weapon.BasicKnife");
+	UE_DEFINE_GAMEPLAY_TAG(Player_Weapon_Gun, "Player.Weapon.Gun")
 }

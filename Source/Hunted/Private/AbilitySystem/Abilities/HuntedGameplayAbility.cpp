@@ -37,3 +37,8 @@ UPawnCombatComponent* UHuntedGameplayAbility::GetPawnCombatComponentFromActorInf
 {
 	return GetAvatarActorFromActorInfo()->FindComponentByClass<UPawnCombatComponent>();
 }
+
+UHuntedAbilitySystemComponent* UHuntedGameplayAbility::GetHuntedAbilitySystemComponentFromActorInfo() const
+{
+	return Cast<UHuntedAbilitySystemComponent>(CurrentActorInfo->AbilitySystemComponent);
+}
