@@ -26,5 +26,5 @@ void UHuntedCharacterAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSe
 
 	GroundSpeed = OwningCharacter->GetActorTransform().InverseTransformVectorNoScale(GlobalVelocity);
 
-	bHasAccelerations = (OwningMovementComponent->GetCurrentAcceleration().SizeSquared2D() > 0.f);
+	bHasAcceleration = (OwningMovementComponent->GetCurrentAcceleration().SizeSquared2D() > 0.f);
 }
