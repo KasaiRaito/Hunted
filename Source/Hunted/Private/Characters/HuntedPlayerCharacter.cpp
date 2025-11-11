@@ -13,6 +13,7 @@
 #include "Components/Combat/PlayerCombatComponent.h"
 
 #include "HuntedDebugHelper.h"
+#include "AbilitySystem/HuntedAbilitySystemComponent.h"
 
 AHuntedPlayerCharacter::AHuntedPlayerCharacter()
 {
@@ -85,6 +86,9 @@ void AHuntedPlayerCharacter::SetupPlayerInputComponent(UInputComponent* InPlayer
 
 	PlayerInputComponent->BindNativeInputAction(InputConfigDataAsset, HuntedGameplayTags::InputTag_Echo,
 		ETriggerEvent::Triggered,this, &ThisClass::Input_Echo);
+
+	PlayerInputComponent->BindAbilityInputAction(InputConfigDataAsset,this,
+		&ThisClass::Input_AbilityInputPressed,&ThisClass::Input_AbilityInputReleased);
 }
 
 void AHuntedPlayerCharacter::BeginPlay()
@@ -200,6 +204,16 @@ void AHuntedPlayerCharacter::Input_Look(const FInputActionValue& InputActionValu
 	{
 		AddControllerPitchInput(LookAxisVector.Y);
 	}
+}
+
+void AHuntedPlayerCharacter::Input_AbilityInputPressed(FGameplayTag InInputTag)
+{
+	HuntedAbilitySystemComponent->OnAbilityInputPressed(InInputTag);
+}
+
+void AHuntedPlayerCharacter::Input_AbilityInputReleased(FGameplayTag InInputTag)
+{
+	HuntedAbilitySystemComponent->OnAbilityInputReleased(InInputTag);
 }
 
 void AHuntedPlayerCharacter::SnapFingers()

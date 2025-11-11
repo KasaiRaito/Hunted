@@ -11,6 +11,7 @@
  */
 
 class UPawnCombatComponent;
+class UHuntedAbilitySystemComponent;
 
 UENUM(BlueprintType)
 enum class EHuntedAbilityActivationPolicy : uint8
@@ -36,5 +37,7 @@ protected:
 
 	UFUNCTION(BlueprintPure, Category= "Hunted|Ability")
 	UPawnCombatComponent* GetPawnCombatComponentFromActorInfo() const;
-	
+
+	UFUNCTION(BlueprintPure, Category= "Hunted|Ability")
+	UHuntedAbilitySystemComponent* GetHuntedAbilitySystemComponentFromActorInfo() const;
 };

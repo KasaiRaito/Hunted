@@ -31,5 +31,5 @@ protected:
 	FVector GroundSpeed;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "AnimData|LocomotionData")
-	bool bHasAccelerations;
+	bool bHasAcceleration;
 };
