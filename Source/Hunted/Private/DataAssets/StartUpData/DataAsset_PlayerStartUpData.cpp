@@ -5,11 +5,6 @@
 #include "AbilitySystem/Abilities/HuntedGameplayAbility.h"
 #include "AbilitySystem/HuntedAbilitySystemComponent.h"
 
-bool FHuntedPlayerAbilitySet::IsValid() const
-{
-	return InputTag.IsValid() && AbilityToGrant;
-}
-
 void UDataAsset_PlayerStartUpData::GivenToAbilitySystemComponent(UHuntedAbilitySystemComponent* InASCToGive,
 	int32 ApplyLevel)
 {
