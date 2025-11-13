@@ -12,7 +12,7 @@ void UHuntedAbilitySystemComponent::OnAbilityInputPressed(const FGameplayTag& In
 
 	for (const FGameplayAbilitySpec& AbilitySpec : GetActivatableAbilities())
 	{
-		if (AbilitySpec.DynamicAbilityTags.HasTagExact(InInputTag))
+		if (!AbilitySpec.DynamicAbilityTags.HasTagExact(InInputTag))
 		{
 			continue;
 		}
