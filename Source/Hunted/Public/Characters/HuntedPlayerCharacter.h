@@ -95,6 +95,7 @@ private:
 	bool IsSprint = false;
 	bool IsCrouch = false;
 	bool IsEcho = false;
+	bool AimingState = false;
 	
 #pragma endregion
 
@@ -112,5 +113,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Echo")
 	bool ReturnIsEcho() const { return IsEcho; };
 
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	bool GetAimingState() const { return AimingState; };
+
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	void SetAimingState(bool bAimingState) { AimingState = bAimingState; };
+	
 	FORCEINLINE UPlayerCombatComponent* GetPlayerCombatComponent()const { return PlayerCombatComponent; }
 };

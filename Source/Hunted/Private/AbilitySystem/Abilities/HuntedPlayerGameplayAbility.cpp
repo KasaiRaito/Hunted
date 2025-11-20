@@ -30,3 +30,4 @@ UPlayerCombatComponent* UHuntedPlayerGameplayAbility::GetPlayerCombatComponentFo
 {
 	return GetPlayerCharacterFromActorInfo()->GetPlayerCombatComponent();
 }
+
