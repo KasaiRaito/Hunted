@@ -5,6 +5,8 @@
 #include "Characters/HuntedBaseCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
+#include "HuntedDebugHelper.h"
+
 void UHuntedCharacterAnimInstance::NativeInitializeAnimation()
 {
 	OwningCharacter = Cast<AHuntedBaseCharacter>(TryGetPawnOwner());
@@ -27,4 +29,7 @@ void UHuntedCharacterAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSe
 	GroundSpeed = OwningCharacter->GetActorTransform().InverseTransformVectorNoScale(GlobalVelocity);
 
 	bHasAcceleration = (OwningMovementComponent->GetCurrentAcceleration().SizeSquared2D() > 0.f);
+	
+	Aiming = OwningCharacter->GetAimingState();
+	//Pitch = OwningCharacter->GetControlRotation().Pitch;
 }

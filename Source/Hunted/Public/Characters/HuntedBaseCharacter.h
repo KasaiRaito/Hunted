@@ -37,9 +37,17 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "CharacterData")
 	TSoftObjectPtr<UDataAsset_StartUpDataBase> CharacterStartUpData;
+	
+	bool AimingState = false;
 
 public:
 	FORCEINLINE UHuntedAbilitySystemComponent* GetHuntedAbilitySystemComponent() const { return HuntedAbilitySystemComponent; }
+	
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	bool GetAimingState() const { return AimingState; };
 
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	void SetAimingState(bool bAimingState) { AimingState = bAimingState; };
+	
 	FORCEINLINE UHuntedAttributeSet* GetHuntedAttributeSet() const { return HuntedAttributeSet; }
 };
