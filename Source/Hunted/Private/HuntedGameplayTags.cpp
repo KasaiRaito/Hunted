@@ -5,7 +5,7 @@
 
 namespace  HuntedGameplayTags
 {
-/* Input Tags */
+	/* Input Tags */
 	/* Movement */
 	UE_DEFINE_GAMEPLAY_TAG(InputTag_Move, "InputTag.Move");
 	UE_DEFINE_GAMEPLAY_TAG(InputTag_Sneak, "InputTag.Sneak");
@@ -13,18 +13,21 @@ namespace  HuntedGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(InputTag_Crouch, "InputTag.Crouch");
 	UE_DEFINE_GAMEPLAY_TAG(InputTag_Snap, "InputTag.Snap");
 	UE_DEFINE_GAMEPLAY_TAG(InputTag_Look, "InputTag.Look");
+	
 	/* Abilities */
 	UE_DEFINE_GAMEPLAY_TAG(InputTag_Echo, "InputTag.Echo");
-	/* Combat */
-	UE_DEFINE_GAMEPLAY_TAG(InputTag_Aim, "InputTag.Aim");
-	UE_DEFINE_GAMEPLAY_TAG(InputTag_Shoot, "InputTag.Shoot");
-
-	/* Equip / Unequip */
-	UE_DEFINE_GAMEPLAY_TAG(InputTag_Equip_BasicKnife, "InputTag.Equip.BasicKnife");
-	UE_DEFINE_GAMEPLAY_TAG(InputTag_Unequip_BasicKnife, "InputTag.Unequip.BasicKnife");
 	
+	/* Combat */
+	UE_DEFINE_GAMEPLAY_TAG(InputTag_Aim_Gun, "InputTag.Aim.Gun");
+	UE_DEFINE_GAMEPLAY_TAG(Player_Ability_Aim_Gun, "Player.Ability.Aim.Gun");
+	UE_DEFINE_GAMEPLAY_TAG(InputTag_Shoot_Gun, "InputTag.Shoot.Gun");
+	UE_DEFINE_GAMEPLAY_TAG(Player_Ability_Shoot_Gun, "Player.Ability.Shoot.Gun");
+
+	/* Equip / Unequip */	
 	UE_DEFINE_GAMEPLAY_TAG(InputTag_Equip_Gun, "InputTag.Equip.Gun");
 	UE_DEFINE_GAMEPLAY_TAG(InputTag_Unequip_Gun, "InputTag.Unequip.Gun");
+	UE_DEFINE_GAMEPLAY_TAG(Player_Ability_Equip_Gun, "Player.Ability.Equip.Gun")
+	UE_DEFINE_GAMEPLAY_TAG(Player_Ability_Unequip_Gun, "Player.Ability.Unequip.Gun")
 
 	/* Hold Let Go Weapons */
 	UE_DEFINE_GAMEPLAY_TAG(Player_Event_Equip_Gun, "Player.Event.Equip.Gun");

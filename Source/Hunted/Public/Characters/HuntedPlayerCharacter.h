@@ -111,6 +111,6 @@ private:
 public:
 	UFUNCTION(BlueprintCallable, Category="Echo")
 	bool ReturnIsEcho() const { return IsEcho; };
-
+	
 	FORCEINLINE UPlayerCombatComponent* GetPlayerCombatComponent()const { return PlayerCombatComponent; }
 };
