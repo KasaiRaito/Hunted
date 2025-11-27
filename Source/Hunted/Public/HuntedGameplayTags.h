@@ -27,6 +27,8 @@ namespace HuntedGameplayTags
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Ability_Aim_Gun);
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Shoot_Gun);
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Ability_Shoot_Gun);
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Reload_Gun);
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Ability_Reload_Gun);
 
 	/* Equip / Unequip */
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Equip_Gun);
@@ -34,9 +36,10 @@ namespace HuntedGameplayTags
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Ability_Equip_Gun);
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Ability_Unequip_Gun);
 
-	/* Hold Let Go Weapons */
+	/* Events */
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Event_Equip_Gun);
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Event_Unequip_Gun);
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Event_Reload_Gun);
 
 	/** Player Tags **/
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Weapon_BasicKnife);

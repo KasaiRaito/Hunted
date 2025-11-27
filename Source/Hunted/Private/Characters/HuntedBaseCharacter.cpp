@@ -35,7 +35,7 @@ void AHuntedBaseCharacter::PossessedBy(AController* NewController)
 	}
 }
 
-void AHuntedBaseCharacter::HuntedRayCast(FVector startLocation, FVector rotation)
+void AHuntedBaseCharacter::HuntedRayCast(FVector startLocation, FVector rotation, float range)
 {
 	if (!GetWorld())
 	{
@@ -67,7 +67,7 @@ void AHuntedBaseCharacter::HuntedRayCast(FVector startLocation, FVector rotation
 		start.Y + (forward.Y * 100),
 		start.Z + (forward.Z * 100));
 	
-	FVector end = start + (forward * 1000);
+	FVector end = start + (forward * range);
 	
 	FHitResult hit;
 	

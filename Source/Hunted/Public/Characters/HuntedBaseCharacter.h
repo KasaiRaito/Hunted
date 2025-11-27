@@ -55,7 +55,7 @@ public:
 	void SetAimingState(bool bAimingState) { AimingState = bAimingState; };
 	
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
-	void HuntedRayCast(FVector startLocation = FVector::ZeroVector, FVector rotation = FVector::ZeroVector);
+	void HuntedRayCast(FVector startLocation = FVector::ZeroVector, FVector rotation = FVector::ZeroVector, float range = 1000.f);
 	
 	FORCEINLINE UHuntedAttributeSet* GetHuntedAttributeSet() const { return HuntedAttributeSet; }
 };
