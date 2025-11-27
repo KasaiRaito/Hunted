@@ -21,11 +21,26 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "WeaponData")
 	FHuntedPlayerWeaponData WeaponData;
 	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "WeaponData")
+	int MagSize = 0;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "WeaponData")
+	int ShootCount;
+	
 	UFUNCTION(BlueprintCallable)
 	void AssignGratedAbilitySpecHandles(const TArray<FGameplayAbilitySpecHandle>& InSpecHandles);
 	
 	UFUNCTION(BlueprintPure)
 	TArray<FGameplayAbilitySpecHandle> GetGrantedAbilitySpecHandle() const;
+	
+	UFUNCTION(BlueprintCallable)
+	int GetMagSize() const { return MagSize; };
+	
+	UFUNCTION(BlueprintCallable)
+	int GetShootCount() {return ShootCount;};
+	
+	UFUNCTION(BlueprintCallable)
+	void SetShootCount(int val) { ShootCount = val; };
 	
 private:
 	TArray<FGameplayAbilitySpecHandle>	GrantedAbilitySpecHandles;
