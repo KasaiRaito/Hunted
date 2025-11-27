@@ -5,7 +5,11 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include  "AbilitySystemInterface.h"
+
+#include "DrawDebugHelpers.h"
+
 #include "HuntedBaseCharacter.generated.h"
+
 
 class UHuntedAbilitySystemComponent;
 class UHuntedAttributeSet;
@@ -38,6 +42,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "CharacterData")
 	TSoftObjectPtr<UDataAsset_StartUpDataBase> CharacterStartUpData;
 	
+	UPROPERTY()
 	bool AimingState = false;
 
 public:
@@ -48,6 +53,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	void SetAimingState(bool bAimingState) { AimingState = bAimingState; };
+	
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	void HuntedRayCast(FVector startLocation = FVector::ZeroVector, FVector rotation = FVector::ZeroVector, float range = 1000.f);
 	
 	FORCEINLINE UHuntedAttributeSet* GetHuntedAttributeSet() const { return HuntedAttributeSet; }
 };

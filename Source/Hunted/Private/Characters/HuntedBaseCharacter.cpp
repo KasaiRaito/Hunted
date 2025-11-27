@@ -34,3 +34,50 @@ void AHuntedBaseCharacter::PossessedBy(AController* NewController)
 		ensureMsgf(!CharacterStartUpData.IsNull(), TEXT("Forgot to Assign STARTUP DATA to %s"), *GetName());
 	}
 }
+
+void AHuntedBaseCharacter::HuntedRayCast(FVector startLocation, FVector rotation, float range)
+{
+	if (!GetWorld())
+	{
+		return;
+	}
+	
+	FVector start;
+	FVector forward;
+	
+	if (startLocation == FVector::ZeroVector)
+	{
+		start = GetActorLocation();
+	}
+	else
+	{
+		start = startLocation;
+	}
+	
+	if (rotation == FVector::ZeroVector)
+	{
+		forward = GetActorForwardVector();
+	}
+	else
+	{
+		forward = rotation; 
+	}
+	
+	start = FVector(start.X + (forward.X * 100),
+		start.Y + (forward.Y * 100),
+		start.Z + (forward.Z * 100));
+	
+	FVector end = start + (forward * range);
+	
+	FHitResult hit;
+	
+	
+	bool actorHit = GetWorld()->LineTraceSingleByChannel(hit, start, end, ECC_Pawn, FCollisionQueryParams(), FCollisionResponseParams());
+	
+	DrawDebugLine(GetWorld(), start, end, FColor::Red, false, 1.f, 0.f, 10.f);
+	
+	if (actorHit && hit.GetActor())
+	{
+		GEngine->AddOnScreenDebugMessage(-1,2.0f, FColor::Green, hit.GetActor()->GetFName().ToString());
+	}
+}

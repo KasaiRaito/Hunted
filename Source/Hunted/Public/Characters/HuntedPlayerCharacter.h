@@ -7,6 +7,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Engine/StaticMeshActor.h"
 #include "GameplayTagContainer.h"
+#include "Camera/CameraComponent.h"
 #include "HuntedPlayerCharacter.generated.h"
 
 struct FInputActionValue;
@@ -67,6 +68,12 @@ private:
 #pragma region Components
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* FollowCamera;
+	
+	UFUNCTION(BlueprintCallable, Category = "Camera")
+	FVector GetFollowCameraLocation() const { return FollowCamera->GetComponentLocation(); }
+	
+	UFUNCTION(BlueprintCallable, Category = "Camera")
+	FVector GetFollowCameraForward() const { return FollowCamera->GetForwardVector(); }
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
 	UPlayerCombatComponent* PlayerCombatComponent;
