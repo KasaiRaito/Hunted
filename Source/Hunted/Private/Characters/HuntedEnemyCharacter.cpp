@@ -27,6 +27,11 @@ AHuntedEnemyCharacter::AHuntedEnemyCharacter()
 	EnemyCombatComponent = CreateDefaultSubobject<UEnemyCombatComponent>("EnemyCombatComponent");
 }
 
+UPawnCombatComponent* AHuntedEnemyCharacter::GetPawnCombatComponent() const
+{
+	return EnemyCombatComponent; 
+}
+
 void AHuntedEnemyCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);

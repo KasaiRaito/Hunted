@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include  "AbilitySystemInterface.h"
+#include "Interfaces/PawnCombatInterface.h"
 
 #include "DrawDebugHelpers.h"
 
@@ -16,7 +17,7 @@ class UHuntedAttributeSet;
 class UDataAsset_StartUpDataBase;
 
 UCLASS()
-class HUNTED_API AHuntedBaseCharacter : public ACharacter, public IAbilitySystemInterface
+class HUNTED_API AHuntedBaseCharacter : public ACharacter, public IAbilitySystemInterface, public IPawnCombatInterface
 {
 	GENERATED_BODY()
 
@@ -27,6 +28,10 @@ public:
 	//~ Begin IAbilitySystemInterface Interface
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	//~ End IAbilitySystemInterface Interface
+	
+	//~ Begin IPawnCombatInterface Interface
+	virtual UPawnCombatComponent* GetPawnCombatComponent() const override;
+	//~ End IPawnCombatInterface Interface
 
 protected:
 	//~ Begin APawn Interface.

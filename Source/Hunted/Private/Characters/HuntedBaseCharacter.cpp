@@ -23,6 +23,11 @@ UAbilitySystemComponent* AHuntedBaseCharacter::GetAbilitySystemComponent() const
 	return GetHuntedAbilitySystemComponent();
 }
 
+UPawnCombatComponent* AHuntedBaseCharacter::GetPawnCombatComponent() const
+{
+	return nullptr;
+}
+
 void AHuntedBaseCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
