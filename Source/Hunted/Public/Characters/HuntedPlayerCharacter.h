@@ -38,6 +38,11 @@ class HUNTED_API AHuntedPlayerCharacter : public AHuntedBaseCharacter
 
 public:
 	AHuntedPlayerCharacter();
+	
+	//~ Begin IPawnCombatInterface Interface
+	virtual UPawnCombatComponent* GetPawnCombatComponent() const override;
+	//~ End IPawnCombatInterface Interface
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Speed)
 	float SprintSpeed = 600.f;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Speed)

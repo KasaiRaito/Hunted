@@ -39,6 +39,12 @@ AHuntedPlayerCharacter::AHuntedPlayerCharacter()
 	UpdateStaticMeshList();
 }
 
+UPawnCombatComponent* AHuntedPlayerCharacter::GetPawnCombatComponent() const
+{
+	return PlayerCombatComponent;
+	
+}
+
 void AHuntedPlayerCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
