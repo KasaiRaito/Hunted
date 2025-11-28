@@ -11,7 +11,24 @@ void UDataAsset_StartUpDataBase::GivenToAbilitySystemComponent(UHuntedAbilitySys
 	check(InASCToGive);
 
 	GranAbilities(ActivateOnGivenAbilities,InASCToGive,ApplyLevel);
-	GranAbilities(ReactiveAbilities,InASCToGive,ApplyLevel);	
+	GranAbilities(ReactiveAbilities,InASCToGive,ApplyLevel);
+	
+	if (!StartUpGameplayEffects.IsEmpty())
+	{
+		for (const TSubclassOf<UGameplayEffect>& EffectClass : StartUpGameplayEffects)
+		{
+			if (!EffectClass)
+			{
+				continue;
+			}
+			
+			UGameplayEffect* EffectCDO = EffectClass->GetDefaultObject<UGameplayEffect>();
+			InASCToGive->ApplyGameplayEffectToSelf(
+				EffectCDO, 
+				ApplyLevel, InASCToGive->MakeEffectContext()
+			);
+		}
+	}
 }
 
 void UDataAsset_StartUpDataBase::GranAbilities(const TArray<TSubclassOf<UHuntedGameplayAbility>>& InAbilitiesToGive,

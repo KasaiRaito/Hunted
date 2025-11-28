@@ -12,6 +12,7 @@
 
 class UHuntedGameplayAbility;
 class UHuntedAbilitySystemComponent;
+class UGameplayEffect;
 
 UCLASS()
 class HUNTED_API UDataAsset_StartUpDataBase : public UDataAsset
@@ -28,5 +29,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly,Category= "StartUpData")
 	TArray<TSubclassOf<UHuntedGameplayAbility>> ReactiveAbilities;
 
+	UPROPERTY(EditDefaultsOnly,Category= "StartUpData")
+	TArray<TSubclassOf<UGameplayEffect>> StartUpGameplayEffects;
+	
 	void GranAbilities(const TArray< TSubclassOf <UHuntedGameplayAbility> >& InAbilitiesToGive, UHuntedAbilitySystemComponent* InASCToGive, int32 ApplyLevel = 1);
 };
