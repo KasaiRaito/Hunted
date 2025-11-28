@@ -35,33 +35,15 @@ void AHuntedBaseCharacter::PossessedBy(AController* NewController)
 	}
 }
 
-void AHuntedBaseCharacter::HuntedRayCast(FVector startLocation, FVector rotation, float range)
+AActor* AHuntedBaseCharacter::HuntedRayCast(FVector startLocation, FVector rotation, float range)
 {
 	if (!GetWorld())
 	{
-		return;
+		return nullptr;
 	}
 	
-	FVector start;
-	FVector forward;
-	
-	if (startLocation == FVector::ZeroVector)
-	{
-		start = GetActorLocation();
-	}
-	else
-	{
-		start = startLocation;
-	}
-	
-	if (rotation == FVector::ZeroVector)
-	{
-		forward = GetActorForwardVector();
-	}
-	else
-	{
-		forward = rotation; 
-	}
+	FVector start = startLocation;
+	FVector forward = rotation;
 	
 	start = FVector(start.X + (forward.X * 100),
 		start.Y + (forward.Y * 100),
@@ -79,5 +61,8 @@ void AHuntedBaseCharacter::HuntedRayCast(FVector startLocation, FVector rotation
 	if (actorHit && hit.GetActor())
 	{
 		GEngine->AddOnScreenDebugMessage(-1,2.0f, FColor::Green, hit.GetActor()->GetFName().ToString());
+		return hit.GetActor();
 	}
+	
+	return nullptr;
 }
