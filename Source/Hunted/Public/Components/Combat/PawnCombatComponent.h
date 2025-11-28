@@ -7,11 +7,19 @@
 #include "GameplayTagContainer.h"
 #include "PawnCombatComponent.generated.h"
 
+class AHuntedWeaponBase;
 /**
  * 
  */
 
-class AHuntedWeaponBase;
+UENUM(BlueprintType)
+enum class EToggleDamageType : uint8
+{
+	CurrentEquippedWeapon,
+	LeftHand,
+	RightHad,
+};
+
 UCLASS()
 class HUNTED_API UPawnCombatComponent : public UPawnExtensionComponentBase
 {
@@ -28,6 +36,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Warriro|Combat")
 	AHuntedWeaponBase* GetCharacterCurrentEquippedWeapon() const;
+	
+	UFUNCTION(BlueprintCallable, Category = "Warriro|Combat")
+	void ToggleWeaponCollision(bool bShouldEnable, EToggleDamageType ToggleDamageType = EToggleDamageType::CurrentEquippedWeapon);
 	
 private:
 	TMap<FGameplayTag, AHuntedWeaponBase*> CharacterCarriedWeaponMap;
