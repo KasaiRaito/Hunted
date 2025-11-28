@@ -54,8 +54,6 @@ void AHuntedEnemyCharacter::InitEnemyStartUpData()
 				if (UDataAsset_StartUpDataBase* LoadedData = CharacterStartUpData.Get())
 				{
 					LoadedData->GivenToAbilitySystemComponent(HuntedAbilitySystemComponent);
-					
-					Debug::Print((TEXT("Enemy Start Up Data Loaded")), FColor::Green);
 				}
 			}
 		)
