@@ -41,5 +41,4 @@ struct FHuntedPlayerWeaponData
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (TitleProperty = "InputTag"))
 	TArray<FHuntedPlayerAbilitySet> DefaultWeaponAbilities;
-	
 };

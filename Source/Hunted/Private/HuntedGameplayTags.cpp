@@ -39,4 +39,7 @@ namespace  HuntedGameplayTags
 	/** Player Tags **/
 	UE_DEFINE_GAMEPLAY_TAG(Player_Weapon_BasicKnife, "Player.Weapon.BasicKnife");
 	UE_DEFINE_GAMEPLAY_TAG(Player_Weapon_Gun, "Player.Weapon.Gun")
+	
+	/** Enemy Tags **/
+	UE_DEFINE_GAMEPLAY_TAG(Enemy_Weapon, "Enemy.Weapon");
 }

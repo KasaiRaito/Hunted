@@ -44,4 +44,7 @@ namespace HuntedGameplayTags
 	/** Player Tags **/
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Weapon_BasicKnife);
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Weapon_Gun);
+	
+	/** Enemy Tags **/
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Enemy_Weapon);
 }
