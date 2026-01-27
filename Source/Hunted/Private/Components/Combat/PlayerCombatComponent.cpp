@@ -17,23 +17,24 @@ void UPlayerCombatComponent::OnHitTargetActor(AActor* HitActor)
 {
 	Super::OnHitTargetActor(HitActor);
 	Debug::Print(GetOwningPawn()->GetActorNameOrLabel() + TEXT(" hit ") + HitActor->GetActorNameOrLabel(), FColor::Green);
-	
+
 	if (OverlappedActors.Contains(HitActor))
 	{
 		return;
 	}
-	
+
 	OverlappedActors.Add(HitActor);
-	
+
 	FGameplayEventData HitData;
 	HitData.Instigator = GetOwningPawn();
 	HitData.Target = HitActor;
-	
+
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(
 		GetOwningPawn(),
 		HuntedGameplayTags::Shared_Event_MeleeHit,
-		HitData		
+		HitData
 	);
+	
 }
 
 void UPlayerCombatComponent::OnWeaponPulledFromTargetActor(AActor* InteractedActor)
