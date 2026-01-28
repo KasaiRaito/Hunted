@@ -4,6 +4,8 @@
 #include "Characters/HuntedBaseCharacter.h"
 #include "AbilitySystem/HuntedAbilitySystemComponent.h"
 #include "AbilitySystem/HuntedAttributeSet.h"
+#include "AbilitySystemBlueprintLibrary.h"
+#include "HuntedGameplayTags.h"
 
 // Sets default values
 AHuntedBaseCharacter::AHuntedBaseCharacter()
@@ -63,7 +65,7 @@ AActor* AHuntedBaseCharacter::HuntedRayCast(FVector startLocation, FVector rotat
 	DrawDebugLine(GetWorld(), start, end, FColor::Red, false, 1.f, 0.f, 10.f);
 	
 	if (actorHit && hit.GetActor())
-	{
+	{		
 		//GEngine->AddOnScreenDebugMessage(-1,2.0f, FColor::Green, hit.GetActor()->GetFName().ToString());
 		return hit.GetActor();
 	}
