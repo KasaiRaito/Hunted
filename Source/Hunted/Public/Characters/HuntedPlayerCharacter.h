@@ -19,6 +19,7 @@ class UPlayerCombatComponent;
 /**
  * 
  */
+
 USTRUCT(BlueprintType)
 struct FActorMaterialBackup
 {
