@@ -19,4 +19,8 @@ public:
 	//MIGHT HAVE TO CHANGE LOGIC TO A CHILD CLASS SPECIFIC WEAPON
 	UFUNCTION(BlueprintCallable, Category = "Hunted|Combat")
 	AHuntedPlayerWeaponBase* GetPlayerCarriedWeaponByTag(FGameplayTag InWeaponTag) const;
+	
+	UFUNCTION(BlueprintCallable, Category = "Hunted|Combat")
+	virtual void OnHitTargetActor(AActor* HitActor) override;
+	virtual void OnWeaponPulledFromTargetActor(AActor* InteractedActor) override;
 };

@@ -58,4 +58,7 @@ namespace HuntedGameplayTags
 	
 	/** Enemy Tags **/
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Enemy_Weapon);
+	
+	/** Shared tags **/
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Shared_Event_MeleeHit)
 }

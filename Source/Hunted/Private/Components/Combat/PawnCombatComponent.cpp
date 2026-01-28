@@ -18,7 +18,7 @@ void UPawnCombatComponent::RegisterSpawnedWeapon(FGameplayTag InWeaponTagToRegis
 	CharacterCarriedWeaponMap.Emplace(InWeaponTagToRegister, InWeaponToRegister);
 
 	InWeaponToRegister->OnWeaponHitTarget.BindUObject(this, &ThisClass::OnHitTargetActor);
-	InWeaponToRegister->OnWeaponPulledFromTarget.BindUObject(this, &ThisClass::OnHitTargetActor);
+	InWeaponToRegister->OnWeaponPulledFromTarget.BindUObject(this, &ThisClass::OnWeaponPulledFromTargetActor);
 	
 	if (bRegisterAsEquippedWeapon)
 	{
@@ -67,6 +67,7 @@ void UPawnCombatComponent::ToggleWeaponCollision(bool bShouldEnable, EToggleDama
 		else
 		{
 			WeaponToToggle->GetWeaponCollisionBox()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			OverlappedActors.Empty();
 			//Debug::Print(WeaponToToggle->GetName()+ TEXT(": collision disabled"), FColor::Red);
 		}
 	}
@@ -77,7 +78,7 @@ void UPawnCombatComponent::OnHitTargetActor(AActor* HitActor)
 	
 }
 
-void UPawnCombatComponent::OnWeaponPulledFromTargetActor(AActor* TargetActor)
+void UPawnCombatComponent::OnWeaponPulledFromTargetActor(AActor* InteractedActor)
 {
 	
 }
