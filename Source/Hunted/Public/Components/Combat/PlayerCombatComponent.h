@@ -21,6 +21,6 @@ public:
 	AHuntedPlayerWeaponBase* GetPlayerCarriedWeaponByTag(FGameplayTag InWeaponTag) const;
 	
 	UFUNCTION(BlueprintCallable, Category = "Hunted|Combat")
-	virtual void OnHitTargetActor(AActor* HitActor) override;
+	virtual void OnWeaponHitTarget(AActor* HitActor) override;
 	virtual void OnWeaponPulledFromTargetActor(AActor* InteractedActor) override;
 };

@@ -40,7 +40,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Warriro|Combat")
 	void ToggleWeaponCollision(bool bShouldEnable, EToggleDamageType ToggleDamageType = EToggleDamageType::CurrentEquippedWeapon);
 	
-	virtual void OnHitTargetActor(AActor* HitActor);
+	virtual void OnWeaponHitTarget(AActor* HitActor);
 	virtual void OnWeaponPulledFromTargetActor(AActor* InteractedActor);
 	
 protected:

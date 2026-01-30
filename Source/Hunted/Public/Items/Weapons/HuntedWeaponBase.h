@@ -41,6 +41,9 @@ protected:
 	UFUNCTION(BlueprintCallable, Category = "Weapons-Guns")
 	virtual void HandleRayCastHit(AActor* HitActor);
 	
+	UFUNCTION(BlueprintCallable, Category = "Weapons-Guns")
+	virtual void HandleRayCastExit(AActor* HitActor);
+	
 public:
 	FORCEINLINE UBoxComponent* GetWeaponCollisionBox() const { return WeaponCollisionBox;}
 };
