@@ -38,12 +38,6 @@ protected:
 	virtual void OnCollisionBoxEndOverlap( UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, 
 		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 	
-	UFUNCTION(BlueprintCallable, Category = "Weapons-Guns")
-	virtual void HandleRayCastHit(AActor* HitActor);
-	
-	UFUNCTION(BlueprintCallable, Category = "Weapons-Guns")
-	virtual void HandleRayCastExit(AActor* HitActor);
-	
 public:
 	FORCEINLINE UBoxComponent* GetWeaponCollisionBox() const { return WeaponCollisionBox;}
 };

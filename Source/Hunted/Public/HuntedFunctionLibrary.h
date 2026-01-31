@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
-#include "HuntedTypes/WarriorEnumTypes.h"
+#include "HuntedTypes/HuntedEnumTypes.h"
 #include "HuntedFunctionLibrary.generated.h"
 
 class UPawnCombatComponent;
