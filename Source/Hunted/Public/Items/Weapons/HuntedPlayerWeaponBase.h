@@ -19,7 +19,7 @@ class HUNTED_API AHuntedPlayerWeaponBase : public AHuntedWeaponBase
 public:
 	//MIGHT HAVE TO CHANGE LOGIC TO A CHILD CLASS SPECIFIC WEAPON
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "WeaponData")
-	FHuntedPlayerWeaponData WeaponData;
+	FHuntedPlayerWeaponData PlayerWeaponData;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "WeaponData")
 	int MagSize = 0;

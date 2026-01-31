@@ -13,9 +13,19 @@ AHuntedPlayerWeaponBase* UPlayerCombatComponent::GetPlayerCarriedWeaponByTag(FGa
 	return Cast<AHuntedPlayerWeaponBase>(GetCharacterCarriedWeaponByTag(InWeaponTag));
 }
 
+AHuntedPlayerWeaponBase* UPlayerCombatComponent::GetPlayerCurrentEquippedWeapon() const
+{
+	return Cast<AHuntedPlayerWeaponBase>(GetCharacterCurrentEquippedWeapon());
+}
+
+float UPlayerCombatComponent::GetPlayerCurrentEquippWeaponDamageAtLevel(float InLevel) const
+{
+	return GetPlayerCurrentEquippedWeapon()->PlayerWeaponData.WeaponBaseDamage.GetValueAtLevel(InLevel);
+}
+
 void UPlayerCombatComponent::OnWeaponHitTarget(AActor* HitActor)
 {
-	Debug::Print(GetOwningPawn()->GetActorNameOrLabel() + TEXT(" hit ") + HitActor->GetActorNameOrLabel(), FColor::Green);
+	//Debug::Print(GetOwningPawn()->GetActorNameOrLabel() + TEXT(" hit ") + HitActor->GetActorNameOrLabel(), FColor::Green);
 
 	if (OverlappedActors.Contains(HitActor))
 	{

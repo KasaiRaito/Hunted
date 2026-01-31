@@ -3,6 +3,8 @@
 #pragma once
 
 #include  "GameplayTagContainer.h"
+#include "ScalableFloat.h"
+
 #include "HuntedStructTypes.generated.h"
 
 class UHuntedPlayerLinkedAnimLayer;
@@ -41,4 +43,7 @@ struct FHuntedPlayerWeaponData
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (TitleProperty = "InputTag"))
 	TArray<FHuntedPlayerAbilitySet> DefaultWeaponAbilities;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	FScalableFloat WeaponBaseDamage;
 };
