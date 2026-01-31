@@ -29,6 +29,10 @@ void AHuntedWeaponBase::OnCollisionBoxBeginOverlap(UPrimitiveComponent* Overlapp
 	
 	checkf(WeaponOwningPawn, TEXT("Forgot instigator as Owning Pawn for the Weapon: %s "), *GetName());
 	
+	/** Try To add part dettection
+	UMeshComponent* HitPawnMesh = OtherActor->GetComponentByClass(UMeshComponent::StaticClass());
+	**/
+	
 	if (APawn* HitPawn= Cast<APawn>(OtherActor))
 	{
 		if (WeaponOwningPawn != HitPawn)

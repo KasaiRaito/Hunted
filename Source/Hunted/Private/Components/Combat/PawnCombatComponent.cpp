@@ -75,10 +75,10 @@ void UPawnCombatComponent::ToggleWeaponCollision(bool bShouldEnable, EToggleDama
 
 void UPawnCombatComponent::OnWeaponHitTarget(AActor* HitActor)
 {
-	Debug::Print(TEXT(""), FColor::Red);
+	//Debug::Print(TEXT(""), FColor::Red);
 }
 
 void UPawnCombatComponent::OnWeaponPulledFromTargetActor(AActor* InteractedActor)
 {
-	Debug::Print(TEXT(""), FColor::Red);
+	//Debug::Print(TEXT(""), FColor::Red);
 }
