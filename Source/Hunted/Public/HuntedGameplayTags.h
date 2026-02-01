@@ -56,15 +56,10 @@ namespace HuntedGameplayTags
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Weapon_Gun);
 	
 		/** Set By Caller **/
-	//HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_SetByCaller_AttackType_BasicKnife);
-	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_SetByCaller_AttackType_BasicKnife_Head);
-	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_SetByCaller_AttackType_BasicKnife_Body);
-	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_SetByCaller_AttackType_BasicKnife_Leg);
-	
-	//HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_SetByCaller_AttackType_BasicGun);
-	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_SetByCaller_AttackType_BasicGun_Head);
-	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_SetByCaller_AttackType_BasicGun_Body);
-	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_SetByCaller_AttackType_BasicGun_Leg);
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_SetByCaller_AttackType_BasicKnife);
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_SetByCaller_AttackType_Head);
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_SetByCaller_AttackType_Body);
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_SetByCaller_AttackType_Leg);
 	
 	/** Enemy Tags **/
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Enemy_Weapon);

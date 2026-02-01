@@ -53,5 +53,5 @@ void AHuntedWeaponBase::OnCollisionBoxEndOverlap(UPrimitiveComponent* Overlapped
 			OnWeaponPulledFromTarget.ExecuteIfBound(OtherActor);
 			//Debug::Print(GetName() + TEXT("end overlap with ") + HitPawn->GetName(), FColor::Red);
 		}
-	}	
+	}
 }

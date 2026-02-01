@@ -34,7 +34,7 @@ UPlayerCombatComponent* UHuntedPlayerGameplayAbility::GetPlayerCombatComponentFo
 }
 
 FGameplayEffectSpecHandle UHuntedPlayerGameplayAbility::MakePlayerSpecHandle(TSubclassOf<UGameplayEffect> EffectClass,
-	float InWeaponBaseDamage, FGameplayTag InCurrentAttackTypeTag, int32 InUsedComboCount)
+	float InWeaponBaseDamage, FGameplayTag InCurrentAttackTypeTag, float DamageScalar)
 {
 	check(EffectClass);
 	
@@ -53,11 +53,11 @@ FGameplayEffectSpecHandle UHuntedPlayerGameplayAbility::MakePlayerSpecHandle(TSu
 	HuntedGameplayTags::Shared_SetByCaller_BaseDamage,
 		InWeaponBaseDamage
 	);
-	
+
 	if (InCurrentAttackTypeTag.IsValid())
 	{
 		EffectSpecHandle.Data->SetSetByCallerMagnitude(
-			InCurrentAttackTypeTag, InUsedComboCount
+			InCurrentAttackTypeTag, DamageScalar
 		);
 	}
 	
