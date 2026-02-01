@@ -6,59 +6,71 @@
 
 /**
  * 
- */
+ **/
 
 namespace HuntedGameplayTags
 {
-	/* Input Tags */
-	/* Movement */
+	/** Input Tags **/
+		/** Movement **/
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Move);
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Sneak);
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Sprint);
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Crouch);
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Snap);
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Look);
-	
-	/* Abilities */
-	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Echo);
-	
-	/* Combat */
+		/** Echo **/
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Echo);	
+		/** Combat **/
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Aim_Gun);
-	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Ability_Aim_Gun);
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Shoot_Gun);
-	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Ability_Shoot_Gun);
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Reload_Gun);
-	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Ability_Reload_Gun);
-
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Shoot_Knife);
-	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Ability_Shoot_Knife);
-
-	/* Equip / Unequip */
+		/** Equip / Unequip **/
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Equip_Gun);
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Unequip_Gun);
-	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Ability_Equip_Gun);
-	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Ability_Unequip_Gun);
-	
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Equip_Knife);
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Unequip_Knife);
+	
+	/** Player **/
+		/** Abilities **/
+			/** Combat **/
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Ability_Aim_Gun);
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Ability_Shoot_Gun);
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Ability_Reload_Gun);
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Ability_Shoot_Knife);
+			/** Equip / Unequip **/
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Ability_Equip_Gun);
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Ability_Unequip_Gun);
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Ability_Equip_Knife);
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Ability_Unequip_Knife);
 
-	/* Events */
+		/** Events **/
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Event_Equip_Gun);
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Event_Unequip_Gun);
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Event_Reload_Gun);
-	
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Event_Equip_Knife);
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Event_Unequip_Knife);
 
-	/** Player Tags **/
+		/** Player Tags **/
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Weapon_BasicKnife);
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Weapon_Gun);
+	
+		/** Set By Caller **/
+	//HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_SetByCaller_AttackType_BasicKnife);
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_SetByCaller_AttackType_BasicKnife_Head);
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_SetByCaller_AttackType_BasicKnife_Body);
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_SetByCaller_AttackType_BasicKnife_Leg);
+	
+	//HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_SetByCaller_AttackType_BasicGun);
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_SetByCaller_AttackType_BasicGun_Head);
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_SetByCaller_AttackType_BasicGun_Body);
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_SetByCaller_AttackType_BasicGun_Leg);
 	
 	/** Enemy Tags **/
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Enemy_Weapon);
 	
 	/** Shared tags **/
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Shared_Event_MeleeHit)
+	
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Shared_SetByCaller_BaseDamage)
 }

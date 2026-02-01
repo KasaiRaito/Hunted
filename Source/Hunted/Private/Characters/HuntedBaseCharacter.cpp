@@ -60,7 +60,11 @@ AActor* AHuntedBaseCharacter::HuntedRayCast(FVector startLocation, FVector rotat
 	
 	FHitResult hit;
 	
-	bool actorHit = GetWorld()->LineTraceSingleByChannel(hit, start, end, ECC_Pawn, FCollisionQueryParams(), FCollisionResponseParams());
+	bool actorHit = GetWorld()->LineTraceSingleByChannel(
+		hit, start, end, 
+		ECC_Pawn, FCollisionQueryParams(), 
+		FCollisionResponseParams()
+	);
 	
 	DrawDebugLine(GetWorld(), start, end, FColor::Red, false, 1.f, 0.f, 10.f);
 	

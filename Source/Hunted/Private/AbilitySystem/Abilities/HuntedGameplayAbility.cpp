@@ -4,6 +4,7 @@
 #include "AbilitySystem/Abilities/HuntedGameplayAbility.h"
 #include "AbilitySystem/HuntedAbilitySystemComponent.h"
 #include "Components/Combat/PawnCombatComponent.h"
+#include "AbilitySystemBlueprintLibrary.h"
 
 void UHuntedGameplayAbility::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
 {
@@ -41,4 +42,27 @@ UPawnCombatComponent* UHuntedGameplayAbility::GetPawnCombatComponentFromActorInf
 UHuntedAbilitySystemComponent* UHuntedGameplayAbility::GetHuntedAbilitySystemComponentFromActorInfo() const
 {
 	return Cast<UHuntedAbilitySystemComponent>(CurrentActorInfo->AbilitySystemComponent);
+}
+
+FActiveGameplayEffectHandle UHuntedGameplayAbility::NativeApplyEffectSpecHandleToTarget(AActor* TargetActor,
+	const FGameplayEffectSpecHandle& InSpecHandle)
+{
+	UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor);
+	
+	check(TargetASC && InSpecHandle.IsValid())
+	
+	return GetHuntedAbilitySystemComponentFromActorInfo()->ApplyGameplayEffectSpecToTarget(
+		*InSpecHandle.Data,
+		TargetASC
+	);
+}
+
+FActiveGameplayEffectHandle UHuntedGameplayAbility::BP_ApplyEffectSpecHandleToTarget(AActor* TargetActor,
+	const FGameplayEffectSpecHandle& InSpecHandle, EHuntedSuccessType& OutSuccessType)
+{
+	FActiveGameplayEffectHandle ActiveGameplayEffectHandle = NativeApplyEffectSpecHandleToTarget(TargetActor, InSpecHandle);
+	OutSuccessType = ActiveGameplayEffectHandle.WasSuccessfullyApplied() ? 
+		EHuntedSuccessType::Successful : EHuntedSuccessType::Failed;
+	
+	return ActiveGameplayEffectHandle;
 }

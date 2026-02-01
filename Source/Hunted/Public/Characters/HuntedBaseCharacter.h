@@ -8,6 +8,7 @@
 #include "Interfaces/PawnCombatInterface.h"
 
 #include "DrawDebugHelpers.h"
+#include "HuntedGameplayTags.h"
 
 #include "HuntedBaseCharacter.generated.h"
 
@@ -61,6 +62,11 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	AActor* HuntedRayCast(FVector startLocation = FVector::ZeroVector, FVector rotation = FVector::ZeroVector, float range = 1000.f);
+	
+	/*
+	UFUNCTION(Blueprintable, Category = "Weapon")
+	HuntedGameplayTags GetDamageTagToApply(USkeletalMeshSocket PartHitten);
+	*/
 	
 	FORCEINLINE UHuntedAttributeSet* GetHuntedAttributeSet() const { return HuntedAttributeSet; }
 };

@@ -55,19 +55,3 @@ void AHuntedWeaponBase::OnCollisionBoxEndOverlap(UPrimitiveComponent* Overlapped
 		}
 	}	
 }
-
-void AHuntedWeaponBase::HandleRayCastHit(AActor* OtherActor)
-{
-	APawn* WeaponOwningPawn = GetInstigator<APawn>();
-	
-	checkf(WeaponOwningPawn, TEXT("Forgot instigator as Owning Pawn for the Weapon: %s "), *GetName());
-	
-	if (APawn* HitPawn= Cast<APawn>(OtherActor))
-	{
-		if (WeaponOwningPawn != HitPawn)
-		{
-			OnWeaponHitTarget.ExecuteIfBound(OtherActor);
-			//Debug::Print(GetName() + TEXT("beguin ovelap with ") + HitPawn->GetName(), FColor::Green);
-		}
-	}
-}

@@ -13,10 +13,19 @@ AHuntedPlayerWeaponBase* UPlayerCombatComponent::GetPlayerCarriedWeaponByTag(FGa
 	return Cast<AHuntedPlayerWeaponBase>(GetCharacterCarriedWeaponByTag(InWeaponTag));
 }
 
-void UPlayerCombatComponent::OnHitTargetActor(AActor* HitActor)
+AHuntedPlayerWeaponBase* UPlayerCombatComponent::GetPlayerCurrentEquippedWeapon() const
 {
-	Super::OnHitTargetActor(HitActor);
-	Debug::Print(GetOwningPawn()->GetActorNameOrLabel() + TEXT(" hit ") + HitActor->GetActorNameOrLabel(), FColor::Green);
+	return Cast<AHuntedPlayerWeaponBase>(GetCharacterCurrentEquippedWeapon());
+}
+
+float UPlayerCombatComponent::GetPlayerCurrentEquippWeaponDamageAtLevel(float InLevel) const
+{
+	return GetPlayerCurrentEquippedWeapon()->PlayerWeaponData.WeaponBaseDamage.GetValueAtLevel(InLevel);
+}
+
+void UPlayerCombatComponent::OnWeaponHitTarget(AActor* HitActor)
+{
+	//Debug::Print(GetOwningPawn()->GetActorNameOrLabel() + TEXT(" hit ") + HitActor->GetActorNameOrLabel(), FColor::Green);
 
 	if (OverlappedActors.Contains(HitActor))
 	{
@@ -34,6 +43,8 @@ void UPlayerCombatComponent::OnHitTargetActor(AActor* HitActor)
 		HuntedGameplayTags::Shared_Event_MeleeHit,
 		HitData
 	);
+	Super::OnWeaponHitTarget(HitActor);
+	
 	
 }
 
