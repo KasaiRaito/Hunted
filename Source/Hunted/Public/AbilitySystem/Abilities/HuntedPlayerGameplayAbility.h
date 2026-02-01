@@ -29,9 +29,12 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Player|Ability")
 	FGameplayEffectSpecHandle MakePlayerSpecHandle
 		(TSubclassOf<UGameplayEffect> EffectClass, float InWeaponBaseDamage, 
-			FGameplayTag InCurrentAttackTypeTag, int32 InUsedComboCount);
+			FGameplayTag InCurrentAttackTypeTag, int32 InUsedComboCount,
+			);
 	
 private:
 	TWeakObjectPtr<AHuntedPlayerCharacter> CachedWarriorHeroCharacter;
 	TWeakObjectPtr<AHuntedPlayerController> CachedWarriorHeroController;
+	
+	
 };
