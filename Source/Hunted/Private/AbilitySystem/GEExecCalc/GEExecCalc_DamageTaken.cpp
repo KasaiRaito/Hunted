@@ -1,8 +1,13 @@
 // KasaiRaito All Rights Reserved
 
 #include "AbilitySystem/GEExecCalc/GEExecCalc_DamageTaken.h"
+
+#include <string>
+
 #include "AbilitySystem/HuntedAttributeSet.h"
 #include "HuntedGameplayTags.h"
+
+#include "HuntedDebugHelper.h"
 
 struct FHuntedDamageCapture
 {
@@ -79,6 +84,13 @@ void UGEExecCalc_DamageTaken::Execute_Implementation(const FGameplayEffectCustom
 	);
 
 	float  BaseDamage = 0.0f;
+	float DamageScalar = 0.0f;
+	FGameplayTagContainer HitTypeTags;
+	HitTypeTags.AddTag(HuntedGameplayTags::Player_SetByCaller_AttackType_Head);
+	HitTypeTags.AddTag(HuntedGameplayTags::Player_SetByCaller_AttackType_Body);
+	HitTypeTags.AddTag(HuntedGameplayTags::Player_SetByCaller_AttackType_Leg);
+	
+	
 	//int32 UsedKnifeComboCount = 0;
 	//int32 UsedGunComboCount = 0;
 	
@@ -88,19 +100,14 @@ void UGEExecCalc_DamageTaken::Execute_Implementation(const FGameplayEffectCustom
 		{
 			BaseDamage = TagMagnitude.Value;
 		}
-		
-		/** Not in use Getters **/
-		/**
-		if (TagMagnitude.Key.MatchesTagExact(HuntedGameplayTags::Player_SetByCaller_AttackType_BasicKnife))
+			
+		if (TagMagnitude.Key.MatchesAny(HitTypeTags))
 		{
-			UsedKnifeComboCount = TagMagnitude.Value;
+			DamageScalar = TagMagnitude.Value;
+	
+			FString DamageAsString = FString::SanitizeFloat(DamageScalar);
+			Debug::Print(TEXT( "Damage Scalar = " + DamageAsString), FColor::Purple);
 		}
-		
-		if (TagMagnitude.Key.MatchesTagExact(HuntedGameplayTags::Player_SetByCaller_AttackType_BasicGun))
-		{
-			UsedGunComboCount = TagMagnitude.Value;
-		}
-		**/
 	}
 	
 	float TargetDefencePower = 0.0f;
@@ -110,5 +117,13 @@ void UGEExecCalc_DamageTaken::Execute_Implementation(const FGameplayEffectCustom
 		TargetDefencePower
 	);
 	
+	if (BaseDamage == 0.0f)
+	{
+		Debug::Print(TEXT("Base Damage IS ZERO"));
+	}
 	
+	const float FinalDamageDone = (BaseDamage* DamageScalar);
+	FString FloatAsString = FString::SanitizeFloat(FinalDamageDone);
+	
+	Debug::Print(TEXT( "FinalDamage= " + FloatAsString));
 }

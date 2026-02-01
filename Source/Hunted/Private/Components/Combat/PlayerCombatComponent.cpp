@@ -25,7 +25,7 @@ float UPlayerCombatComponent::GetPlayerCurrentEquippWeaponDamageAtLevel(float In
 
 void UPlayerCombatComponent::OnWeaponHitTarget(AActor* HitActor)
 {
-	//Debug::Print(GetOwningPawn()->GetActorNameOrLabel() + TEXT(" hit ") + HitActor->GetActorNameOrLabel(), FColor::Green);
+	Debug::Print(GetOwningPawn()->GetActorNameOrLabel() + TEXT(" hit ") + HitActor->GetActorNameOrLabel(), FColor::Green);
 
 	if (OverlappedActors.Contains(HitActor))
 	{
@@ -44,8 +44,6 @@ void UPlayerCombatComponent::OnWeaponHitTarget(AActor* HitActor)
 		HitData
 	);
 	Super::OnWeaponHitTarget(HitActor);
-	
-	
 }
 
 void UPlayerCombatComponent::OnWeaponPulledFromTargetActor(AActor* InteractedActor)
