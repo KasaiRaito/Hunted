@@ -51,11 +51,15 @@ namespace  HuntedGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Player_Weapon_Gun, "Player.Weapon.Gun")
 	
 		/** Set By Caller **/
-	UE_DEFINE_GAMEPLAY_TAG(Player_SetByCaller_AttackType_BasicKnife, "Player.SetByCaller.AttackType.BasicKnife");
-	UE_DEFINE_GAMEPLAY_TAG(Player_SetByCaller_AttackType_BasicGun, "Player.SetByCaller.AttackType.BasicGun")
-	//UE_DEFINE_GAMEPLAY_TAG(Player_SetByCaller_AttackType_BasicKnife_Head, "Player.SetByCaller.AttackType.BasicKnife.Head");
-	//UE_DEFINE_GAMEPLAY_TAG(Player_SetByCaller_AttackType_BasicKnife_Body, "Player.SetByCaller.AttackType.BasicKnife.Body");
-	//UE_DEFINE_GAMEPLAY_TAG(Player_SetByCaller_AttackType_BasicKnife_Leg, "Player.SetByCaller.AttackType.BasicKnife.Leg");
+	//UE_DEFINE_GAMEPLAY_TAG(Player_SetByCaller_AttackType_BasicKnife, "Player.SetByCaller.AttackType.BasicKnife");
+	UE_DEFINE_GAMEPLAY_TAG(Player_SetByCaller_AttackType_BasicKnife_Head, "Player.SetByCaller.AttackType.BasicKnife.Head");
+	UE_DEFINE_GAMEPLAY_TAG(Player_SetByCaller_AttackType_BasicKnife_Body, "Player.SetByCaller.AttackType.BasicKnife.Body");
+	UE_DEFINE_GAMEPLAY_TAG(Player_SetByCaller_AttackType_BasicKnife_Leg, "Player.SetByCaller.AttackType.BasicKnife.Leg");
+	
+	//UE_DEFINE_GAMEPLAY_TAG(Player_SetByCaller_AttackType_BasicGun, "Player.SetByCaller.AttackType.BasicGun")
+	UE_DEFINE_GAMEPLAY_TAG(Player_SetByCaller_AttackType_BasicGun_Head, "Player.SetByCaller.AttackType.BasicGun.Head")
+	UE_DEFINE_GAMEPLAY_TAG(Player_SetByCaller_AttackType_BasicGun_Body, "Player.SetByCaller.AttackType.BasicGun.Body")
+	UE_DEFINE_GAMEPLAY_TAG(Player_SetByCaller_AttackType_BasicGun_Leg, "Player.SetByCaller.AttackType.BasicGun.Leg")
 	
 	/** Enemy Weapon Tags **/
 	UE_DEFINE_GAMEPLAY_TAG(Enemy_Weapon, "Enemy.Weapon");
