@@ -13,6 +13,7 @@ struct FHuntedDamageCapture
 {
 	DECLARE_ATTRIBUTE_CAPTUREDEF(AttackPower)
 	DECLARE_ATTRIBUTE_CAPTUREDEF(DefencePower)
+	DECLARE_ATTRIBUTE_CAPTUREDEF(DamageTaken)
 	
 	FHuntedDamageCapture()
 	{
@@ -28,6 +29,13 @@ struct FHuntedDamageCapture
 			Target, 
 			false
 		);
+		
+		DEFINE_ATTRIBUTE_CAPTUREDEF(
+			UHuntedAttributeSet, 
+			DamageTaken,
+			Target, 
+			false
+		);
 	}
 };
 
@@ -39,10 +47,6 @@ static const FHuntedDamageCapture& GetHuntedDamageCapture()
 
 UGEExecCalc_DamageTaken::UGEExecCalc_DamageTaken()
 {
-	/** Fast Way of Doing Capture **/
-	RelevantAttributesToCapture.Add(GetHuntedDamageCapture().AttackPowerDef);
-	RelevantAttributesToCapture.Add(GetHuntedDamageCapture().DefencePowerDef);
-	
 	/** Slow Way of Doing Capture **/
 	/**FProperty* AttackPowerProperty = FindFieldChecked<FProperty>(
 		UHuntedAttributeSet::StaticClass(), 
@@ -57,6 +61,11 @@ UGEExecCalc_DamageTaken::UGEExecCalc_DamageTaken()
 	
 	RelevantAttributesToCapture.Add(AttackPowerCaptureDefinition);
 	**/
+	
+	/** Fast Way of Doing Capture **/
+	RelevantAttributesToCapture.Add(GetHuntedDamageCapture().AttackPowerDef);
+	RelevantAttributesToCapture.Add(GetHuntedDamageCapture().DefencePowerDef);
+	RelevantAttributesToCapture.Add(GetHuntedDamageCapture().DamageTakenDef);
 }
 
 void UGEExecCalc_DamageTaken::Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams,
@@ -99,14 +108,13 @@ void UGEExecCalc_DamageTaken::Execute_Implementation(const FGameplayEffectCustom
 		if (TagMagnitude.Key.MatchesTagExact(HuntedGameplayTags::Shared_SetByCaller_BaseDamage))
 		{
 			BaseDamage = TagMagnitude.Value;
+			Debug::Print(TEXT( "Base Damage"), BaseDamage);
 		}
 			
 		if (TagMagnitude.Key.MatchesAny(HitTypeTags))
 		{
 			DamageScalar = TagMagnitude.Value;
-	
-			FString DamageAsString = FString::SanitizeFloat(DamageScalar);
-			Debug::Print(TEXT( "Damage Scalar = " + DamageAsString), FColor::Purple);
+			Debug::Print(TEXT( "Damage Scalar"), DamageScalar);
 		}
 	}
 	
@@ -117,13 +125,18 @@ void UGEExecCalc_DamageTaken::Execute_Implementation(const FGameplayEffectCustom
 		TargetDefencePower
 	);
 	
-	if (BaseDamage == 0.0f)
+	const float FinalDamageDone = (BaseDamage* DamageScalar) - TargetDefencePower;
+	Debug::Print(TEXT( "Final Damage"), FinalDamageDone);
+	
+	
+	if (FinalDamageDone > 0.0f)
 	{
-		Debug::Print(TEXT("Base Damage IS ZERO"));
+		OutExecutionOutput.AddOutputModifier(
+			FGameplayModifierEvaluatedData(
+				GetHuntedDamageCapture().DamageTakenProperty,
+				EGameplayModOp::Override,
+				FinalDamageDone
+			)	
+		);
 	}
-	
-	const float FinalDamageDone = (BaseDamage* DamageScalar);
-	FString FloatAsString = FString::SanitizeFloat(FinalDamageDone);
-	
-	Debug::Print(TEXT( "FinalDamage= " + FloatAsString));
 }

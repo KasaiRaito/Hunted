@@ -40,11 +40,15 @@ public:
 	FGameplayAttributeData MaxSanity;
 	ATTRIBUTE_ACCESSORS(UHuntedAttributeSet, MaxSanity)
 	
+	UPROPERTY(BlueprintReadOnly, Category = "Damage")
+	FGameplayAttributeData AttackPower;
+	ATTRIBUTE_ACCESSORS(UHuntedAttributeSet, AttackPower)
+	
 	UPROPERTY(BlueprintReadOnly, Category = "Health")
 	FGameplayAttributeData DefencePower;
 	ATTRIBUTE_ACCESSORS(UHuntedAttributeSet, DefencePower)
 	
-	UPROPERTY(BlueprintReadOnly, Category = "Health")
-	FGameplayAttributeData AttackPower;
-	ATTRIBUTE_ACCESSORS(UHuntedAttributeSet, AttackPower)
+	UPROPERTY(BlueprintReadOnly, Category = "Damage")
+	FGameplayAttributeData DamageTaken;
+	ATTRIBUTE_ACCESSORS(UHuntedAttributeSet, DamageTaken)
 };
