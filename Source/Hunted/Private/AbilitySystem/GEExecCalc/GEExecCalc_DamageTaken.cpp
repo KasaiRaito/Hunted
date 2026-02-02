@@ -1,9 +1,6 @@
 // KasaiRaito All Rights Reserved
 
 #include "AbilitySystem/GEExecCalc/GEExecCalc_DamageTaken.h"
-
-#include <string>
-
 #include "AbilitySystem/HuntedAttributeSet.h"
 #include "HuntedGameplayTags.h"
 
@@ -13,6 +10,7 @@ struct FHuntedDamageCapture
 {
 	DECLARE_ATTRIBUTE_CAPTUREDEF(AttackPower)
 	DECLARE_ATTRIBUTE_CAPTUREDEF(DefencePower)
+	DECLARE_ATTRIBUTE_CAPTUREDEF(DamageTaken)
 	
 	FHuntedDamageCapture()
 	{
@@ -28,6 +26,13 @@ struct FHuntedDamageCapture
 			Target, 
 			false
 		);
+		
+		DEFINE_ATTRIBUTE_CAPTUREDEF(
+			UHuntedAttributeSet, 
+			DamageTaken,
+			Target, 
+			false
+		);
 	}
 };
 
@@ -39,24 +44,9 @@ static const FHuntedDamageCapture& GetHuntedDamageCapture()
 
 UGEExecCalc_DamageTaken::UGEExecCalc_DamageTaken()
 {
-	/** Fast Way of Doing Capture **/
 	RelevantAttributesToCapture.Add(GetHuntedDamageCapture().AttackPowerDef);
 	RelevantAttributesToCapture.Add(GetHuntedDamageCapture().DefencePowerDef);
-	
-	/** Slow Way of Doing Capture **/
-	/**FProperty* AttackPowerProperty = FindFieldChecked<FProperty>(
-		UHuntedAttributeSet::StaticClass(), 
-		GET_MEMBER_NAME_CHECKED(UHuntedAttributeSet,AttackPower)	
-	);
-	
-	FGameplayEffectAttributeCaptureDefinition AttackPowerCaptureDefinition(
-		AttackPowerProperty,
-		EGameplayEffectAttributeCaptureSource::Source,
-		false
-	);
-	
-	RelevantAttributesToCapture.Add(AttackPowerCaptureDefinition);
-	**/
+	RelevantAttributesToCapture.Add(GetHuntedDamageCapture().DamageTakenDef);
 }
 
 void UGEExecCalc_DamageTaken::Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams,
@@ -86,27 +76,23 @@ void UGEExecCalc_DamageTaken::Execute_Implementation(const FGameplayEffectCustom
 	float  BaseDamage = 0.0f;
 	float DamageScalar = 0.0f;
 	FGameplayTagContainer HitTypeTags;
+	HitTypeTags.AddTag(HuntedGameplayTags::Player_SetByCaller_AttackType_BasicKnife);
 	HitTypeTags.AddTag(HuntedGameplayTags::Player_SetByCaller_AttackType_Head);
 	HitTypeTags.AddTag(HuntedGameplayTags::Player_SetByCaller_AttackType_Body);
 	HitTypeTags.AddTag(HuntedGameplayTags::Player_SetByCaller_AttackType_Leg);
-	
-	
-	//int32 UsedKnifeComboCount = 0;
-	//int32 UsedGunComboCount = 0;
 	
 	for (const TPair<FGameplayTag, float>& TagMagnitude : EffectSpec.SetByCallerTagMagnitudes)
 	{
 		if (TagMagnitude.Key.MatchesTagExact(HuntedGameplayTags::Shared_SetByCaller_BaseDamage))
 		{
 			BaseDamage = TagMagnitude.Value;
+			//Debug::Print(TEXT( "Base Damage"), BaseDamage);
 		}
 			
 		if (TagMagnitude.Key.MatchesAny(HitTypeTags))
 		{
 			DamageScalar = TagMagnitude.Value;
-	
-			FString DamageAsString = FString::SanitizeFloat(DamageScalar);
-			Debug::Print(TEXT( "Damage Scalar = " + DamageAsString), FColor::Purple);
+			//Debug::Print(TEXT( "Damage Scalar"), DamageScalar);
 		}
 	}
 	
@@ -116,14 +102,20 @@ void UGEExecCalc_DamageTaken::Execute_Implementation(const FGameplayEffectCustom
 		EvaluateParameters,
 		TargetDefencePower
 	);
+	//Debug::Print(TEXT( "Enemy Defence"), TargetDefencePower);
 	
-	if (BaseDamage == 0.0f)
+	const float FinalDamageDone = (BaseDamage* DamageScalar) - TargetDefencePower;
+	Debug::Print(TEXT( "Final Damage"), FinalDamageDone);
+	
+	
+	if (FinalDamageDone > 0.0f)
 	{
-		Debug::Print(TEXT("Base Damage IS ZERO"));
+		OutExecutionOutput.AddOutputModifier(
+			FGameplayModifierEvaluatedData(
+				GetHuntedDamageCapture().DamageTakenProperty,
+				EGameplayModOp::Override,
+				FinalDamageDone
+			)	
+		);
 	}
-	
-	const float FinalDamageDone = (BaseDamage* DamageScalar);
-	FString FloatAsString = FString::SanitizeFloat(FinalDamageDone);
-	
-	Debug::Print(TEXT( "FinalDamage= " + FloatAsString));
 }

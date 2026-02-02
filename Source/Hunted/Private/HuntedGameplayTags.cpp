@@ -52,7 +52,7 @@ namespace  HuntedGameplayTags
 	
 		/** Set By Caller **/
 	//UE_DEFINE_GAMEPLAY_TAG(Player_SetByCaller_AttackType_BasicKnife, "Player.SetByCaller.AttackType.BasicKnife");
-	UE_DEFINE_GAMEPLAY_TAG(Player_SetByCaller_AttackType_BasicKnife_Head, "Player.SetByCaller.AttackType.BasicKnife");
+	UE_DEFINE_GAMEPLAY_TAG(Player_SetByCaller_AttackType_BasicKnife, "Player.SetByCaller.AttackType.BasicKnife");
 	UE_DEFINE_GAMEPLAY_TAG(Player_SetByCaller_AttackType_Head, "Player.SetByCaller.AttackType.Head");
 	UE_DEFINE_GAMEPLAY_TAG(Player_SetByCaller_AttackType_Body, "Player.SetByCaller.AttackType.Body");
 	UE_DEFINE_GAMEPLAY_TAG(Player_SetByCaller_AttackType_Leg, "Player.SetByCaller.AttackType.Leg");
