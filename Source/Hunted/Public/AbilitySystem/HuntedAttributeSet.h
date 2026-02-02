@@ -24,6 +24,8 @@ class HUNTED_API UHuntedAttributeSet : public UAttributeSet
 public:
 	UHuntedAttributeSet();
 	
+	virtual void PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data) override;
+	
 	UPROPERTY(BlueprintReadOnly, Category = "Health")
 	FGameplayAttributeData CurrentHealth;
 	ATTRIBUTE_ACCESSORS(UHuntedAttributeSet, CurrentHealth)

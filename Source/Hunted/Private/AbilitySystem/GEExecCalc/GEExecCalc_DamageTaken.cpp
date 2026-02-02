@@ -81,22 +81,18 @@ void UGEExecCalc_DamageTaken::Execute_Implementation(const FGameplayEffectCustom
 	HitTypeTags.AddTag(HuntedGameplayTags::Player_SetByCaller_AttackType_Body);
 	HitTypeTags.AddTag(HuntedGameplayTags::Player_SetByCaller_AttackType_Leg);
 	
-	
-	//int32 UsedKnifeComboCount = 0;
-	//int32 UsedGunComboCount = 0;
-	
 	for (const TPair<FGameplayTag, float>& TagMagnitude : EffectSpec.SetByCallerTagMagnitudes)
 	{
 		if (TagMagnitude.Key.MatchesTagExact(HuntedGameplayTags::Shared_SetByCaller_BaseDamage))
 		{
 			BaseDamage = TagMagnitude.Value;
-			Debug::Print(TEXT( "Base Damage"), BaseDamage);
+			//Debug::Print(TEXT( "Base Damage"), BaseDamage);
 		}
 			
 		if (TagMagnitude.Key.MatchesAny(HitTypeTags))
 		{
 			DamageScalar = TagMagnitude.Value;
-			Debug::Print(TEXT( "Damage Scalar"), DamageScalar);
+			//Debug::Print(TEXT( "Damage Scalar"), DamageScalar);
 		}
 	}
 	
@@ -106,7 +102,7 @@ void UGEExecCalc_DamageTaken::Execute_Implementation(const FGameplayEffectCustom
 		EvaluateParameters,
 		TargetDefencePower
 	);
-	Debug::Print(TEXT( "Enemy Defence"), TargetDefencePower);
+	//Debug::Print(TEXT( "Enemy Defence"), TargetDefencePower);
 	
 	const float FinalDamageDone = (BaseDamage* DamageScalar) - TargetDefencePower;
 	Debug::Print(TEXT( "Final Damage"), FinalDamageDone);
