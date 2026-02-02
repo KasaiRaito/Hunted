@@ -1,9 +1,6 @@
 // KasaiRaito All Rights Reserved
 
 #include "AbilitySystem/GEExecCalc/GEExecCalc_DamageTaken.h"
-
-#include <string>
-
 #include "AbilitySystem/HuntedAttributeSet.h"
 #include "HuntedGameplayTags.h"
 
@@ -47,22 +44,6 @@ static const FHuntedDamageCapture& GetHuntedDamageCapture()
 
 UGEExecCalc_DamageTaken::UGEExecCalc_DamageTaken()
 {
-	/** Slow Way of Doing Capture **/
-	/**FProperty* AttackPowerProperty = FindFieldChecked<FProperty>(
-		UHuntedAttributeSet::StaticClass(), 
-		GET_MEMBER_NAME_CHECKED(UHuntedAttributeSet,AttackPower)	
-	);
-	
-	FGameplayEffectAttributeCaptureDefinition AttackPowerCaptureDefinition(
-		AttackPowerProperty,
-		EGameplayEffectAttributeCaptureSource::Source,
-		false
-	);
-	
-	RelevantAttributesToCapture.Add(AttackPowerCaptureDefinition);
-	**/
-	
-	/** Fast Way of Doing Capture **/
 	RelevantAttributesToCapture.Add(GetHuntedDamageCapture().AttackPowerDef);
 	RelevantAttributesToCapture.Add(GetHuntedDamageCapture().DefencePowerDef);
 	RelevantAttributesToCapture.Add(GetHuntedDamageCapture().DamageTakenDef);
@@ -95,6 +76,7 @@ void UGEExecCalc_DamageTaken::Execute_Implementation(const FGameplayEffectCustom
 	float  BaseDamage = 0.0f;
 	float DamageScalar = 0.0f;
 	FGameplayTagContainer HitTypeTags;
+	HitTypeTags.AddTag(HuntedGameplayTags::Player_SetByCaller_AttackType_BasicKnife);
 	HitTypeTags.AddTag(HuntedGameplayTags::Player_SetByCaller_AttackType_Head);
 	HitTypeTags.AddTag(HuntedGameplayTags::Player_SetByCaller_AttackType_Body);
 	HitTypeTags.AddTag(HuntedGameplayTags::Player_SetByCaller_AttackType_Leg);
@@ -124,6 +106,7 @@ void UGEExecCalc_DamageTaken::Execute_Implementation(const FGameplayEffectCustom
 		EvaluateParameters,
 		TargetDefencePower
 	);
+	Debug::Print(TEXT( "Enemy Defence"), TargetDefencePower);
 	
 	const float FinalDamageDone = (BaseDamage* DamageScalar) - TargetDefencePower;
 	Debug::Print(TEXT( "Final Damage"), FinalDamageDone);
