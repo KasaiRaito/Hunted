@@ -38,6 +38,16 @@ namespace HuntedGameplayTags
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Ability_Shoot_Gun);
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Ability_Reload_Gun);
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Ability_Shoot_Knife);
+			/** Hit React **/
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Ability_HitReact_HighHP);
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Event_HitReact_HighHP);
+	
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Ability_HitReact_MidHP);
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Event_HitReact_MidHP);
+	
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Ability_HitReact_LowHP);
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Event_HitReact_LowHP);
+	
 			/** Equip / Unequip **/
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Ability_Equip_Gun);
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Ability_Unequip_Gun);
@@ -62,10 +72,26 @@ namespace HuntedGameplayTags
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_SetByCaller_AttackType_Leg);
 	
 	/** Enemy Tags **/
+		/** Attack **/
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Enemy_Ability_Melee);
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Enemy_Ability_Ranged);
+	
+		/** Hit React **/
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Enemy_Ability_HitReact_Head);
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Enemy_Event_HitReact_Head);
+	
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Enemy_Ability_HitReact_Body);
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Enemy_Event_HitReact_Body);
+	
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Enemy_Ability_HitReact_Leg);
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Enemy_Event_HitReact_Leg);
+	
+		/** Weapons **/
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Enemy_Weapon);
 	
 	/** Shared tags **/
-	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Shared_Event_MeleeHit)
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Shared_Event_MeleeHit);
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Shared_Event_ShotHit);
 	
-	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Shared_SetByCaller_BaseDamage)
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Shared_SetByCaller_BaseDamage);
 }

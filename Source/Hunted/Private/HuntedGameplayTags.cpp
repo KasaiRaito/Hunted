@@ -33,6 +33,16 @@ namespace  HuntedGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Player_Ability_Shoot_Gun, "Player.Ability.Shoot.Gun");
 	UE_DEFINE_GAMEPLAY_TAG(Player_Ability_Reload_Gun, "Player.Ability.Reload.Gun");
 	UE_DEFINE_GAMEPLAY_TAG(Player_Ability_Shoot_Knife, "Player.Ability.Shoot.Knife");
+			/** Hit React **/
+	UE_DEFINE_GAMEPLAY_TAG(Player_Ability_HitReact_HighHP, "Player.Ability.HitReact.HighHP");
+	UE_DEFINE_GAMEPLAY_TAG(Player_Event_HitReact_HighHP, "Player.Event.HitReact.HighHP");
+	
+	UE_DEFINE_GAMEPLAY_TAG(Player_Ability_HitReact_MidHP, "Player.Ability.HitReact.MidHP");
+	UE_DEFINE_GAMEPLAY_TAG(Player_Event_HitReact_MidHP, "Player.Event.HitReact.MidHP");
+	
+	UE_DEFINE_GAMEPLAY_TAG(Player_Ability_HitReact_LowHP, "Player.Ability.HitReact.LowHP");
+	UE_DEFINE_GAMEPLAY_TAG(Player_Event_HitReact_LowHP, "Player.Event.HitReact.LowHP");
+	
 			/** Equip / Unequip **/	
 	UE_DEFINE_GAMEPLAY_TAG(Player_Ability_Equip_Gun, "Player.Ability.Equip.Gun")
 	UE_DEFINE_GAMEPLAY_TAG(Player_Ability_Unequip_Gun, "Player.Ability.Unequip.Gun")
@@ -58,10 +68,26 @@ namespace  HuntedGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Player_SetByCaller_AttackType_Leg, "Player.SetByCaller.AttackType.Leg");
 	
 	/** Enemy Weapon Tags **/
+		/** Attack **/
+	UE_DEFINE_GAMEPLAY_TAG(Enemy_Ability_Melee, "Enemy.Ability.Melee");
+	UE_DEFINE_GAMEPLAY_TAG(Enemy_Ability_Ranged, "Enemy.Ability.Ranged");
+	
+		/** Hit React **/
+	UE_DEFINE_GAMEPLAY_TAG(Enemy_Ability_HitReact_Head, "Enemy.Ability.HitReact.Head");
+	UE_DEFINE_GAMEPLAY_TAG(Enemy_Event_HitReact_Head, "Enemy.Event.HitReact.Head");
+	
+	UE_DEFINE_GAMEPLAY_TAG(Enemy_Ability_HitReact_Body, "Enemy.Ability.HitReact.Body");
+	UE_DEFINE_GAMEPLAY_TAG(Enemy_Event_HitReact_Body, "Enemy.Event.HitReact.Body");
+	
+	UE_DEFINE_GAMEPLAY_TAG(Enemy_Ability_HitReact_Leg, "Enemy.Ability.HitReact.Leg");
+	UE_DEFINE_GAMEPLAY_TAG(Enemy_Event_HitReact_Leg, "Enemy.Event.HitReact.Leg");
+	
+		/** Weapons **/
 	UE_DEFINE_GAMEPLAY_TAG(Enemy_Weapon, "Enemy.Weapon");
 	
 	/** Shared Tags **/
 	UE_DEFINE_GAMEPLAY_TAG(Shared_Event_MeleeHit, "Shared.Event.MeleeHit");
+	UE_DEFINE_GAMEPLAY_TAG(Shared_Event_ShotHit, "Shared.Event.ShotHit");
 	
 	UE_DEFINE_GAMEPLAY_TAG(Shared_SetByCaller_BaseDamage, "Shared.SetByCaller.BaseDamage");
 }
