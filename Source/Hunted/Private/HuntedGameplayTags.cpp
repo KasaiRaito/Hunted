@@ -72,22 +72,24 @@ namespace  HuntedGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Enemy_Ability_Melee, "Enemy.Ability.Melee");
 	UE_DEFINE_GAMEPLAY_TAG(Enemy_Ability_Ranged, "Enemy.Ability.Ranged");
 	
-		/** Hit React **/
-	UE_DEFINE_GAMEPLAY_TAG(Enemy_Ability_HitReact_Head, "Enemy.Ability.HitReact.Head");
-	UE_DEFINE_GAMEPLAY_TAG(Enemy_Event_HitReact_Head, "Enemy.Event.HitReact.Head");
+		/** Hit React **/	
+	UE_DEFINE_GAMEPLAY_TAG(Shared_Ability_HitReact_Head, "Shared.Ability.HitReact.Head");
+	UE_DEFINE_GAMEPLAY_TAG(Shared_Event_HitReact_Head, "Shared.Event.HitReact.Head");
 	
-	UE_DEFINE_GAMEPLAY_TAG(Enemy_Ability_HitReact_Body, "Enemy.Ability.HitReact.Body");
-	UE_DEFINE_GAMEPLAY_TAG(Enemy_Event_HitReact_Body, "Enemy.Event.HitReact.Body");
+	UE_DEFINE_GAMEPLAY_TAG(Shared_Ability_HitReact_Body, "Shared.Ability.HitReact.Body");
+	UE_DEFINE_GAMEPLAY_TAG(Shared_Event_HitReact_Body, "Shared.Event.HitReact.Body");
 	
-	UE_DEFINE_GAMEPLAY_TAG(Enemy_Ability_HitReact_Leg, "Enemy.Ability.HitReact.Leg");
-	UE_DEFINE_GAMEPLAY_TAG(Enemy_Event_HitReact_Leg, "Enemy.Event.HitReact.Leg");
+	UE_DEFINE_GAMEPLAY_TAG(Shared_Ability_HitReact_Leg, "Shared.Ability.HitReact.Leg");
+	UE_DEFINE_GAMEPLAY_TAG(Shared_Event_HitReact_Leg, "Shared.Event.HitReact.Leg");
 	
 		/** Weapons **/
 	UE_DEFINE_GAMEPLAY_TAG(Enemy_Weapon, "Enemy.Weapon");
 	
 	/** Shared Tags **/
+	UE_DEFINE_GAMEPLAY_TAG(Shared_Ability_Hit, "Shared.Ability.HitReact")
+	UE_DEFINE_GAMEPLAY_TAG(Shared_Event_Hit, "Shared.Event.HitReact");
+	
 	UE_DEFINE_GAMEPLAY_TAG(Shared_Event_MeleeHit, "Shared.Event.MeleeHit");
-	UE_DEFINE_GAMEPLAY_TAG(Shared_Event_ShotHit, "Shared.Event.ShotHit");
 	
 	UE_DEFINE_GAMEPLAY_TAG(Shared_SetByCaller_BaseDamage, "Shared.SetByCaller.BaseDamage");
 }
