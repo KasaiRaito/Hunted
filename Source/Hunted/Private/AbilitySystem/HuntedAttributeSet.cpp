@@ -3,8 +3,11 @@
 
 #include "AbilitySystem/HuntedAttributeSet.h"
 #include "GameplayEffectExtension.h"
+#include "HuntedFunctionLibrary.h"
+#include "HuntedFunctionLibrary.h"
 
 #include "HuntedDebugHelper.h"
+#include "HuntedGameplayTags.h"
 
 UHuntedAttributeSet::UHuntedAttributeSet()
 {
@@ -50,8 +53,7 @@ void UHuntedAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffect
 		
 		if (NewCurrentHealth == 0.0f)
 		{
-			const FString DeathString = FString::Printf(TEXT("%s - Call Dead"), *GetOwningActor()->GetName());
-			Debug::Print(DeathString, FColor::Red);
+			UHuntedFunctionLibrary::AddGameplayTagToActorIfNone(Data.Target.GetAvatarActor(), HuntedGameplayTags::Shared_Status_Death);
 		}
 	}
 }
