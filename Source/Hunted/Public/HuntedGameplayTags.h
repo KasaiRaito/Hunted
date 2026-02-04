@@ -96,4 +96,7 @@ namespace HuntedGameplayTags
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Shared_Event_MeleeHit);
 	
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Shared_SetByCaller_BaseDamage);
+	
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Shared_Ability_Death);
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Shared_Status_Death);
 }
