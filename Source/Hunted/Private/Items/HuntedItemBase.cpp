@@ -13,15 +13,11 @@ AHuntedItemBase::AHuntedItemBase()
 
 	WeaponMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WeaponMesh"));
 	SetRootComponent(WeaponMesh);
-
-	WeaponCollisionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("WeaponCollisionBox"));
+	WeaponCollisionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("ItemIteractionTriger"));
 	WeaponCollisionSphere->SetupAttachment(GetRootComponent());
 	WeaponCollisionSphere->SetSphereRadius(20.f);
-	WeaponCollisionSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	WeaponCollisionSphere->OnComponentBeginOverlap.AddUniqueDynamic(this,&ThisClass::OnCollisionBoxBeginOverlap);
-	WeaponCollisionSphere->OnComponentEndOverlap.AddUniqueDynamic(this,&ThisClass::OnCollisionBoxEndOverlap);
-
-
+	WeaponCollisionSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	
 }
 
 // Called when the game starts or when spawned
@@ -29,16 +25,6 @@ void AHuntedItemBase::BeginPlay()
 {
 	Super::BeginPlay();
 	
-}
-
-void AHuntedItemBase::OnCollisionBoxBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-{
-}
-
-void AHuntedItemBase::OnCollisionBoxEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
-{
 }
 
 // Called every frame
