@@ -25,6 +25,8 @@ namespace  HuntedGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(InputTag_Unequip_Gun, "InputTag.Unequip.Gun");
 	UE_DEFINE_GAMEPLAY_TAG(InputTag_Equip_Knife, "InputTag.Equip.Knife");
 	UE_DEFINE_GAMEPLAY_TAG(InputTag_Unequip_Knife, "InputTag.Unequip.Knife");
+		/** Inventory / UI **/
+	UE_DEFINE_GAMEPLAY_TAG(InputTag_Inventory_Open, "InputTag.Inventory.Open");
 	
 	/** Player **/
 		/** Abilities **/

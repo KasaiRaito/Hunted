@@ -15,6 +15,7 @@ class USpringArmComponent;
 class UCameraComponent;
 class UDataAsset_InputConfig;
 class UPlayerCombatComponent;
+class UPlayerInventoryComponent;
 
 /**
  * 
@@ -70,6 +71,13 @@ protected:
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	virtual void BeginPlay() override;
 	
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<UUserWidget> InventoryWidgetClass;
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	UUserWidget* InventoryWidget;
+	
+	APlayerController* GetPlayerController;
+	
 private:
 #pragma region Components
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
@@ -83,6 +91,10 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
 	UPlayerCombatComponent* PlayerCombatComponent;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
+	UPlayerInventoryComponent* PlayerInventoryComponent;
+	
 #pragma endregion
 
 #pragma region Inputs
@@ -97,12 +109,15 @@ private:
 
 	void Input_Echo(const FInputActionValue& Echo);
 	
+	void Input_Inventory_Open(const FInputActionValue& Inventory);
+	
 	void ProcessMovementInput(const FInputActionValue& InputActionValue);
 
 	void Input_Look(const FInputActionValue& InputActionValue);
 
 	void Input_AbilityInputPressed(FGameplayTag InInputTag);
 	void Input_AbilityInputReleased(FGameplayTag InInputTag);
+	
 
 	bool IsSneak = false;
 	bool IsSprint = false;

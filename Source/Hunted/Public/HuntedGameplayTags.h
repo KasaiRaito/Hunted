@@ -30,6 +30,8 @@ namespace HuntedGameplayTags
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Unequip_Gun);
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Equip_Knife);
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Unequip_Knife);
+		/** Inventory / UI **/
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Inventory_Open);
 	
 	/** Player **/
 		/** Abilities **/
