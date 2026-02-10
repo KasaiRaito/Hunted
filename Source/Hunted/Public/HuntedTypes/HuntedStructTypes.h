@@ -47,3 +47,36 @@ struct FHuntedPlayerWeaponData
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	FScalableFloat WeaponBaseDamage;
 };
+
+USTRUCT(BlueprintType)
+struct  FHuntedPlayerItemData
+{
+	GENERATED_BODY()
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	FGameplayTag ItemTag;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	bool ItemInventory;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	bool ItemUsable;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	bool IsStackable;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	FString ItemName;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	FString ItemDescription;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UStaticMesh* ItemMesh;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UTexture2D* ItemImage;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	int ItemAmount;	
+};
