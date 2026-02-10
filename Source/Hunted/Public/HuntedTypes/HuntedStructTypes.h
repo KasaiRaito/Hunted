@@ -79,4 +79,6 @@ struct  FHuntedPlayerItemData
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	int ItemAmount;	
+	
+	bool IsValid() const;
 };
