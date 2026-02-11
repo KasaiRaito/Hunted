@@ -44,15 +44,31 @@ protected:
 	float TileSize;
 		
 	UPROPERTY(VisibleDefaultsOnly, meta = (BindWidget), Category= "UI")
-	TArray<FVector2D> Start;
+	TArray<float> StartX;
+	
 	UPROPERTY(VisibleDefaultsOnly, meta = (BindWidget), Category= "UI")
-	TArray<FVector2D> End;
+	TArray<float> StartY;
+	
+	UPROPERTY(VisibleDefaultsOnly, meta = (BindWidget), Category= "UI")
+	TArray<float> EndX;
+	
+	UPROPERTY(VisibleDefaultsOnly, meta = (BindWidget), Category= "UI")
+	TArray<float> EndY;
+	
+	UPROPERTY(VisibleDefaultsOnly, meta = (BindWidget), Category= "UI")
+	FLinearColor CustomLineColor = FLinearColor(0.5f, 0.5f, 0.5f, 0.5f);
+	
+	UPROPERTY(VisibleDefaultsOnly, meta = (BindWidget), Category= "UI")
+	float InventoryLineThickness = 5.0f;
 	
 	FLines* LineStructData;
 	
 protected:
 	UFUNCTION()
 	virtual void NativeConstruct() override;
+	
+	UFUNCTION()
+	void SetUpInventoryGrid();
 	
 	UFUNCTION()
 	void CreateLineSegments();
