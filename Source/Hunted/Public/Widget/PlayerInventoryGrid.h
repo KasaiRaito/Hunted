@@ -25,43 +25,50 @@ class HUNTED_API UPlayerInventoryGrid : public UUserWidget
 	GENERATED_BODY()
 	
 protected:
-	UPROPERTY(VisibleAnywhere, meta = (BindWidget), Category= "UI")
+	UPROPERTY()
 	UCanvasPanel* CanvasPanel;
 	
-	UPROPERTY(VisibleAnywhere, meta = (BindWidget), Category= "UI")
+	UPROPERTY()
 	UBorder* GridBorder;
 	
-	UPROPERTY(VisibleAnywhere, meta = (BindWidget), Category= "UI")
+	UPROPERTY()
 	UCanvasPanel* GridCanvasPanel;
 
-	UPROPERTY(VisibleDefaultsOnly, meta = (BindWidget), Category= "UI")
+	UPROPERTY()
 	int8 Columns;
 	
-	UPROPERTY(VisibleDefaultsOnly, meta = (BindWidget), Category= "UI")
+	UPROPERTY()
 	int8 Rows;
 	
-	UPROPERTY(VisibleDefaultsOnly, meta = (BindWidget), Category= "UI")
+	UPROPERTY()
 	float TileSize;
 		
-	UPROPERTY(VisibleDefaultsOnly, meta = (BindWidget), Category= "UI")
+	UPROPERTY()
 	TArray<float> StartX;
 	
-	UPROPERTY(VisibleDefaultsOnly, meta = (BindWidget), Category= "UI")
+	UPROPERTY()
 	TArray<float> StartY;
 	
-	UPROPERTY(VisibleDefaultsOnly, meta = (BindWidget), Category= "UI")
+	UPROPERTY()
 	TArray<float> EndX;
 	
-	UPROPERTY(VisibleDefaultsOnly, meta = (BindWidget), Category= "UI")
+	UPROPERTY()
 	TArray<float> EndY;
 	
-	UPROPERTY(VisibleDefaultsOnly, meta = (BindWidget), Category= "UI")
+	UPROPERTY(EditDefaultsOnly, meta = (BindWidget), Category= "UI")
 	FLinearColor CustomLineColor = FLinearColor(0.5f, 0.5f, 0.5f, 0.5f);
 	
-	UPROPERTY(VisibleDefaultsOnly, meta = (BindWidget), Category= "UI")
+	UPROPERTY(EditDefaultsOnly, meta = (BindWidget), Category= "UI")
 	float InventoryLineThickness = 5.0f;
 	
-	FLines* LineStructData;
+	FLines LineStructData;
+
+	bool bGridDirty = true;
+	
+	/** Cached Values **/
+	int8 CachedColumns = 0;
+	int8 CachedRows = 0;
+	float CachedTileSize = 0.0f;
 	
 protected:
 	UFUNCTION()

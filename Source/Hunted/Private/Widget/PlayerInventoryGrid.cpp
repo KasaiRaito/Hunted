@@ -16,7 +16,10 @@ void UPlayerInventoryGrid::NativeConstruct()
 	Super::NativeConstruct();
 	
 	SetUpInventoryGrid();
-	CreateLineSegments();
+	if (bGridDirty)
+	{
+		CreateLineSegments();
+	}
 }
 
 void UPlayerInventoryGrid::SetUpInventoryGrid()
@@ -45,11 +48,24 @@ void UPlayerInventoryGrid::SetUpInventoryGrid()
 	float NewWidth = Columns * TileSize;
 	float NewHeight = Rows * TileSize;
 	
-	LineStructData = new FLines();
-	StartX = {};
-	StartY = {};
-	EndX= {};
-	EndY= {};
+	bGridDirty = Columns != CachedColumns
+		|| Rows != CachedRows
+		|| !FMath::IsNearlyEqual(TileSize, CachedTileSize);
+
+	if (bGridDirty)
+	{
+		CachedColumns = Columns;
+		CachedRows = Rows;
+		CachedTileSize = TileSize;
+
+		int32 LineCount = (Columns + 1) + (Rows + 1);
+		LineStructData.XLines.Reset(LineCount);
+		LineStructData.YLines.Reset(LineCount);
+		StartX.Reset(LineCount);
+		StartY.Reset(LineCount);
+		EndX.Reset(LineCount);
+		EndY.Reset(LineCount);
+	}
 	
 	UCanvasPanelSlot* BorderAsCanvasSlot = UWidgetLayoutLibrary::SlotAsCanvasSlot(GridBorder);
 	if (BorderAsCanvasSlot)
@@ -64,30 +80,31 @@ void UPlayerInventoryGrid::CreateLineSegments()
 	{
 		float X = Column * TileSize;
 		
-		LineStructData->XLines.Add(FVector2D(X, X));
-		LineStructData->YLines.Add(FVector2D(0.0f, Rows * TileSize));
+		LineStructData.XLines.Add(FVector2D(X, X));
+		LineStructData.YLines.Add(FVector2D(0.0f, Rows * TileSize));
 	}
 	
 	for (int8 Row = 0; Row <= Rows; Row++)
 	{
 		float Y = Row * TileSize;
 		
-		LineStructData->XLines.Add(FVector2D(0.0f, Columns * TileSize));
-		LineStructData->YLines.Add(FVector2D(Y, Y));
+		LineStructData.XLines.Add(FVector2D(0.0f, Columns * TileSize));
+		LineStructData.YLines.Add(FVector2D(Y, Y));
 	}
 	
-	for (const FVector2D Elements : LineStructData->XLines)
+	for (const FVector2D Elements : LineStructData.XLines)
 	{
 		StartX.Add(Elements.X);
-		EndX.Add(Elements.Y); // use line end X instead of start
+		EndX.Add(Elements.Y);
 		
 	}
-	for (const FVector2D Elements : LineStructData->YLines)
+	for (const FVector2D Elements : LineStructData.YLines)
 	{
 		StartY.Add(Elements.X);
 		EndY.Add(Elements.Y);
 	}
-	
+
+	bGridDirty = false;
 }
 
 int32 UPlayerInventoryGrid::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry,
@@ -98,19 +115,27 @@ int32 UPlayerInventoryGrid::NativePaint(const FPaintArgs& Args, const FGeometry&
 	
 	FPaintContext PaintContext(AllottedGeometry, MyCullingRect, OutDrawElements, LayerId, InWidgetStyle, bParentEnabled);
 	
-	if (!LineStructData)
+	if (!GridBorder)
 	{
 		return LayerId;
 	}
 
-	FVector2D Offset = GridBorder->GetCachedGeometry().GetLocalPositionAtCoordinates(FVector2D(0.0f,0.0f)); // align to border
+	int32 DrawCount = FMath::Min(StartX.Num(), StartY.Num());
+	DrawCount = FMath::Min(DrawCount, EndX.Num());
+	DrawCount = FMath::Min(DrawCount, EndY.Num());
+	if (DrawCount == 0)
+	{
+		return LayerId;
+	}
+
+	FVector2D Offset = GridBorder->GetCachedGeometry().GetLocalPositionAtCoordinates(FVector2D(0.0f,0.0f));
 	
-	for (int32 i = 0; i < LineStructData->XLines.Num(); i++)
+	for (int32 i = 0; i < DrawCount; i++)
 	{
 		UWidgetBlueprintLibrary::DrawLine(PaintContext, 
-			FVector2D(StartX[i], StartY[i]) + Offset, // matching start coords
+			FVector2D(StartX[i], StartY[i]) + Offset,
 			FVector2D(EndX[i], EndY[i]) + Offset, CustomLineColor,
-			false, InventoryLineThickness); // matching end coords
+			false, InventoryLineThickness);
 	}
 		
 	return int32();
