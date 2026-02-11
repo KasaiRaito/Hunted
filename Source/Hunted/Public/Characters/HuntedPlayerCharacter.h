@@ -63,6 +63,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Echo")
 	UMaterialInterface* MyEchoMaterial;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly ,Category = "UI")
+	UUserWidget* InventoryWidget;
+	
 protected:
 	//~ Begin APawn Interface.
 	virtual void PossessedBy(AController* NewController) override;
@@ -73,8 +76,7 @@ protected:
 	
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UUserWidget> InventoryWidgetClass;
-	UPROPERTY(EditDefaultsOnly, Category = "UI")
-	UUserWidget* InventoryWidget;
+	
 	
 	
 private:
@@ -113,8 +115,6 @@ private:
 
 	void Input_Echo(const FInputActionValue& Echo);
 	
-	void Input_Inventory_Open(const FInputActionValue& Inventory);
-	
 	void ProcessMovementInput(const FInputActionValue& InputActionValue);
 
 	void Input_Look(const FInputActionValue& InputActionValue);
@@ -145,4 +145,9 @@ public:
 	bool ReturnIsEcho() const { return IsEcho; };
 	
 	FORCEINLINE UPlayerCombatComponent* GetPlayerCombatComponent()const { return PlayerCombatComponent; }
+	
+	UFUNCTION()
+	void OnBeginOverlap(class UPrimitiveComponent* HitComp, class AActor* OtherActor,
+			UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
+			const FHitResult& SweepResult);
 };

@@ -100,9 +100,6 @@ void AHuntedPlayerCharacter::SetupPlayerInputComponent(UInputComponent* InPlayer
 	PlayerInputComponent->BindNativeInputAction(InputConfigDataAsset, HuntedGameplayTags::InputTag_Echo,
 		ETriggerEvent::Triggered,this, &ThisClass::Input_Echo);
 	
-	PlayerInputComponent->BindNativeInputAction(InputConfigDataAsset, HuntedGameplayTags::InputTag_Inventory_Open,
-		ETriggerEvent::Triggered, this , &ThisClass::Input_Inventory_Open); 
-	
 	PlayerInputComponent->BindAbilityInputAction(InputConfigDataAsset,this,
 		&ThisClass::Input_AbilityInputPressed,&ThisClass::Input_AbilityInputReleased);
 }
@@ -196,27 +193,6 @@ void AHuntedPlayerCharacter::Input_Echo(const FInputActionValue& Echo)
 	else
 	{
 		ExitEcho();
-	}
-}
-
-void AHuntedPlayerCharacter::Input_Inventory_Open(const FInputActionValue& Inventory)
-{
-	if (Inventory.Get<bool>())
-	{
-		Debug::Print(TEXT("HuntedPlayerCharacter::Input_Inventory"));
-		
-		if (InventoryWidget->IsInViewport())
-		{
-			InventoryWidget->RemoveFromParent();
-			PlayerControllerComponent->bShowMouseCursor = false;
-			PlayerControllerComponent->SetInputMode(FInputModeGameOnly());
-		}
-		else
-		{
-			InventoryWidget->AddToViewport();
-			PlayerControllerComponent->bShowMouseCursor = true;
-			PlayerControllerComponent->SetInputMode(FInputModeGameAndUI());
-		}
 	}
 }
 
@@ -342,4 +318,10 @@ void AHuntedPlayerCharacter::UpdateStaticMeshList()
 			}
 		}
 	}
+}
+
+void AHuntedPlayerCharacter::OnBeginOverlap(class UPrimitiveComponent* HitComp, class AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	
 }
