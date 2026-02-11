@@ -29,6 +29,8 @@ namespace  HuntedGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(InputTag_Inventory_Open, "InputTag.Inventory.Open");
 	UE_DEFINE_GAMEPLAY_TAG(InputTag_Inventory_Close, "InputTag.Inventory.Close");
 	
+	UE_DEFINE_GAMEPLAY_TAG(InputTag_Item_PickUp, "InputTag.Item.PickUp");
+	
 	/** Player **/
 		/** Abilities **/
 			/** Combat **/
@@ -54,6 +56,8 @@ namespace  HuntedGameplayTags
 	
 	UE_DEFINE_GAMEPLAY_TAG(Player_Ability_Inventory_Open, "Player.Ability.Inventory.Open");
 	UE_DEFINE_GAMEPLAY_TAG(Player_Ability_Inventory_Close, "Player.Ability.Inventory.Close");
+	
+	UE_DEFINE_GAMEPLAY_TAG(Player_Ability_Item_PickUp, "Player.Ability.Item.PickUp");
 	
 		/** Events **/
 	UE_DEFINE_GAMEPLAY_TAG(Player_Event_Equip_Gun, "Player.Event.Equip.Gun");

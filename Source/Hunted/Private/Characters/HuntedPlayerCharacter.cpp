@@ -19,11 +19,14 @@
 #include "AbilitySystem/HuntedAbilitySystemComponent.h"
 #include "AbilitySystem/Abilities/HuntedPlayerGameplayAbility.h"
 #include "Blueprint/UserWidget.h"
+#include "Items/Inventory/HutedInventoryItemBase.h"
 
 AHuntedPlayerCharacter::AHuntedPlayerCharacter()
 {
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
-
+	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &AHuntedPlayerCharacter::OnBeginOverlap);
+	GetCapsuleComponent()->OnComponentEndOverlap.AddDynamic(this, &AHuntedPlayerCharacter::OnEndOverlap);
+	
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = true;
 	bUseControllerRotationRoll = false;
@@ -323,5 +326,15 @@ void AHuntedPlayerCharacter::UpdateStaticMeshList()
 void AHuntedPlayerCharacter::OnBeginOverlap(class UPrimitiveComponent* HitComp, class AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	
+	if (AHutedInventoryItemBase* Item = Cast<AHutedInventoryItemBase>(OtherActor))
+	{
+		CachedItem = Item;
+		Debug::Print(TEXT("HuntedPlayerCharacter::OnBeginOverlap Item"));
+	}
+}
+
+void AHuntedPlayerCharacter::OnEndOverlap(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	CachedItem = nullptr;
 }

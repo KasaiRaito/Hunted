@@ -34,6 +34,8 @@ namespace HuntedGameplayTags
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Inventory_Open);
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Inventory_Close);
 	
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Item_PickUp);
+	
 	/** Player **/
 		/** Abilities **/
 			/** Combat **/
@@ -59,6 +61,8 @@ namespace HuntedGameplayTags
 	
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Ability_Inventory_Open);
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Ability_Inventory_Close);
+	
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Ability_Item_PickUp);
 
 		/** Events **/
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Event_Equip_Gun);

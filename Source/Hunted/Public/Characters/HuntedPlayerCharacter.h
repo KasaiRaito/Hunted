@@ -16,6 +16,7 @@ class UCameraComponent;
 class UDataAsset_InputConfig;
 class UPlayerCombatComponent;
 class UPlayerInventoryComponent;
+class AHutedInventoryItemBase;
 
 /**
  * 
@@ -98,6 +99,9 @@ private:
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
 	UPlayerInventoryComponent* PlayerInventoryComponent;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
+	AHutedInventoryItemBase*  CachedItem;
 
 private:
 	
@@ -150,4 +154,8 @@ public:
 	void OnBeginOverlap(class UPrimitiveComponent* HitComp, class AActor* OtherActor,
 			UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
 			const FHitResult& SweepResult);
+	
+	UFUNCTION()
+	void OnEndOverlap(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor,
+			UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 };
