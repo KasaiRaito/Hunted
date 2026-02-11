@@ -13,15 +13,20 @@ class HUNTED_API UPlayerInventoryComponent : public UActorComponent
 	GENERATED_BODY()
 
 public:	
-	// Sets default values for this component's properties
 	UPlayerInventoryComponent();
+	
+	UPROPERTY(EditAnywhere, Category= "InventoryComponent Info | Inventory Size")
+	int8 Columns;
+	UPROPERTY(EditAnywhere, Category= "InventoryComponent Info | Inventory Size")
+	int8 Rows;
+	
+	UPROPERTY(EditAnywhere, Category= "InventoryComponent Info | Inventory Size")
+	float TileSize;
 
 protected:
-	// Called when the game starts
 	virtual void BeginPlay() override;
 
 public:	
-	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 		

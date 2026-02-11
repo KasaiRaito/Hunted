@@ -76,7 +76,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	UUserWidget* InventoryWidget;
 	
-	APlayerController* GetPlayerController;
 	
 private:
 #pragma region Components
@@ -92,8 +91,13 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
 	UPlayerCombatComponent* PlayerCombatComponent;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Controller", meta = (AllowPrivateAccess = "true"))
+	APlayerController* PlayerControllerComponent;
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
 	UPlayerInventoryComponent* PlayerInventoryComponent;
+
+private:
 	
 #pragma endregion
 

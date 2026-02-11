@@ -13,6 +13,7 @@
 #include "Components/Combat/PlayerCombatComponent.h"
 #include "Components/Inventory/PlayerInventoryComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Components/Inventory/PlayerInventoryComponent.h"
 
 #include "HuntedDebugHelper.h"
 #include "AbilitySystem/HuntedAbilitySystemComponent.h"
@@ -116,10 +117,10 @@ void AHuntedPlayerCharacter::BeginPlay()
 	}
 	
 	Debug::Print(TEXT("Player InventoryWidget Created"));
-	GetPlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+	PlayerControllerComponent = UGameplayStatics::GetPlayerController(GetWorld(), 0);
 	
 	InventoryWidget = CreateWidget(GetWorld(), InventoryWidgetClass);
-	InventoryWidget->SetOwningPlayer(GetPlayerController);
+	InventoryWidget->SetOwningPlayer(PlayerControllerComponent);
 }
 
 void AHuntedPlayerCharacter::Input_Move(const FInputActionValue& InputActionValue)
@@ -207,14 +208,14 @@ void AHuntedPlayerCharacter::Input_Inventory_Open(const FInputActionValue& Inven
 		if (InventoryWidget->IsInViewport())
 		{
 			InventoryWidget->RemoveFromParent();
-			GetPlayerController->bShowMouseCursor = false;
-			GetPlayerController->SetInputMode(FInputModeGameOnly());
+			PlayerControllerComponent->bShowMouseCursor = false;
+			PlayerControllerComponent->SetInputMode(FInputModeGameOnly());
 		}
 		else
 		{
 			InventoryWidget->AddToViewport();
-			GetPlayerController->bShowMouseCursor = true;
-			GetPlayerController->SetInputMode(FInputModeGameAndUI());
+			PlayerControllerComponent->bShowMouseCursor = true;
+			PlayerControllerComponent->SetInputMode(FInputModeGameAndUI());
 		}
 	}
 }
