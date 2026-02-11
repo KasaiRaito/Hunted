@@ -11,9 +11,14 @@
 #include "HuntedGameplayTags.h"
 #include "DataAssets/StartUpData/DataAsset_PlayerStartUpData.h"
 #include "Components/Combat/PlayerCombatComponent.h"
+#include "Components/Inventory/PlayerInventoryComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "Components/Inventory/PlayerInventoryComponent.h"
 
 #include "HuntedDebugHelper.h"
 #include "AbilitySystem/HuntedAbilitySystemComponent.h"
+#include "AbilitySystem/Abilities/HuntedPlayerGameplayAbility.h"
+#include "Blueprint/UserWidget.h"
 
 AHuntedPlayerCharacter::AHuntedPlayerCharacter()
 {
@@ -35,6 +40,8 @@ AHuntedPlayerCharacter::AHuntedPlayerCharacter()
 	GetCharacterMovement()->BrakingDecelerationWalking = 2000.0f;
 
 	PlayerCombatComponent = CreateDefaultSubobject<UPlayerCombatComponent>(TEXT("PlayerCombatComponent"));
+	
+	PlayerInventoryComponent = CreateDefaultSubobject<UPlayerInventoryComponent>(TEXT("PlayerInventoryComponent"));
 	
 	UpdateStaticMeshList();
 }
@@ -92,7 +99,10 @@ void AHuntedPlayerCharacter::SetupPlayerInputComponent(UInputComponent* InPlayer
 
 	PlayerInputComponent->BindNativeInputAction(InputConfigDataAsset, HuntedGameplayTags::InputTag_Echo,
 		ETriggerEvent::Triggered,this, &ThisClass::Input_Echo);
-
+	
+	PlayerInputComponent->BindNativeInputAction(InputConfigDataAsset, HuntedGameplayTags::InputTag_Inventory_Open,
+		ETriggerEvent::Triggered, this , &ThisClass::Input_Inventory_Open); 
+	
 	PlayerInputComponent->BindAbilityInputAction(InputConfigDataAsset,this,
 		&ThisClass::Input_AbilityInputPressed,&ThisClass::Input_AbilityInputReleased);
 }
@@ -100,6 +110,17 @@ void AHuntedPlayerCharacter::SetupPlayerInputComponent(UInputComponent* InPlayer
 void AHuntedPlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	if (InventoryWidgetClass == nullptr)
+	{
+		Debug::Print(TEXT("Player InventoryWidgetClass is NULL"));
+		return;
+	}
+	
+	Debug::Print(TEXT("Player InventoryWidget Created"));
+	PlayerControllerComponent = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+	
+	InventoryWidget = CreateWidget(GetWorld(), InventoryWidgetClass);
+	InventoryWidget->SetOwningPlayer(PlayerControllerComponent);
 }
 
 void AHuntedPlayerCharacter::Input_Move(const FInputActionValue& InputActionValue)
@@ -175,6 +196,27 @@ void AHuntedPlayerCharacter::Input_Echo(const FInputActionValue& Echo)
 	else
 	{
 		ExitEcho();
+	}
+}
+
+void AHuntedPlayerCharacter::Input_Inventory_Open(const FInputActionValue& Inventory)
+{
+	if (Inventory.Get<bool>())
+	{
+		Debug::Print(TEXT("HuntedPlayerCharacter::Input_Inventory"));
+		
+		if (InventoryWidget->IsInViewport())
+		{
+			InventoryWidget->RemoveFromParent();
+			PlayerControllerComponent->bShowMouseCursor = false;
+			PlayerControllerComponent->SetInputMode(FInputModeGameOnly());
+		}
+		else
+		{
+			InventoryWidget->AddToViewport();
+			PlayerControllerComponent->bShowMouseCursor = true;
+			PlayerControllerComponent->SetInputMode(FInputModeGameAndUI());
+		}
 	}
 }
 

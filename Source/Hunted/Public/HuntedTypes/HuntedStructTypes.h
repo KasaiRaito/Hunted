@@ -48,6 +48,22 @@ struct FHuntedPlayerWeaponData
 	FScalableFloat WeaponBaseDamage;
 };
 
+/** Inventory Structs **/
+USTRUCT()
+struct FLines
+{
+	GENERATED_USTRUCT_BODY();
+	
+	FLines()
+	{
+		
+	};
+	
+	TArray<FVector2D> XLines;
+	TArray<FVector2D> YLines;
+	
+};
+
 USTRUCT(BlueprintType)
 struct  FHuntedPlayerItemData
 {
@@ -79,4 +95,6 @@ struct  FHuntedPlayerItemData
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	int ItemAmount;	
+	
+	bool IsValid() const;
 };

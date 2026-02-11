@@ -30,6 +30,8 @@ namespace HuntedGameplayTags
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Unequip_Gun);
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Equip_Knife);
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Unequip_Knife);
+		/** Inventory / UI **/
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Inventory_Open);
 	
 	/** Player **/
 		/** Abilities **/
@@ -61,9 +63,12 @@ namespace HuntedGameplayTags
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Event_Equip_Knife);
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Event_Unequip_Knife);
 
-		/** Player Tags **/
+		/** Player Weapon Tags **/
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Weapon_BasicKnife);
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Weapon_Gun);
+	
+		/** Player Item Tags **/
+	//HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Item_Cure);
 	
 		/** Set By Caller **/
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_SetByCaller_AttackType_BasicKnife);

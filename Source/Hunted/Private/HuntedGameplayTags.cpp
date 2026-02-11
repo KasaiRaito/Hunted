@@ -25,6 +25,8 @@ namespace  HuntedGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(InputTag_Unequip_Gun, "InputTag.Unequip.Gun");
 	UE_DEFINE_GAMEPLAY_TAG(InputTag_Equip_Knife, "InputTag.Equip.Knife");
 	UE_DEFINE_GAMEPLAY_TAG(InputTag_Unequip_Knife, "InputTag.Unequip.Knife");
+		/** Inventory / UI **/
+	UE_DEFINE_GAMEPLAY_TAG(InputTag_Inventory_Open, "InputTag.Inventory.Open");
 	
 	/** Player **/
 		/** Abilities **/
@@ -60,8 +62,10 @@ namespace  HuntedGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Player_Weapon_BasicKnife, "Player.Weapon.BasicKnife");
 	UE_DEFINE_GAMEPLAY_TAG(Player_Weapon_Gun, "Player.Weapon.Gun")
 	
+		/** Player Item Tags **/
+	//UE_DEFINE_GAMEPLAY_TAG(Player_Item_Cure, "Player.Item.Cure");
+	
 		/** Set By Caller **/
-	//UE_DEFINE_GAMEPLAY_TAG(Player_SetByCaller_AttackType_BasicKnife, "Player.SetByCaller.AttackType.BasicKnife");
 	UE_DEFINE_GAMEPLAY_TAG(Player_SetByCaller_AttackType_BasicKnife, "Player.SetByCaller.AttackType.BasicKnife");
 	UE_DEFINE_GAMEPLAY_TAG(Player_SetByCaller_AttackType_Head, "Player.SetByCaller.AttackType.Head");
 	UE_DEFINE_GAMEPLAY_TAG(Player_SetByCaller_AttackType_Body, "Player.SetByCaller.AttackType.Body");
