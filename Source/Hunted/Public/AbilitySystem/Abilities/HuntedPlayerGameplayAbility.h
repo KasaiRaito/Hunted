@@ -27,6 +27,9 @@ public:
 	UPlayerCombatComponent* GetPlayerCombatComponentForActorInfo();
 	
 	UFUNCTION(BlueprintPure, Category = "Player|Ability")
+	UPlayerInventoryComponent* GetPlayerInventoryComponentForActorInfo();
+	
+	UFUNCTION(BlueprintPure, Category = "Player|Ability")
 	FGameplayEffectSpecHandle MakePlayerSpecHandle
 		(TSubclassOf<UGameplayEffect> EffectClass, float InWeaponBaseDamage, 
 			FGameplayTag InCurrentAttackTypeTag, float DamageScalar);

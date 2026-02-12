@@ -33,8 +33,13 @@ UPlayerCombatComponent* UHuntedPlayerGameplayAbility::GetPlayerCombatComponentFo
 	return GetPlayerCharacterFromActorInfo()->GetPlayerCombatComponent();
 }
 
+UPlayerInventoryComponent* UHuntedPlayerGameplayAbility::GetPlayerInventoryComponentForActorInfo()
+{
+	return GetPlayerCharacterFromActorInfo()->GetPlayerInventoryComponent();
+}
+
 FGameplayEffectSpecHandle UHuntedPlayerGameplayAbility::MakePlayerSpecHandle(TSubclassOf<UGameplayEffect> EffectClass,
-	float InWeaponBaseDamage, FGameplayTag InCurrentAttackTypeTag, float DamageScalar)
+                                                                             float InWeaponBaseDamage, FGameplayTag InCurrentAttackTypeTag, float DamageScalar)
 {
 	check(EffectClass);
 	

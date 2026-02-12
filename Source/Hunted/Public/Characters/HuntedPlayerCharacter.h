@@ -16,6 +16,7 @@ class UCameraComponent;
 class UDataAsset_InputConfig;
 class UPlayerCombatComponent;
 class UPlayerInventoryComponent;
+class AHutedInventoryItemBase;
 
 /**
  * 
@@ -63,6 +64,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Echo")
 	UMaterialInterface* MyEchoMaterial;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly ,Category = "UI")
+	UUserWidget* InventoryWidget;
+	
 protected:
 	//~ Begin APawn Interface.
 	virtual void PossessedBy(AController* NewController) override;
@@ -73,8 +77,7 @@ protected:
 	
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UUserWidget> InventoryWidgetClass;
-	UPROPERTY(EditDefaultsOnly, Category = "UI")
-	UUserWidget* InventoryWidget;
+	
 	
 	
 private:
@@ -93,9 +96,19 @@ private:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Controller", meta = (AllowPrivateAccess = "true"))
 	APlayerController* PlayerControllerComponent;
-public:
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
 	UPlayerInventoryComponent* PlayerInventoryComponent;
+	
+public:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
+	AHutedInventoryItemBase*  CachedItem;	
+	
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	void SetCachedItem(AHutedInventoryItemBase* Item);
+	
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	void ClearCachedItem();
 
 private:
 	
@@ -112,8 +125,6 @@ private:
 	void Input_Snap(const FInputActionValue& Snap);
 
 	void Input_Echo(const FInputActionValue& Echo);
-	
-	void Input_Inventory_Open(const FInputActionValue& Inventory);
 	
 	void ProcessMovementInput(const FInputActionValue& InputActionValue);
 
@@ -145,4 +156,14 @@ public:
 	bool ReturnIsEcho() const { return IsEcho; };
 	
 	FORCEINLINE UPlayerCombatComponent* GetPlayerCombatComponent()const { return PlayerCombatComponent; }
+	FORCEINLINE UPlayerInventoryComponent* GetPlayerInventoryComponent()const { return PlayerInventoryComponent; }
+	
+	UFUNCTION()
+	void OnBeginOverlap(class UPrimitiveComponent* HitComp, class AActor* OtherActor,
+			UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
+			const FHitResult& SweepResult);
+	
+	UFUNCTION()
+	void OnEndOverlap(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor,
+			UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 };
