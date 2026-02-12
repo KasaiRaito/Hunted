@@ -1,12 +1,14 @@
 // KasaiRaito All Rights Reserved
 
-
 #include "Characters/HuntedEnemyCharacter.h"
 
-#include "Components/Combat/EnemyCombatComponent.h"
-#include "GameFramework/CharacterMovementComponent.h"
 #include "Engine/AssetManager.h"
 #include "DataAssets/StartUpData/DataAsset_EnemyStartUpData.h"
+
+/** Components **/
+#include "Components/Combat/EnemyCombatComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "Components/UI/EnemyUIComponent.h"
 
 #include "HuntedDebugHelper.h"
 
@@ -25,11 +27,18 @@ AHuntedEnemyCharacter::AHuntedEnemyCharacter()
 	GetCharacterMovement()->BrakingDecelerationWalking = 1000.f;
 	
 	EnemyCombatComponent = CreateDefaultSubobject<UEnemyCombatComponent>("EnemyCombatComponent");
+	
+	EnemyUIComponent = CreateDefaultSubobject<UEnemyUIComponent>("EnemyUIComponent");
 }
 
 UPawnCombatComponent* AHuntedEnemyCharacter::GetPawnCombatComponent() const
 {
 	return EnemyCombatComponent; 
+}
+
+UPawnUIComponent* AHuntedEnemyCharacter::GetPawnUIComponent() const
+{
+	return EnemyUIComponent;
 }
 
 void AHuntedEnemyCharacter::PossessedBy(AController* NewController)

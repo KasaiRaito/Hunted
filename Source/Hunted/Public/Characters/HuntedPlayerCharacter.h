@@ -16,6 +16,7 @@ class UCameraComponent;
 class UDataAsset_InputConfig;
 class UPlayerCombatComponent;
 class UPlayerInventoryComponent;
+class UPlayerUIComponent;
 class AHuntedInventoryItemBase;
 
 /**
@@ -45,6 +46,10 @@ public:
 	//~ Begin IPawnCombatInterface Interface
 	virtual UPawnCombatComponent* GetPawnCombatComponent() const override;
 	//~ End IPawnCombatInterface Interface
+	
+	//~ Begin IPawnUIInterface Interface
+	virtual UPawnUIComponent* GetPawnUIComponent() const override;
+	//~ End IPawnUIInterface Interface
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Speed)
 	float SprintSpeed = 600.f;
@@ -98,6 +103,9 @@ private:
 	APlayerController* PlayerControllerComponent;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
+	UPlayerUIComponent* PlayerUIComponent;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
 	UPlayerInventoryComponent* PlayerInventoryComponent;
 	
 public:

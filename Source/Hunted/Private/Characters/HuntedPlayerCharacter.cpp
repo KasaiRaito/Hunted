@@ -1,24 +1,27 @@
 // KasaiRaito All Rights Reserved
 
-
 #include "Characters/HuntedPlayerCharacter.h"
+
 #include "Components/CapsuleComponent.h"
 #include "Camera/CameraComponent.h"
-#include "GameFramework/CharacterMovementComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "DataAssets/Input/DataAsset_InputConfig.h"
 #include "Components/Input/PlayerInputComponent.h"
 #include "HuntedGameplayTags.h"
 #include "DataAssets/StartUpData/DataAsset_PlayerStartUpData.h"
-#include "Components/Combat/PlayerCombatComponent.h"
-#include "Components/Inventory/PlayerInventoryComponent.h"
 #include "Kismet/GameplayStatics.h"
-#include "Components/Inventory/PlayerInventoryComponent.h"
 
 #include "HuntedDebugHelper.h"
 #include "AbilitySystem/HuntedAbilitySystemComponent.h"
 #include "AbilitySystem/Abilities/HuntedPlayerGameplayAbility.h"
 #include "Blueprint/UserWidget.h"
+
+/** Components **/
+#include "Components/Combat/PlayerCombatComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "Components/UI/PlayerUIComponent.h"
+#include "Components/Inventory/PlayerInventoryComponent.h"
+
 #include "Items/Inventory/HuntedInventoryItemBase.h"
 
 AHuntedPlayerCharacter::AHuntedPlayerCharacter()
@@ -44,6 +47,8 @@ AHuntedPlayerCharacter::AHuntedPlayerCharacter()
 
 	PlayerCombatComponent = CreateDefaultSubobject<UPlayerCombatComponent>(TEXT("PlayerCombatComponent"));
 	
+	PlayerUIComponent = CreateDefaultSubobject<UPlayerUIComponent>(TEXT("PlayerUIComponent"));
+	
 	PlayerInventoryComponent = CreateDefaultSubobject<UPlayerInventoryComponent>(TEXT("PlayerInventoryComponent"));
 	
 	UpdateStaticMeshList();
@@ -53,6 +58,11 @@ UPawnCombatComponent* AHuntedPlayerCharacter::GetPawnCombatComponent() const
 {
 	return PlayerCombatComponent;
 	
+}
+
+UPawnUIComponent* AHuntedPlayerCharacter::GetPawnUIComponent() const
+{
+	return PlayerUIComponent;
 }
 
 void AHuntedPlayerCharacter::PossessedBy(AController* NewController)

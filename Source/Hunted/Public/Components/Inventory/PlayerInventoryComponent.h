@@ -4,13 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "Components/PawnExtensionComponentBase.h"
 #include "PlayerInventoryComponent.generated.h"
 
 
 class AHuntedInventoryItemBase;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class HUNTED_API UPlayerInventoryComponent : public UActorComponent
+class HUNTED_API UPlayerInventoryComponent : public UPawnExtensionComponentBase
 {
 	GENERATED_BODY()
 
