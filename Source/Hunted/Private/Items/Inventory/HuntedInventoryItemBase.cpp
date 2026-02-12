@@ -1,12 +1,12 @@
 // KasaiRaito All Rights Reserved
 
 
-#include "Items/Inventory/HutedInventoryItemBase.h"
+#include "Items/Inventory/HuntedInventoryItemBase.h"
 
 #include "Components/SphereComponent.h"
 #include "GameFramework/GameSession.h"
 
-AHutedInventoryItemBase::AHutedInventoryItemBase()
+AHuntedInventoryItemBase::AHuntedInventoryItemBase()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
@@ -19,13 +19,13 @@ AHutedInventoryItemBase::AHutedInventoryItemBase()
 	MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
-void AHutedInventoryItemBase::BeginPlay()
+void AHuntedInventoryItemBase::BeginPlay()
 {
 	Super::BeginPlay();
 	
 }
 
-void AHutedInventoryItemBase::Tick(float DeltaTime)
+void AHuntedInventoryItemBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	

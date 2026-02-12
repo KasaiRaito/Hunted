@@ -4,17 +4,17 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "HutedInventoryItemBase.generated.h"
+#include "HuntedInventoryItemBase.generated.h"
 
 class USphereComponent;
 
 UCLASS()
-class HUNTED_API AHutedInventoryItemBase : public AActor
+class HUNTED_API AHuntedInventoryItemBase : public AActor
 {
 	GENERATED_BODY()
 	
 public:
-	AHutedInventoryItemBase();
+	AHuntedInventoryItemBase();
 
 protected:
 	virtual void BeginPlay() override;

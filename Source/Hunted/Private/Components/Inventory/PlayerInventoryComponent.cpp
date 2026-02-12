@@ -2,7 +2,7 @@
 
 
 #include "Components/Inventory/PlayerInventoryComponent.h"
-#include "Items/Inventory/HutedInventoryItemBase.h"
+#include "Items/Inventory/HuntedInventoryItemBase.h"
 
 #include "HuntedDebugHelper.h"
 
@@ -34,7 +34,7 @@ void UPlayerInventoryComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 	
 }
 
-bool UPlayerInventoryComponent::TryAddItem(AHutedInventoryItemBase* ItemToAdd)
+bool UPlayerInventoryComponent::TryAddItem(AHuntedInventoryItemBase* ItemToAdd)
 {
 	if (!ItemToAdd)
 	{
@@ -55,7 +55,7 @@ bool UPlayerInventoryComponent::TryAddItem(AHutedInventoryItemBase* ItemToAdd)
 	return false;
 }
 
-bool UPlayerInventoryComponent::RoomForItemInInventory(AHutedInventoryItemBase* ItemToAdd, int8 TopLeftIndex)
+bool UPlayerInventoryComponent::RoomForItemInInventory(AHuntedInventoryItemBase* ItemToAdd, int8 TopLeftIndex)
 {
 	FIntPoint Dimensions = ItemToAdd->GetItemInventorySize();
 	FIntPoint Tile = IndexToTile(TopLeftIndex);
@@ -111,7 +111,7 @@ bool UPlayerInventoryComponent::GetResultAtIndex(int8 Index)
 	return false;
 }
 
-AHutedInventoryItemBase* UPlayerInventoryComponent::GetItemAtIndex(int8 Index)
+AHuntedInventoryItemBase* UPlayerInventoryComponent::GetItemAtIndex(int8 Index)
 {
 	if (Items.IsValidIndex(Index))
 	{
@@ -121,7 +121,7 @@ AHutedInventoryItemBase* UPlayerInventoryComponent::GetItemAtIndex(int8 Index)
 	return nullptr;
 }
 
-void UPlayerInventoryComponent::AddItemAtIndex(AHutedInventoryItemBase* ItemToAdd, int8 TopLeftIndex)
+void UPlayerInventoryComponent::AddItemAtIndex(AHuntedInventoryItemBase* ItemToAdd, int8 TopLeftIndex)
 {
 	FIntPoint Dimensions = ItemToAdd->GetItemInventorySize();
 	FIntPoint Tile = IndexToTile(TopLeftIndex);

@@ -16,7 +16,7 @@ class UCameraComponent;
 class UDataAsset_InputConfig;
 class UPlayerCombatComponent;
 class UPlayerInventoryComponent;
-class AHutedInventoryItemBase;
+class AHuntedInventoryItemBase;
 
 /**
  * 
@@ -102,10 +102,10 @@ private:
 	
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
-	AHutedInventoryItemBase*  CachedItem;	
+	AHuntedInventoryItemBase*  CachedItem;	
 	
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
-	void SetCachedItem(AHutedInventoryItemBase* Item);
+	void SetCachedItem(AHuntedInventoryItemBase* Item);
 	
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	void ClearCachedItem();

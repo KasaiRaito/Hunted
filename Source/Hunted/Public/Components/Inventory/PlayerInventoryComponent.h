@@ -7,7 +7,7 @@
 #include "PlayerInventoryComponent.generated.h"
 
 
-class AHutedInventoryItemBase;
+class AHuntedInventoryItemBase;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class HUNTED_API UPlayerInventoryComponent : public UActorComponent
@@ -26,7 +26,7 @@ public:
 	float TileSize;
 	
 	UPROPERTY(EditDefaultsOnly, Category= "InventoryComponent Info | Inventory Size")
-	TArray<AHutedInventoryItemBase*> Items;
+	TArray<AHuntedInventoryItemBase*> Items;
 	
 	bool IsTileValid(FIntPoint Tile);
 
@@ -37,10 +37,10 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	UFUNCTION(BlueprintCallable)
-	bool TryAddItem(AHutedInventoryItemBase* ItemToAdd);
+	bool TryAddItem(AHuntedInventoryItemBase* ItemToAdd);
 	
 	UFUNCTION()
-	bool RoomForItemInInventory(AHutedInventoryItemBase* ItemToAdd, int8 TopLeftIndex);
+	bool RoomForItemInInventory(AHuntedInventoryItemBase* ItemToAdd, int8 TopLeftIndex);
 		
 	UFUNCTION()
 	FIntPoint IndexToTile(int8 Index);
@@ -52,8 +52,8 @@ public:
 	bool GetResultAtIndex(int8 Index);
 	
 	UFUNCTION()
-	AHutedInventoryItemBase* GetItemAtIndex(int8 Index);
+	AHuntedInventoryItemBase* GetItemAtIndex(int8 Index);
 	
 	UFUNCTION()
-	void AddItemAtIndex(AHutedInventoryItemBase* ItemToAdd, int8 TopLeftIndex);
+	void AddItemAtIndex(AHuntedInventoryItemBase* ItemToAdd, int8 TopLeftIndex);
 };
