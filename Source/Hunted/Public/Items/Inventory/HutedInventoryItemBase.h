@@ -28,6 +28,12 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Item-World")
 	USphereComponent* CollisionSphere;
 	
+	UPROPERTY(EditAnywhere, Category = "Item-Inventory | Info")
+	FIntPoint ObjectInventorySize;
+	
+	UFUNCTION(BlueprintCallable, Category = "Item-Inventory")
+	FIntPoint GetItemInventorySize() const { return ObjectInventorySize; }
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item-World")
 	bool IsInRangeOfPlayer;
 	

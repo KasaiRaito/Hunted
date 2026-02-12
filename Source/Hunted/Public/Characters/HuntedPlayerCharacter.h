@@ -96,17 +96,19 @@ private:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Controller", meta = (AllowPrivateAccess = "true"))
 	APlayerController* PlayerControllerComponent;
-public:
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
 	UPlayerInventoryComponent* PlayerInventoryComponent;
 	
+public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
-	AHutedInventoryItemBase*  CachedItem;
-	
-	
+	AHutedInventoryItemBase*  CachedItem;	
 	
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	void SetCachedItem(AHutedInventoryItemBase* Item);
+	
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	void ClearCachedItem();
 
 private:
 	
@@ -154,6 +156,7 @@ public:
 	bool ReturnIsEcho() const { return IsEcho; };
 	
 	FORCEINLINE UPlayerCombatComponent* GetPlayerCombatComponent()const { return PlayerCombatComponent; }
+	FORCEINLINE UPlayerInventoryComponent* GetPlayerInventoryComponent()const { return PlayerInventoryComponent; }
 	
 	UFUNCTION()
 	void OnBeginOverlap(class UPrimitiveComponent* HitComp, class AActor* OtherActor,

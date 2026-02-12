@@ -34,7 +34,7 @@ void UPlayerInventoryGrid::SetUpInventoryGrid()
 		return;
 	}
 
-	UPlayerInventoryComponent* InventoryComponent = PlayerReference->PlayerInventoryComponent;
+	UPlayerInventoryComponent* InventoryComponent = PlayerReference->GetPlayerInventoryComponent();
 	if (!InventoryComponent)
 	{
 		Debug::Print("[PlayerInventoryGrid] Can't construct player inventory component");
