@@ -27,5 +27,10 @@ public:
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Item-World")
 	USphereComponent* CollisionSphere;
-
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item-World")
+	bool IsInRangeOfPlayer;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item-World")
+	bool  ItemIsInVew;
 };

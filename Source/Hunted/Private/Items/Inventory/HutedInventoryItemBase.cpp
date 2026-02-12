@@ -4,6 +4,7 @@
 #include "Items/Inventory/HutedInventoryItemBase.h"
 
 #include "Components/SphereComponent.h"
+#include "GameFramework/GameSession.h"
 
 AHutedInventoryItemBase::AHutedInventoryItemBase()
 {
@@ -27,6 +28,5 @@ void AHutedInventoryItemBase::BeginPlay()
 void AHutedInventoryItemBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
+	
 }
-

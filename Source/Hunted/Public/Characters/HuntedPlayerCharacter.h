@@ -100,8 +100,13 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
 	UPlayerInventoryComponent* PlayerInventoryComponent;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
 	AHutedInventoryItemBase*  CachedItem;
+	
+	
+	
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	void SetCachedItem(AHutedInventoryItemBase* Item);
 
 private:
 	
