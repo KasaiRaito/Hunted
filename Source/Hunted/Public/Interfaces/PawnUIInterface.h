@@ -6,6 +6,7 @@
 #include "UObject/Interface.h"
 #include "PawnUIInterface.generated.h"
 
+class UPlayerUIComponent;
 class UPawnUIComponent;
 
 // This class does not need to be modified.
@@ -27,5 +28,5 @@ public:
 	
 	virtual UPawnUIComponent* GetPawnUIComponent() const = 0;
 	
-	
+	virtual UPlayerUIComponent* GetPlayerUIComponent() const;
 };

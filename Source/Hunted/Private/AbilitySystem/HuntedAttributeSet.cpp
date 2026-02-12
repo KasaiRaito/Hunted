@@ -4,10 +4,14 @@
 #include "AbilitySystem/HuntedAttributeSet.h"
 #include "GameplayEffectExtension.h"
 #include "HuntedFunctionLibrary.h"
-#include "HuntedFunctionLibrary.h"
+#include "Interfaces/PawnUIInterface.h"
+
+#include "HuntedGameplayTags.h"
+
+#include "Components/UI/PawnUIComponent.h"
+#include "Components/UI/PlayerUIComponent.h"
 
 #include "HuntedDebugHelper.h"
-#include "HuntedGameplayTags.h"
 
 UHuntedAttributeSet::UHuntedAttributeSet()
 {
@@ -21,13 +25,29 @@ UHuntedAttributeSet::UHuntedAttributeSet()
 
 void UHuntedAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data)
 {
-	Super::PostGameplayEffectExecute(Data);
+	if (!CachedPawnUIInterface.IsValid())
+	{
+		CachedPawnUIInterface = TWeakInterfacePtr<IPawnUIInterface>(Data.Target.GetAvatarActor());
+		//CachedPawnUIInterface = Cast<IPawnUIInterface>(Data.Target.GetAvatarActor());
+	}
 	
+	checkf(CachedPawnUIInterface.IsValid(), TEXT("%s didn't impement IPawnUIInterface"), *Data.Target.GetAvatarActor()->GetActorNameOrLabel());
+	
+	UPawnUIComponent* PawnUIComponent = CachedPawnUIInterface->GetPawnUIComponent();
+	
+	checkf(PawnUIComponent, TEXT("Could not Extract a PawnUIComponent from %s"), *Data.Target.GetAvatarActor()->GetActorNameOrLabel());
+		
 	if (Data.EvaluatedData.Attribute == GetCurrentHealthAttribute())
 	{
 		const float NewCurrentHealth = FMath::Clamp(GetCurrentHealth(), 0.f, GetMaxHealth());
 		
 		SetCurrentHealth(NewCurrentHealth);
+		
+		if (UPlayerUIComponent* PlayerUIComponent = CachedPawnUIInterface->GetPlayerUIComponent())
+		{
+			PlayerUIComponent->OnCurrentSanityChange.Broadcast(GetCurrentSanity()/GetMaxSanity());
+		}
+		
 	}
 	
 	if (Data.EvaluatedData.Attribute == GetCurrentSanityAttribute())
@@ -35,6 +55,8 @@ void UHuntedAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffect
 		const float NewCurrentSanity = FMath::Clamp(GetCurrentSanity(), 0.f, GetMaxSanity());
 		
 		SetCurrentSanity(NewCurrentSanity);
+		
+		PawnUIComponent->OnCurrentHealthChanged.Broadcast(GetCurrentSanity()/GetMaxSanity());
 	}
 	
 	if (Data.EvaluatedData.Attribute == GetDamageTakenAttribute())
@@ -50,6 +72,8 @@ void UHuntedAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffect
 			OldHealth, DamageDone, NewCurrentHealth);
 		
 		Debug::Print(DebugString, FColor::Green);
+		
+		PawnUIComponent->OnCurrentHealthChanged.Broadcast(NewCurrentHealth/GetMaxHealth());
 		
 		if (NewCurrentHealth == 0.0f)
 		{

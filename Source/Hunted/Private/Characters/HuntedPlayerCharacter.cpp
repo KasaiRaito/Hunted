@@ -65,6 +65,11 @@ UPawnUIComponent* AHuntedPlayerCharacter::GetPawnUIComponent() const
 	return PlayerUIComponent;
 }
 
+UPlayerUIComponent* AHuntedPlayerCharacter::GetPlayerUIComponent() const
+{
+	return PlayerUIComponent;
+}
+
 void AHuntedPlayerCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
