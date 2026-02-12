@@ -47,7 +47,6 @@ void UHuntedAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffect
 		{
 			PlayerUIComponent->OnCurrentSanityChange.Broadcast(GetCurrentSanity()/GetMaxSanity());
 		}
-		
 	}
 	
 	if (Data.EvaluatedData.Attribute == GetCurrentSanityAttribute())
@@ -73,9 +72,9 @@ void UHuntedAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffect
 		
 		Debug::Print(DebugString, FColor::Green);
 		
-		PawnUIComponent->OnCurrentHealthChanged.Broadcast(NewCurrentHealth/GetMaxHealth());
+		PawnUIComponent->OnCurrentHealthChanged.Broadcast(GetCurrentHealth()/GetMaxHealth());
 		
-		if (NewCurrentHealth == 0.0f)
+		if (GetCurrentHealth() == 0.0f)
 		{
 			UHuntedFunctionLibrary::AddGameplayTagToActorIfNone(Data.Target.GetAvatarActor(), HuntedGameplayTags::Shared_Status_Death);
 		}
