@@ -11,7 +11,7 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "HuntedTypes/HuntedStructTypes.h"
-#include "PlayerInventoryGrid.generated.h"
+#include "PlayerInventoryGridWidget.generated.h"
 
 class UCanvasPanel;
 class UBorder;
@@ -20,7 +20,7 @@ class UBorder;
  * 
  */
 UCLASS()
-class HUNTED_API UPlayerInventoryGrid : public UHuntedWidgetBase
+class HUNTED_API UPlayerInventoryGridWidget : public UHuntedWidgetBase
 {
 	GENERATED_BODY()
 	

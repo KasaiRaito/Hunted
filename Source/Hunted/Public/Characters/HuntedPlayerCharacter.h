@@ -70,9 +70,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Echo")
 	UMaterialInterface* MyEchoMaterial;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly ,Category = "UI")
-	UUserWidget* InventoryWidget;
-	
 protected:
 	//~ Begin APawn Interface.
 	virtual void PossessedBy(AController* NewController) override;
@@ -84,7 +81,14 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UUserWidget> InventoryWidgetClass;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly ,Category = "UI")
+	UUserWidget* InventoryWidget;
 	
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<UUserWidget> ItemWidgetClass;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly ,Category = "UI")
+	UUserWidget* ItemWidget;
 	
 private:
 #pragma region Components

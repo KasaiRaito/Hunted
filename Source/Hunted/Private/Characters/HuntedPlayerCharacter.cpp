@@ -136,6 +136,8 @@ void AHuntedPlayerCharacter::BeginPlay()
 	
 	InventoryWidget = CreateWidget(GetWorld(), InventoryWidgetClass);
 	InventoryWidget->SetOwningPlayer(PlayerControllerComponent);
+	InventoryWidget->AddToViewport();
+	InventoryWidget->SetVisibility(ESlateVisibility::Collapsed);
 	
 	PlayerInventoryComponent->Items.SetNum(PlayerInventoryComponent->Columns * PlayerInventoryComponent->Rows);
 }
@@ -355,7 +357,7 @@ void AHuntedPlayerCharacter::OnBeginOverlap(class UPrimitiveComponent* HitComp, 
 {
 	if (AHuntedInventoryItemBase* Item = Cast<AHuntedInventoryItemBase>(OtherActor))
 	{
-		Item->IsInRangeOfPlayer = true;
+		Item->SetIsInRangeOfPlayer( true );
 		Debug::Print(TEXT("HuntedPlayerCharacter::OnBeginOverlap Item"), FColor::Yellow);
 	}
 }
@@ -365,7 +367,7 @@ void AHuntedPlayerCharacter::OnEndOverlap(class UPrimitiveComponent* OverlappedC
 {
 	if (AHuntedInventoryItemBase* Item = Cast<AHuntedInventoryItemBase>(OtherActor))
 	{
-		Item->IsInRangeOfPlayer = false;
+		Item->SetIsInRangeOfPlayer( false );
     	Debug::Print(TEXT("HuntedPlayerCharacter::OnEndOverlap Item"), FColor::Yellow);
 		
     }

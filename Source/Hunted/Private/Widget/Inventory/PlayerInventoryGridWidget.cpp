@@ -1,7 +1,7 @@
 // KasaiRaito All Rights Reserved
 
 
-#include "Widget/Inventory/PlayerInventoryGrid.h"
+#include "Widget/Inventory/PlayerInventoryGridWidget.h"
 
 #include "Characters/HuntedPlayerCharacter.h"
 #include "HuntedDebugHelper.h"
@@ -11,7 +11,7 @@
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
 
-void UPlayerInventoryGrid::NativeConstruct()
+void UPlayerInventoryGridWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 	
@@ -22,7 +22,7 @@ void UPlayerInventoryGrid::NativeConstruct()
 	}
 }
 
-void UPlayerInventoryGrid::SetUpInventoryGrid()
+void UPlayerInventoryGridWidget::SetUpInventoryGrid()
 {
 	AHuntedPlayerCharacter* PlayerReference;
 	
@@ -74,7 +74,7 @@ void UPlayerInventoryGrid::SetUpInventoryGrid()
 	}
 }
 
-void UPlayerInventoryGrid::CreateLineSegments()
+void UPlayerInventoryGridWidget::CreateLineSegments()
 {
 	for (int8 Column = 0; Column <= Columns; Column++)
 	{
@@ -107,7 +107,7 @@ void UPlayerInventoryGrid::CreateLineSegments()
 	bGridDirty = false;
 }
 
-int32 UPlayerInventoryGrid::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry,
+int32 UPlayerInventoryGridWidget::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry,
 	const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId,
 	const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
 {
