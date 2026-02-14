@@ -3,14 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Blueprint/UserWidget.h"
+#include "Widget/UI/HuntedWidgetBase.h"
 #include "PlayerInventoryItem.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class HUNTED_API UPlayerInventoryItem : public UUserWidget
+class HUNTED_API UPlayerInventoryItem : public UHuntedWidgetBase
 {
 	GENERATED_BODY()
 	

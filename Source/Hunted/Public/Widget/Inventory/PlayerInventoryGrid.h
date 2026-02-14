@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "Blueprint/UserWidget.h"
+#include "Widget/UI/HuntedWidgetBase.h"
 #include "Components/Border.h"
 #include "Components/CanvasPanel.h"
 #include "Components/CanvasPanelSlot.h"
@@ -20,7 +20,7 @@ class UBorder;
  * 
  */
 UCLASS()
-class HUNTED_API UPlayerInventoryGrid : public UUserWidget
+class HUNTED_API UPlayerInventoryGrid : public UHuntedWidgetBase
 {
 	GENERATED_BODY()
 	

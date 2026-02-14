@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Blueprint/UserWidget.h"
+#include "Widget/UI/HuntedWidgetBase.h"
 #include "PlayerInventoryWidget.generated.h"
 
 class UCanvasPanel;
@@ -12,7 +12,7 @@ class UBackgroundBlur;
 
 
 UCLASS()
-class HUNTED_API UPlayerInventoryWidget : public UUserWidget
+class HUNTED_API UPlayerInventoryWidget : public UHuntedWidgetBase
 {
 	GENERATED_BODY()
 	
