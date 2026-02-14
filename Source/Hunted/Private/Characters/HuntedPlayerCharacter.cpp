@@ -73,7 +73,7 @@ UPlayerUIComponent* AHuntedPlayerCharacter::GetPlayerUIComponent() const
 void AHuntedPlayerCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
-
+	
 	if (!CharacterStartUpData.IsNull())
 	{
 		if (UDataAsset_StartUpDataBase* LoadedData = CharacterStartUpData.LoadSynchronous())
