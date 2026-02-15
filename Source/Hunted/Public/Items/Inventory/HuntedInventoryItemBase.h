@@ -38,28 +38,28 @@ public:
 	AHuntedInventoryItemBase();
 	
 	UFUNCTION(BlueprintCallable, Category = "Item-Inventory")
-	FIntPoint GetItemInventorySize() const { return ObjectInventorySize; }
+	FORCEINLINE FIntPoint GetItemInventorySize() const { return ObjectInventorySize; }
 	
 	UFUNCTION(BlueprintCallable, Category = "Item-Inventory")
-	void SetItemInventorySize(FIntPoint NewSize) { ObjectInventorySize = NewSize; }
+	FORCEINLINE void SetItemInventorySize(FIntPoint NewSize) { ObjectInventorySize = NewSize; }
 	
 	UFUNCTION(BlueprintCallable, Category = "Item-Inventory")
-	bool GetItemIsInVew() { return ItemIsInVew;};
+	FORCEINLINE bool GetItemIsInVew() { return ItemIsInVew;};
 	
 	UFUNCTION(BlueprintCallable, Category = "Item-Inventory")
-	void SetItemIsInVew(bool val) { ItemIsInVew = val; };
+	FORCEINLINE void SetItemIsInVew(bool val) { ItemIsInVew = val; };
 	
 	UFUNCTION(BlueprintCallable, Category = "Item-Inventory")
-	bool GetIsInRangeOfPlayer() { return IsInRangeOfPlayer;};
+	FORCEINLINE bool GetIsInRangeOfPlayer() { return IsInRangeOfPlayer;};
 	
 	UFUNCTION(BlueprintCallable, Category = "Item-Inventory")
-	void SetIsInRangeOfPlayer(bool val) { IsInRangeOfPlayer = val; };
+	FORCEINLINE void SetIsInRangeOfPlayer(bool val) { IsInRangeOfPlayer = val; };
 	
 	UFUNCTION(BlueprintCallable, Category = "Item-Inventory")
-	UMaterialInterface* GetIcon() const { return Icon; }
+	FORCEINLINE UMaterialInterface* GetIcon() const { return Icon; }
 	
 	UFUNCTION(BlueprintCallable, Category = "Item-Inventory")
-	void SetIcon(UMaterialInterface* NewIcon) { Icon = NewIcon; }
+	FORCEINLINE void SetIcon(UMaterialInterface* NewIcon) { Icon = NewIcon; }
 	
 protected:
 	virtual void BeginPlay() override;

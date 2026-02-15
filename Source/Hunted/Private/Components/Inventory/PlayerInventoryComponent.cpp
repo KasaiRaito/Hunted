@@ -34,6 +34,22 @@ void UPlayerInventoryComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 	
 }
 
+TMap<AHuntedInventoryItemBase*, FIntPoint> UPlayerInventoryComponent::GetAllItems()
+{
+	for (int8 i = 0; i < Items.Num(); i++)
+	{
+		if (Items[i])
+		{
+			if (!AllItems.Contains(Items[i]))
+			{
+				AllItems.Add(Items[i], IndexToTile(i));
+			}
+		}
+	}
+	
+	return AllItems;
+}
+
 bool UPlayerInventoryComponent::TryAddItem(AHuntedInventoryItemBase* ItemToAdd)
 {
 	if (!ItemToAdd)
@@ -90,18 +106,18 @@ bool UPlayerInventoryComponent::RoomForItemInInventory(AHuntedInventoryItemBase*
 	return true;
 }
 
-FIntPoint UPlayerInventoryComponent::IndexToTile(int8 Index)
+FIntPoint UPlayerInventoryComponent::IndexToTile(int8 Index) const
 {
 	return FIntPoint(Index % Columns, Index / Columns);
 }
 
-int8 UPlayerInventoryComponent::TileToIndex(FIntPoint Tile)
+int8 UPlayerInventoryComponent::TileToIndex(FIntPoint Tile) const
 {
 	int8 Index = Tile.X + Tile.Y * Columns;
 	return Index;
 }
 
-bool UPlayerInventoryComponent::GetResultAtIndex(int8 Index)
+bool UPlayerInventoryComponent::GetResultAtIndex(int8 Index) const
 {
 	if (Items.IsValidIndex(Index))
 	{
@@ -134,4 +150,5 @@ void UPlayerInventoryComponent::AddItemAtIndex(AHuntedInventoryItemBase* ItemToA
 		}
 	}
 	
+	AddedItem = true;
 }

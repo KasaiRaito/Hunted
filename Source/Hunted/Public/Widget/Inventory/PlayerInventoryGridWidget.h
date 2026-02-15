@@ -13,8 +13,10 @@
 #include "HuntedTypes/HuntedStructTypes.h"
 #include "PlayerInventoryGridWidget.generated.h"
 
-class UCanvasPanel;
 class UBorder;
+class UCanvasPanel;
+class AHuntedPlayerCharacter;
+class UPlayerInventoryComponent;
 
 /**
  * 
@@ -34,6 +36,15 @@ protected:
 	UPROPERTY()
 	UCanvasPanel* GridCanvasPanel;
 
+	UPROPERTY()
+	AHuntedPlayerCharacter* PlayerReference;
+	
+	UPROPERTY()
+	UPlayerInventoryComponent* InventoryComponent;
+	
+	UPROPERTY()
+	UPanelSlot* PanelSlot;
+	
 	UPROPERTY()
 	int8 Columns;
 	
@@ -80,6 +91,11 @@ protected:
 	UFUNCTION()
 	void CreateLineSegments();
 		
-	virtual int32 NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const override; 
+	virtual int32 NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, 
+		const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, 
+		int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const override;
 	
+public:
+	UFUNCTION(BlueprintCallable)
+	void AddItemWidget(bool TheresItem);
 };

@@ -71,24 +71,29 @@ public:
 	UMaterialInterface* MyEchoMaterial;
 
 protected:
-	//~ Begin APawn Interface.
+	//~ Begin APawn Interface
 	virtual void PossessedBy(AController* NewController) override;
 	//~ End APawn Interface
 	
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	virtual void BeginPlay() override;
 	
+	//~ Begin Inventory Component.
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UUserWidget> InventoryWidgetClass;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly ,Category = "UI")
+	UPROPERTY(EditDefaultsOnly ,Category = "UI")
 	UUserWidget* InventoryWidget;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UUserWidget> ItemWidgetClass;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly ,Category = "UI")
+	UPROPERTY(EditDefaultsOnly ,Category = "UI")
 	UUserWidget* ItemWidget;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	AActor* ItemToAdd;
+	//~ End Inventory Component
 	
 private:
 #pragma region Components
@@ -113,16 +118,19 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
 	UPlayerInventoryComponent* PlayerInventoryComponent;
 	
-public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
-	AHuntedInventoryItemBase*  CachedItem;	
+	AHuntedInventoryItemBase*  CachedItem;
+	
+public:
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	FORCEINLINE void SetCachedItem(AHuntedInventoryItemBase* Item) { CachedItem = Item; }
 	
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
-	void SetCachedItem(AHuntedInventoryItemBase* Item);
+	FORCEINLINE void ClearCachedItem() { CachedItem = nullptr; }
 	
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
-	void ClearCachedItem();
-
+	FORCEINLINE AHuntedInventoryItemBase* GetCachedItem() const { return CachedItem; }
+	
 private:
 	
 #pragma endregion
@@ -170,6 +178,13 @@ public:
 	
 	FORCEINLINE UPlayerCombatComponent* GetPlayerCombatComponent()const { return PlayerCombatComponent; }
 	FORCEINLINE UPlayerInventoryComponent* GetPlayerInventoryComponent()const { return PlayerInventoryComponent; }
+	
+	FORCEINLINE TSubclassOf<UUserWidget> GetItemWidgetClass()const { return ItemWidgetClass; }
+	FORCEINLINE UUserWidget* GetItemWidget()const { return ItemWidget; }
+	FORCEINLINE void SetItemWidget(UUserWidget* widget) { ItemWidget = widget; }
+	
+	UFUNCTION(BlueprintCallable, Category = "Invewntory")
+	FORCEINLINE UUserWidget* GetInventoryWidget() { return InventoryWidget; }
 	
 	UFUNCTION()
 	void OnBeginOverlap(class UPrimitiveComponent* HitComp, class AActor* OtherActor,

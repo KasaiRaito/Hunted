@@ -139,17 +139,7 @@ void AHuntedPlayerCharacter::BeginPlay()
 	InventoryWidget->AddToViewport();
 	InventoryWidget->SetVisibility(ESlateVisibility::Collapsed);
 	
-	PlayerInventoryComponent->Items.SetNum(PlayerInventoryComponent->Columns * PlayerInventoryComponent->Rows);
-}
-
-void AHuntedPlayerCharacter::SetCachedItem(AHuntedInventoryItemBase* Item)
-{
-	CachedItem = Item;
-}
-
-void AHuntedPlayerCharacter::ClearCachedItem()
-{
-	CachedItem = nullptr;
+	PlayerInventoryComponent->SetItemsNum(PlayerInventoryComponent->GetColumns() * PlayerInventoryComponent->GetRows());
 }
 
 void AHuntedPlayerCharacter::Input_Move(const FInputActionValue& InputActionValue)

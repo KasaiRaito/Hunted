@@ -24,8 +24,6 @@ void UPlayerInventoryGridWidget::NativeConstruct()
 
 void UPlayerInventoryGridWidget::SetUpInventoryGrid()
 {
-	AHuntedPlayerCharacter* PlayerReference;
-	
 	PlayerReference = Cast<AHuntedPlayerCharacter>(GetOwningPlayerPawn());
 	
 	if (!PlayerReference)
@@ -34,16 +32,18 @@ void UPlayerInventoryGridWidget::SetUpInventoryGrid()
 		return;
 	}
 
-	UPlayerInventoryComponent* InventoryComponent = PlayerReference->GetPlayerInventoryComponent();
+	InventoryComponent = PlayerReference->GetPlayerInventoryComponent();
 	if (!InventoryComponent)
 	{
 		Debug::Print("[PlayerInventoryGrid] Can't construct player inventory component");
 		return;
 	}
 	
-	Columns = InventoryComponent->Columns;
-	Rows = InventoryComponent->Rows;
-	TileSize = InventoryComponent->TileSize;
+	InventoryComponent->SetInventoryGridWidget(this);
+	
+	Columns = InventoryComponent->GetColumns();
+	Rows = InventoryComponent->GetRows();
+	TileSize = InventoryComponent->GetTileSize();
 	
 	float NewWidth = Columns * TileSize;
 	float NewHeight = Rows * TileSize;
@@ -139,4 +139,38 @@ int32 UPlayerInventoryGridWidget::NativePaint(const FPaintArgs& Args, const FGeo
 	}
 		
 	return int32();
+}
+
+void UPlayerInventoryGridWidget::AddItemWidget(bool TheresItem)
+{
+	if (!TheresItem)
+	{
+		Debug::Print(PanelSlot->GetName() + ": Couldn't Add Item Widget");
+		return;
+	}
+	
+	TArray<AHuntedInventoryItemBase*> Keys;
+	InventoryComponent->GetAllItems().GetKeys(Keys);
+	
+	if (TSubclassOf<UUserWidget> widget = PlayerReference->GetItemWidgetClass())
+	{
+		PlayerReference->SetItemWidget(CreateWidget(GetWorld(), widget));
+		
+		for (AHuntedInventoryItemBase* AddedItem : Keys)
+		{
+			UUserWidget* ItemWidget = PlayerReference->GetItemWidget();
+			ItemWidget->SetOwningPlayer(GetOwningPlayer());
+			
+			int16 X = InventoryComponent->GetAllItems()[AddedItem].X * TileSize; 
+			int16 Y = InventoryComponent->GetAllItems()[AddedItem].Y * TileSize;
+			
+			PanelSlot = GridCanvasPanel->AddChild(ItemWidget);
+			
+			UCanvasPanelSlot* CanvasPanelSlot = Cast<UCanvasPanelSlot>(PanelSlot);
+			CanvasPanelSlot->SetAutoSize(true);
+			CanvasPanelSlot->SetPosition(FVector2D(X, Y));
+			
+			Debug::Print(PanelSlot->GetName() + ": AddItemWidget");
+		}
+	}
 }
