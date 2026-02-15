@@ -141,14 +141,8 @@ int32 UPlayerInventoryGridWidget::NativePaint(const FPaintArgs& Args, const FGeo
 	return int32();
 }
 
-void UPlayerInventoryGridWidget::AddItemWidget(bool TheresItem)
-{
-	if (!TheresItem)
-	{
-		Debug::Print(PanelSlot->GetName() + ": Couldn't Add Item Widget");
-		return;
-	}
-	
+void UPlayerInventoryGridWidget::AddItemWidget()
+{	
 	TArray<AHuntedInventoryItemBase*> Keys;
 	InventoryComponent->GetAllItems().GetKeys(Keys);
 	

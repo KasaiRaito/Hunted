@@ -97,5 +97,5 @@ protected:
 	
 public:
 	UFUNCTION(BlueprintCallable)
-	void AddItemWidget(bool TheresItem);
+	void AddItemWidget();
 };

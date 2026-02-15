@@ -33,7 +33,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, meta = (BindWidget), Category= "UI")
 	UImage* ItemImage;
 	
-	UPROPERTY(VisibleDefaultsOnly, meta = (BindWidget), Category= "UI")
+	UPROPERTY(VisibleDefaultsOnly, Category= "UI")
 	AHuntedPlayerCharacter* CharacterReference;
 	
 	UPROPERTY(VisibleDefaultsOnly, meta = (BindWidget), Category= "UI")
