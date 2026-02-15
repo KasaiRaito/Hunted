@@ -15,6 +15,9 @@ class USpringArmComponent;
 class UCameraComponent;
 class UDataAsset_InputConfig;
 class UPlayerCombatComponent;
+class UPlayerInventoryComponent;
+class UPlayerUIComponent;
+class AHuntedInventoryItemBase;
 
 /**
  * 
@@ -44,6 +47,11 @@ public:
 	virtual UPawnCombatComponent* GetPawnCombatComponent() const override;
 	//~ End IPawnCombatInterface Interface
 	
+	//~ Begin IPawnUIInterface Interface
+	virtual UPawnUIComponent* GetPawnUIComponent() const override;
+	virtual UPlayerUIComponent* GetPlayerUIComponent() const override;
+	//~ End IPawnUIInterface Interface
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Speed)
 	float SprintSpeed = 600.f;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Speed)
@@ -63,12 +71,29 @@ public:
 	UMaterialInterface* MyEchoMaterial;
 
 protected:
-	//~ Begin APawn Interface.
+	//~ Begin APawn Interface
 	virtual void PossessedBy(AController* NewController) override;
 	//~ End APawn Interface
 	
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	virtual void BeginPlay() override;
+	
+	//~ Begin Inventory Component.
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<UUserWidget> InventoryWidgetClass;
+	
+	UPROPERTY(EditDefaultsOnly ,Category = "UI")
+	UUserWidget* InventoryWidget;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<UUserWidget> ItemWidgetClass;
+	
+	UPROPERTY(EditDefaultsOnly ,Category = "UI")
+	UUserWidget* ItemWidget;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	AActor* ItemToAdd;
+	//~ End Inventory Component
 	
 private:
 #pragma region Components
@@ -83,6 +108,31 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
 	UPlayerCombatComponent* PlayerCombatComponent;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Controller", meta = (AllowPrivateAccess = "true"))
+	APlayerController* PlayerControllerComponent;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
+	UPlayerUIComponent* PlayerUIComponent;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
+	UPlayerInventoryComponent* PlayerInventoryComponent;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
+	AHuntedInventoryItemBase*  CachedItem;
+	
+public:
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	FORCEINLINE void SetCachedItem(AHuntedInventoryItemBase* Item) { CachedItem = Item; }
+	
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	FORCEINLINE void ClearCachedItem() { CachedItem = nullptr; }
+	
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	FORCEINLINE AHuntedInventoryItemBase* GetCachedItem() const { return CachedItem; }
+	
+private:
+	
 #pragma endregion
 
 #pragma region Inputs
@@ -103,6 +153,7 @@ private:
 
 	void Input_AbilityInputPressed(FGameplayTag InInputTag);
 	void Input_AbilityInputReleased(FGameplayTag InInputTag);
+	
 
 	bool IsSneak = false;
 	bool IsSprint = false;
@@ -126,4 +177,21 @@ public:
 	bool ReturnIsEcho() const { return IsEcho; };
 	
 	FORCEINLINE UPlayerCombatComponent* GetPlayerCombatComponent()const { return PlayerCombatComponent; }
+	FORCEINLINE UPlayerInventoryComponent* GetPlayerInventoryComponent()const { return PlayerInventoryComponent; }
+	
+	FORCEINLINE TSubclassOf<UUserWidget> GetItemWidgetClass()const { return ItemWidgetClass; }
+	FORCEINLINE UUserWidget* GetItemWidget()const { return ItemWidget; }
+	FORCEINLINE void SetItemWidget(UUserWidget* widget) { ItemWidget = widget; }
+	
+	UFUNCTION(BlueprintCallable, Category = "Invewntory")
+	FORCEINLINE UUserWidget* GetInventoryWidget() { return InventoryWidget; }
+	
+	UFUNCTION()
+	void OnBeginOverlap(class UPrimitiveComponent* HitComp, class AActor* OtherActor,
+			UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
+			const FHitResult& SweepResult);
+	
+	UFUNCTION()
+	void OnEndOverlap(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor,
+			UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 };

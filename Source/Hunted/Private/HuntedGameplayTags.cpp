@@ -25,6 +25,11 @@ namespace  HuntedGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(InputTag_Unequip_Gun, "InputTag.Unequip.Gun");
 	UE_DEFINE_GAMEPLAY_TAG(InputTag_Equip_Knife, "InputTag.Equip.Knife");
 	UE_DEFINE_GAMEPLAY_TAG(InputTag_Unequip_Knife, "InputTag.Unequip.Knife");
+		/** Inventory / UI **/
+	UE_DEFINE_GAMEPLAY_TAG(InputTag_Inventory_Open, "InputTag.Inventory.Open");
+	UE_DEFINE_GAMEPLAY_TAG(InputTag_Inventory_Close, "InputTag.Inventory.Close");
+	
+	UE_DEFINE_GAMEPLAY_TAG(InputTag_Item_PickUp, "InputTag.Item.PickUp");
 	
 	/** Player **/
 		/** Abilities **/
@@ -44,10 +49,15 @@ namespace  HuntedGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Player_Event_HitReact_LowHP, "Player.Event.HitReact.LowHP");
 	
 			/** Equip / Unequip **/	
-	UE_DEFINE_GAMEPLAY_TAG(Player_Ability_Equip_Gun, "Player.Ability.Equip.Gun")
-	UE_DEFINE_GAMEPLAY_TAG(Player_Ability_Unequip_Gun, "Player.Ability.Unequip.Gun")
-	UE_DEFINE_GAMEPLAY_TAG(Player_Ability_Equip_Knife, "Player.Ability.Equip.Knife")
-	UE_DEFINE_GAMEPLAY_TAG(Player_Ability_Unequip_Knife, "Player.Ability.Unequip.Knife")
+	UE_DEFINE_GAMEPLAY_TAG(Player_Ability_Equip_Gun, "Player.Ability.Equip.Gun");
+	UE_DEFINE_GAMEPLAY_TAG(Player_Ability_Unequip_Gun, "Player.Ability.Unequip.Gun");
+	UE_DEFINE_GAMEPLAY_TAG(Player_Ability_Equip_Knife, "Player.Ability.Equip.Knife");
+	UE_DEFINE_GAMEPLAY_TAG(Player_Ability_Unequip_Knife, "Player.Ability.Unequip.Knife");
+	
+	UE_DEFINE_GAMEPLAY_TAG(Player_Ability_Inventory_Open, "Player.Ability.Inventory.Open");
+	UE_DEFINE_GAMEPLAY_TAG(Player_Ability_Inventory_Close, "Player.Ability.Inventory.Close");
+	
+	UE_DEFINE_GAMEPLAY_TAG(Player_Ability_Item_PickUp, "Player.Ability.Item.PickUp");
 	
 		/** Events **/
 	UE_DEFINE_GAMEPLAY_TAG(Player_Event_Equip_Gun, "Player.Event.Equip.Gun");
@@ -60,8 +70,10 @@ namespace  HuntedGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Player_Weapon_BasicKnife, "Player.Weapon.BasicKnife");
 	UE_DEFINE_GAMEPLAY_TAG(Player_Weapon_Gun, "Player.Weapon.Gun")
 	
+		/** Player Item Tags **/
+	//UE_DEFINE_GAMEPLAY_TAG(Player_Item_Cure, "Player.Item.Cure");
+	
 		/** Set By Caller **/
-	//UE_DEFINE_GAMEPLAY_TAG(Player_SetByCaller_AttackType_BasicKnife, "Player.SetByCaller.AttackType.BasicKnife");
 	UE_DEFINE_GAMEPLAY_TAG(Player_SetByCaller_AttackType_BasicKnife, "Player.SetByCaller.AttackType.BasicKnife");
 	UE_DEFINE_GAMEPLAY_TAG(Player_SetByCaller_AttackType_Head, "Player.SetByCaller.AttackType.Head");
 	UE_DEFINE_GAMEPLAY_TAG(Player_SetByCaller_AttackType_Body, "Player.SetByCaller.AttackType.Body");

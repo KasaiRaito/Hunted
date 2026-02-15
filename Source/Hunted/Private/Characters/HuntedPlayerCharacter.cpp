@@ -1,24 +1,35 @@
 // KasaiRaito All Rights Reserved
 
-
 #include "Characters/HuntedPlayerCharacter.h"
+
 #include "Components/CapsuleComponent.h"
 #include "Camera/CameraComponent.h"
-#include "GameFramework/CharacterMovementComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "DataAssets/Input/DataAsset_InputConfig.h"
 #include "Components/Input/PlayerInputComponent.h"
 #include "HuntedGameplayTags.h"
 #include "DataAssets/StartUpData/DataAsset_PlayerStartUpData.h"
-#include "Components/Combat/PlayerCombatComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 #include "HuntedDebugHelper.h"
 #include "AbilitySystem/HuntedAbilitySystemComponent.h"
+#include "AbilitySystem/Abilities/HuntedPlayerGameplayAbility.h"
+#include "Blueprint/UserWidget.h"
+
+/** Components **/
+#include "Components/Combat/PlayerCombatComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "Components/UI/PlayerUIComponent.h"
+#include "Components/Inventory/PlayerInventoryComponent.h"
+
+#include "Items/Inventory/HuntedInventoryItemBase.h"
 
 AHuntedPlayerCharacter::AHuntedPlayerCharacter()
 {
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
-
+	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &AHuntedPlayerCharacter::OnBeginOverlap);
+	GetCapsuleComponent()->OnComponentEndOverlap.AddDynamic(this, &AHuntedPlayerCharacter::OnEndOverlap);
+	
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = true;
 	bUseControllerRotationRoll = false;
@@ -36,6 +47,10 @@ AHuntedPlayerCharacter::AHuntedPlayerCharacter()
 
 	PlayerCombatComponent = CreateDefaultSubobject<UPlayerCombatComponent>(TEXT("PlayerCombatComponent"));
 	
+	PlayerUIComponent = CreateDefaultSubobject<UPlayerUIComponent>(TEXT("PlayerUIComponent"));
+	
+	PlayerInventoryComponent = CreateDefaultSubobject<UPlayerInventoryComponent>(TEXT("PlayerInventoryComponent"));
+	
 	UpdateStaticMeshList();
 }
 
@@ -45,10 +60,20 @@ UPawnCombatComponent* AHuntedPlayerCharacter::GetPawnCombatComponent() const
 	
 }
 
+UPawnUIComponent* AHuntedPlayerCharacter::GetPawnUIComponent() const
+{
+	return PlayerUIComponent;
+}
+
+UPlayerUIComponent* AHuntedPlayerCharacter::GetPlayerUIComponent() const
+{
+	return PlayerUIComponent;
+}
+
 void AHuntedPlayerCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
-
+	
 	if (!CharacterStartUpData.IsNull())
 	{
 		if (UDataAsset_StartUpDataBase* LoadedData = CharacterStartUpData.LoadSynchronous())
@@ -92,7 +117,7 @@ void AHuntedPlayerCharacter::SetupPlayerInputComponent(UInputComponent* InPlayer
 
 	PlayerInputComponent->BindNativeInputAction(InputConfigDataAsset, HuntedGameplayTags::InputTag_Echo,
 		ETriggerEvent::Triggered,this, &ThisClass::Input_Echo);
-
+	
 	PlayerInputComponent->BindAbilityInputAction(InputConfigDataAsset,this,
 		&ThisClass::Input_AbilityInputPressed,&ThisClass::Input_AbilityInputReleased);
 }
@@ -100,6 +125,21 @@ void AHuntedPlayerCharacter::SetupPlayerInputComponent(UInputComponent* InPlayer
 void AHuntedPlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	if (InventoryWidgetClass == nullptr)
+	{
+		Debug::Print(TEXT("Player InventoryWidgetClass is NULL"));
+		return;
+	}
+	
+	Debug::Print(TEXT("Player InventoryWidget Created"));
+	PlayerControllerComponent = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+	
+	InventoryWidget = CreateWidget(GetWorld(), InventoryWidgetClass);
+	InventoryWidget->SetOwningPlayer(PlayerControllerComponent);
+	InventoryWidget->AddToViewport();
+	InventoryWidget->SetVisibility(ESlateVisibility::Collapsed);
+	
+	PlayerInventoryComponent->SetItemsNum(PlayerInventoryComponent->GetColumns() * PlayerInventoryComponent->GetRows());
 }
 
 void AHuntedPlayerCharacter::Input_Move(const FInputActionValue& InputActionValue)
@@ -300,4 +340,25 @@ void AHuntedPlayerCharacter::UpdateStaticMeshList()
 			}
 		}
 	}
+}
+
+void AHuntedPlayerCharacter::OnBeginOverlap(class UPrimitiveComponent* HitComp, class AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (AHuntedInventoryItemBase* Item = Cast<AHuntedInventoryItemBase>(OtherActor))
+	{
+		Item->SetIsInRangeOfPlayer( true );
+		Debug::Print(TEXT("HuntedPlayerCharacter::OnBeginOverlap Item"), FColor::Yellow);
+	}
+}
+
+void AHuntedPlayerCharacter::OnEndOverlap(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if (AHuntedInventoryItemBase* Item = Cast<AHuntedInventoryItemBase>(OtherActor))
+	{
+		Item->SetIsInRangeOfPlayer( false );
+    	Debug::Print(TEXT("HuntedPlayerCharacter::OnEndOverlap Item"), FColor::Yellow);
+		
+    }
 }
