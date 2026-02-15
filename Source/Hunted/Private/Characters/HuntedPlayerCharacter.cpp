@@ -1,25 +1,28 @@
 // KasaiRaito All Rights Reserved
 
-
 #include "Characters/HuntedPlayerCharacter.h"
+
 #include "Components/CapsuleComponent.h"
 #include "Camera/CameraComponent.h"
-#include "GameFramework/CharacterMovementComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "DataAssets/Input/DataAsset_InputConfig.h"
 #include "Components/Input/PlayerInputComponent.h"
 #include "HuntedGameplayTags.h"
 #include "DataAssets/StartUpData/DataAsset_PlayerStartUpData.h"
-#include "Components/Combat/PlayerCombatComponent.h"
-#include "Components/Inventory/PlayerInventoryComponent.h"
 #include "Kismet/GameplayStatics.h"
-#include "Components/Inventory/PlayerInventoryComponent.h"
 
 #include "HuntedDebugHelper.h"
 #include "AbilitySystem/HuntedAbilitySystemComponent.h"
 #include "AbilitySystem/Abilities/HuntedPlayerGameplayAbility.h"
 #include "Blueprint/UserWidget.h"
-#include "Items/Inventory/HutedInventoryItemBase.h"
+
+/** Components **/
+#include "Components/Combat/PlayerCombatComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "Components/UI/PlayerUIComponent.h"
+#include "Components/Inventory/PlayerInventoryComponent.h"
+
+#include "Items/Inventory/HuntedInventoryItemBase.h"
 
 AHuntedPlayerCharacter::AHuntedPlayerCharacter()
 {
@@ -44,6 +47,8 @@ AHuntedPlayerCharacter::AHuntedPlayerCharacter()
 
 	PlayerCombatComponent = CreateDefaultSubobject<UPlayerCombatComponent>(TEXT("PlayerCombatComponent"));
 	
+	PlayerUIComponent = CreateDefaultSubobject<UPlayerUIComponent>(TEXT("PlayerUIComponent"));
+	
 	PlayerInventoryComponent = CreateDefaultSubobject<UPlayerInventoryComponent>(TEXT("PlayerInventoryComponent"));
 	
 	UpdateStaticMeshList();
@@ -55,10 +60,20 @@ UPawnCombatComponent* AHuntedPlayerCharacter::GetPawnCombatComponent() const
 	
 }
 
+UPawnUIComponent* AHuntedPlayerCharacter::GetPawnUIComponent() const
+{
+	return PlayerUIComponent;
+}
+
+UPlayerUIComponent* AHuntedPlayerCharacter::GetPlayerUIComponent() const
+{
+	return PlayerUIComponent;
+}
+
 void AHuntedPlayerCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
-
+	
 	if (!CharacterStartUpData.IsNull())
 	{
 		if (UDataAsset_StartUpDataBase* LoadedData = CharacterStartUpData.LoadSynchronous())
@@ -121,18 +136,10 @@ void AHuntedPlayerCharacter::BeginPlay()
 	
 	InventoryWidget = CreateWidget(GetWorld(), InventoryWidgetClass);
 	InventoryWidget->SetOwningPlayer(PlayerControllerComponent);
+	InventoryWidget->AddToViewport();
+	InventoryWidget->SetVisibility(ESlateVisibility::Collapsed);
 	
-	PlayerInventoryComponent->Items.SetNum(PlayerInventoryComponent->Columns * PlayerInventoryComponent->Rows);
-}
-
-void AHuntedPlayerCharacter::SetCachedItem(AHutedInventoryItemBase* Item)
-{
-	CachedItem = Item;
-}
-
-void AHuntedPlayerCharacter::ClearCachedItem()
-{
-	CachedItem = nullptr;
+	PlayerInventoryComponent->SetItemsNum(PlayerInventoryComponent->GetColumns() * PlayerInventoryComponent->GetRows());
 }
 
 void AHuntedPlayerCharacter::Input_Move(const FInputActionValue& InputActionValue)
@@ -338,9 +345,9 @@ void AHuntedPlayerCharacter::UpdateStaticMeshList()
 void AHuntedPlayerCharacter::OnBeginOverlap(class UPrimitiveComponent* HitComp, class AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (AHutedInventoryItemBase* Item = Cast<AHutedInventoryItemBase>(OtherActor))
+	if (AHuntedInventoryItemBase* Item = Cast<AHuntedInventoryItemBase>(OtherActor))
 	{
-		Item->IsInRangeOfPlayer = true;
+		Item->SetIsInRangeOfPlayer( true );
 		Debug::Print(TEXT("HuntedPlayerCharacter::OnBeginOverlap Item"), FColor::Yellow);
 	}
 }
@@ -348,9 +355,9 @@ void AHuntedPlayerCharacter::OnBeginOverlap(class UPrimitiveComponent* HitComp, 
 void AHuntedPlayerCharacter::OnEndOverlap(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	if (AHutedInventoryItemBase* Item = Cast<AHutedInventoryItemBase>(OtherActor))
+	if (AHuntedInventoryItemBase* Item = Cast<AHuntedInventoryItemBase>(OtherActor))
 	{
-		Item->IsInRangeOfPlayer = false;
+		Item->SetIsInRangeOfPlayer( false );
     	Debug::Print(TEXT("HuntedPlayerCharacter::OnEndOverlap Item"), FColor::Yellow);
 		
     }
