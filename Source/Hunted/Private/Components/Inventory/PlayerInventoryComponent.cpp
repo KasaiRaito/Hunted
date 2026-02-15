@@ -14,7 +14,7 @@ UPlayerInventoryComponent::UPlayerInventoryComponent()
 
 bool UPlayerInventoryComponent::IsTileValid(FIntPoint Tile)
 {
-	if (Tile.X >= 0 || Tile.Y >= 0  && Tile.X < Columns && Tile.Y <= Rows)
+	if (Tile.X >= 0 && Tile.Y >= 0  && Tile.X < Columns && Tile.Y < Rows)
 	{
 		return true;
 	}
@@ -76,9 +76,9 @@ bool UPlayerInventoryComponent::RoomForItemInInventory(AHuntedInventoryItemBase*
 	FIntPoint Dimensions = ItemToAdd->GetItemInventorySize();
 	FIntPoint Tile = IndexToTile(TopLeftIndex);
 	
-	for (int8 i = Tile.X; i <= (Tile.X + Dimensions.X -1); i++)
+	for (int16 i = Tile.X; i <= (Tile.X + Dimensions.X -1); i++)
 	{
-		for (int8 j = Tile.Y; j <= (Tile.Y + Dimensions.Y -1); j++)
+		for (int16 j = Tile.Y; j <= (Tile.Y + Dimensions.Y -1); j++)
 		{
 			if (IsTileValid(FIntPoint(i, j)))
 			{
@@ -142,9 +142,9 @@ void UPlayerInventoryComponent::AddItemAtIndex(AHuntedInventoryItemBase* ItemToA
 	FIntPoint Dimensions = ItemToAdd->GetItemInventorySize();
 	FIntPoint Tile = IndexToTile(TopLeftIndex);
 	
-	for (int8 i = Tile.X; i <= (Tile.X + Dimensions.X -1); i++)
+	for (int16 i = Tile.X; i <= (Tile.X + Dimensions.X -1); i++)
 	{
-		for (int8 j = Tile.Y; j <= (Tile.Y + Dimensions.Y -1); j++)
+		for (int16 j = Tile.Y; j <= (Tile.Y + Dimensions.Y -1); j++)
 		{
 			Items[TileToIndex(FIntPoint(i, j))] = ItemToAdd;
 		}
