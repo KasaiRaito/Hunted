@@ -125,7 +125,6 @@ void AHuntedPlayerCharacter::BeginPlay()
 		return;
 	}
 	
-	Debug::Print(TEXT("Player InventoryWidget Created"));
 	PlayerControllerComponent = UGameplayStatics::GetPlayerController(GetWorld(), 0);
 	
 	InventoryWidget = CreateWidget(GetWorld(), InventoryWidgetClass);
