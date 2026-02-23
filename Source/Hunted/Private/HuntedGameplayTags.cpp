@@ -33,6 +33,8 @@ namespace  HuntedGameplayTags
 	
 	/** Player **/
 		/** Abilities **/
+			/** Echo **/
+	UE_DEFINE_GAMEPLAY_TAG(Player_Ability_Echo, "Player.Ability.Echo")
 			/** Combat **/
 	UE_DEFINE_GAMEPLAY_TAG(Player_Ability_Aim_Gun, "Player.Ability.Aim.Gun");
 	UE_DEFINE_GAMEPLAY_TAG(Player_Ability_Shoot_Gun, "Player.Ability.Shoot.Gun");

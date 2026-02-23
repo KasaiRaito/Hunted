@@ -114,9 +114,6 @@ void AHuntedPlayerCharacter::SetupPlayerInputComponent(UInputComponent* InPlayer
 
 	PlayerInputComponent->BindNativeInputAction(InputConfigDataAsset, HuntedGameplayTags::InputTag_Snap,
 		ETriggerEvent::Triggered, this, &ThisClass::Input_Snap);
-
-	PlayerInputComponent->BindNativeInputAction(InputConfigDataAsset, HuntedGameplayTags::InputTag_Echo,
-		ETriggerEvent::Triggered,this, &ThisClass::Input_Echo);
 	
 	PlayerInputComponent->BindAbilityInputAction(InputConfigDataAsset,this,
 		&ThisClass::Input_AbilityInputPressed,&ThisClass::Input_AbilityInputReleased);

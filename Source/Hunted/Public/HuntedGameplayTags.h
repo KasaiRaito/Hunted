@@ -38,6 +38,8 @@ namespace HuntedGameplayTags
 	
 	/** Player **/
 		/** Abilities **/
+			/** Echo **/
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Ability_Echo);
 			/** Combat **/
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Ability_Aim_Gun);
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Ability_Shoot_Gun);

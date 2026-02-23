@@ -165,16 +165,21 @@ private:
 #pragma region Functions
 	void SnapFingers();
 
-	void EnterEcho();
-
-	void ExitEcho();
-
 	void UpdateStaticMeshList();	
 #pragma endregion
 
 public:
+	UFUNCTION(BlueprintCallable, Category = "Echo")
+	void EnterEcho();
+
+	UFUNCTION(BlueprintCallable, Category = "Echo")
+	void ExitEcho();
+	
 	UFUNCTION(BlueprintCallable, Category="Echo")
-	bool ReturnIsEcho() const { return IsEcho; };
+	FORCEINLINE bool ReturnIsEcho() const { return IsEcho; };
+	
+	UFUNCTION(BlueprintCallable, Category="Echo")
+	FORCEINLINE void SetIsEcho(bool val) { IsEcho = val; };
 	
 	FORCEINLINE UPlayerCombatComponent* GetPlayerCombatComponent()const { return PlayerCombatComponent; }
 	FORCEINLINE UPlayerInventoryComponent* GetPlayerInventoryComponent()const { return PlayerInventoryComponent; }
