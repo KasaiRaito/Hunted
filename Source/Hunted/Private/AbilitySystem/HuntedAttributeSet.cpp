@@ -31,7 +31,7 @@ void UHuntedAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffect
 		//CachedPawnUIInterface = Cast<IPawnUIInterface>(Data.Target.GetAvatarActor());
 	}
 	
-	checkf(CachedPawnUIInterface.IsValid(), TEXT("%s didn't impement IPawnUIInterface"), *Data.Target.GetAvatarActor()->GetActorNameOrLabel());
+	checkf(CachedPawnUIInterface.IsValid(), TEXT("%s didn't implement IPawnUIInterface"), *Data.Target.GetAvatarActor()->GetActorNameOrLabel());
 	
 	UPawnUIComponent* PawnUIComponent = CachedPawnUIInterface->GetPawnUIComponent();
 	
@@ -43,10 +43,7 @@ void UHuntedAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffect
 		
 		SetCurrentHealth(NewCurrentHealth);
 		
-		if (UPlayerUIComponent* PlayerUIComponent = CachedPawnUIInterface->GetPlayerUIComponent())
-		{
-			PlayerUIComponent->OnCurrentSanityChange.Broadcast(GetCurrentSanity()/GetMaxSanity());
-		}
+		PawnUIComponent->OnCurrentHealthChanged.Broadcast(GetCurrentSanity()/GetMaxSanity());
 	}
 	
 	if (Data.EvaluatedData.Attribute == GetCurrentSanityAttribute())
@@ -55,7 +52,10 @@ void UHuntedAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffect
 		
 		SetCurrentSanity(NewCurrentSanity);
 		
-		PawnUIComponent->OnCurrentHealthChanged.Broadcast(GetCurrentSanity()/GetMaxSanity());
+		if (UPlayerUIComponent* PlayerUIComponent = CachedPawnUIInterface->GetPlayerUIComponent())
+		{
+			PlayerUIComponent->OnCurrentSanityChange.Broadcast(GetCurrentSanity()/GetMaxSanity());
+		}
 	}
 	
 	if (Data.EvaluatedData.Attribute == GetDamageTakenAttribute())
@@ -67,10 +67,12 @@ void UHuntedAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffect
 		
 		SetCurrentHealth(NewCurrentHealth);
 		
+		/**
 		const FString DebugString = FString::Printf(TEXT("Old Helath: %f, Damage Done: %f, New Current Health: %f"), 
 			OldHealth, DamageDone, NewCurrentHealth);
 		
 		Debug::Print(DebugString, FColor::Green);
+		**/
 		
 		PawnUIComponent->OnCurrentHealthChanged.Broadcast(GetCurrentHealth()/GetMaxHealth());
 		
