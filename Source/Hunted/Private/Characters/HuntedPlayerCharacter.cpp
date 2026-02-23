@@ -111,9 +111,6 @@ void AHuntedPlayerCharacter::SetupPlayerInputComponent(UInputComponent* InPlayer
 
 	PlayerInputComponent->BindNativeInputAction(InputConfigDataAsset, HuntedGameplayTags::InputTag_Crouch,
 		ETriggerEvent::Triggered, this, &ThisClass::Input_Crouch);
-
-	PlayerInputComponent->BindNativeInputAction(InputConfigDataAsset, HuntedGameplayTags::InputTag_Snap,
-		ETriggerEvent::Triggered, this, &ThisClass::Input_Snap);
 	
 	PlayerInputComponent->BindAbilityInputAction(InputConfigDataAsset,this,
 		&ThisClass::Input_AbilityInputPressed,&ThisClass::Input_AbilityInputReleased);
@@ -188,33 +185,6 @@ void AHuntedPlayerCharacter::Input_Crouch(const FInputActionValue& Crouch)
 	}
 }
 
-void AHuntedPlayerCharacter::Input_Snap(const FInputActionValue& Snap)
-{
-	if (Snap.Get<bool>())
-	{
-		Debug::Print(TEXT("HuntedPlayerCharacter::Input_Snap"));
-		SnapFingers();
-	}
-}
-
-void AHuntedPlayerCharacter::Input_Echo(const FInputActionValue& Echo)
-{
-	if (Echo.Get<bool>())
-	{
-		Debug::Print(TEXT("HuntedPlayerCharacter::Input_Echo"));
-		IsEcho = !IsEcho;
-	}
-
-	if (IsEcho)
-	{
-		EnterEcho();
-	}
-	else
-	{
-		ExitEcho();
-	}
-}
-
 void AHuntedPlayerCharacter::ProcessMovementInput(const FInputActionValue& InputActionValue)
 {
 	const FVector2D MovementVector = InputActionValue.Get<FVector2D>();
@@ -257,11 +227,6 @@ void AHuntedPlayerCharacter::Input_AbilityInputPressed(FGameplayTag InInputTag)
 void AHuntedPlayerCharacter::Input_AbilityInputReleased(FGameplayTag InInputTag)
 {
 	HuntedAbilitySystemComponent->OnAbilityInputReleased(InInputTag);
-}
-
-void AHuntedPlayerCharacter::SnapFingers()
-{
-	Debug::Print(TEXT("HuntedPlayerCharacter::SnapFingers"));
 }
 
 void AHuntedPlayerCharacter::EnterEcho()
