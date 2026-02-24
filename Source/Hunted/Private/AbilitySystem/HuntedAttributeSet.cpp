@@ -43,7 +43,7 @@ void UHuntedAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffect
 		
 		SetCurrentHealth(NewCurrentHealth);
 		
-		PawnUIComponent->OnCurrentHealthChanged.Broadcast(GetCurrentSanity()/GetMaxSanity());
+		PawnUIComponent->OnCurrentHealthChanged.Broadcast(GetCurrentHealth()/GetMaxHealth());
 	}
 	
 	if (Data.EvaluatedData.Attribute == GetCurrentSanityAttribute())
