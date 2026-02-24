@@ -4,7 +4,9 @@
 #include "Items/Inventory/HuntedInventoryItemBase.h"
 
 #include "Components/SphereComponent.h"
+#include "Components/WidgetComponent.h"
 #include "GameFramework/GameSession.h"
+#include "Widget/Items/ItemInteractuableWidget.h"
 
 AHuntedInventoryItemBase::AHuntedInventoryItemBase()
 {
@@ -17,12 +19,19 @@ AHuntedInventoryItemBase::AHuntedInventoryItemBase()
 	CollisionSphere->SetupAttachment(MeshComponent);
 	
 	MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	
+	InteractWidgetComponent = CreateDefaultSubobject<UWidgetComponent>("InteractWidgetComponent");
+	InteractWidgetComponent->SetupAttachment(MeshComponent);
 }
 
 void AHuntedInventoryItemBase::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	if (UHuntedWidgetBase* ObjectWidget =  Cast<UItemInteractuableWidget>(InteractWidgetComponent->GetUserWidgetObject()))
+	{
+		ObjectWidget->InitInteractCreateWidget(this);
+	}
 }
 
 void AHuntedInventoryItemBase::Tick(float DeltaTime)
