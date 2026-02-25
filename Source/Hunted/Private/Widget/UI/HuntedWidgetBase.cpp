@@ -4,7 +4,11 @@
 #include "Widget/UI/HuntedWidgetBase.h"
 
 #include "Components/UI/EnemyUIComponent.h"
+#include "Components/UI/ObjectUIComponent.h"
 #include "Interfaces/PawnUIInterface.h"
+#include "Items/Inventory/HuntedInventoryItemBase.h"
+#include "Interfaces/ItemUIInterface.h"
+
 
 void UHuntedWidgetBase::NativeOnInitialized()
 {
@@ -31,4 +35,16 @@ void UHuntedWidgetBase::InitEnemyCreateWidget(AActor* OwningEnemyActor)
 		BP_OnOwningEnemyUIComponentInitialized(EnemyUIComponent);
 	}
 #endif
+}
+
+void UHuntedWidgetBase::InitInteractCreateWidget(AActor* OwningObjectActor)
+{
+	if (IItemUIInterface* ItemUIInterface = Cast<IItemUIInterface>(OwningObjectActor))
+	{
+		UObjectUIComponent* ObjectUIComponent = ItemUIInterface->GetObjectUIComponent();
+		
+		checkf(ObjectUIComponent, TEXT("Failed to extract an ObjectUIComponent from %s"), *OwningObjectActor->GetActorNameOrLabel());
+		
+		BP_OnOwningObjectUIComponentInitialized(ObjectUIComponent);
+	}
 }

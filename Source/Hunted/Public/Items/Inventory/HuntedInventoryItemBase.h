@@ -7,6 +7,7 @@
 #include "HuntedInventoryItemBase.generated.h"
 
 class USphereComponent;
+class UWidgetComponent;
 
 UCLASS()
 class HUNTED_API AHuntedInventoryItemBase : public AActor
@@ -33,6 +34,10 @@ private:
 	
 	UPROPERTY(EditAnywhere, Category = "Item-World")
 	bool IsInRangeOfPlayer;	
+	
+protected:	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")
+	UWidgetComponent* InteractWidgetComponent;
 	
 public:
 	AHuntedInventoryItemBase();
