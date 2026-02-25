@@ -2,7 +2,13 @@
 
 
 #include "Widget/UI/HuntedWidgetBase.h"
+
+#include "Components/UI/EnemyUIComponent.h"
+#include "Components/UI/ObjectUIComponent.h"
 #include "Interfaces/PawnUIInterface.h"
+#include "Items/Inventory/HuntedInventoryItemBase.h"
+#include "Interfaces/ItemUIInterface.h"
+
 
 void UHuntedWidgetBase::NativeOnInitialized()
 {
@@ -12,7 +18,33 @@ void UHuntedWidgetBase::NativeOnInitialized()
 	{
 		if (UPlayerUIComponent* PlayerUIComponent = PawnUIInterface->GetPlayerUIComponent())
 		{
-			BP_OnOwningHeroUIComponentInitialized(PlayerUIComponent);
+			BP_OnOwningPlayerUIComponentInitialized(PlayerUIComponent);
 		}
+	}
+}
+
+void UHuntedWidgetBase::InitEnemyCreateWidget(AActor* OwningEnemyActor)
+{
+#if WITH_EDITOR 
+	if (IPawnUIInterface* PawnUIInterface = Cast<IPawnUIInterface>(OwningEnemyActor))
+	{
+		UEnemyUIComponent* EnemyUIComponent = PawnUIInterface->GetEnemyUIComponent();
+		
+		checkf(EnemyUIComponent, TEXT("Failed to extract an EnemyUIComponent from %s"), *OwningEnemyActor->GetActorNameOrLabel());
+		
+		BP_OnOwningEnemyUIComponentInitialized(EnemyUIComponent);
+	}
+#endif
+}
+
+void UHuntedWidgetBase::InitInteractCreateWidget(AActor* OwningObjectActor)
+{
+	if (IItemUIInterface* ItemUIInterface = Cast<IItemUIInterface>(OwningObjectActor))
+	{
+		UObjectUIComponent* ObjectUIComponent = ItemUIInterface->GetObjectUIComponent();
+		
+		checkf(ObjectUIComponent, TEXT("Failed to extract an ObjectUIComponent from %s"), *OwningObjectActor->GetActorNameOrLabel());
+		
+		BP_OnOwningObjectUIComponentInitialized(ObjectUIComponent);
 	}
 }

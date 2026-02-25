@@ -6,6 +6,7 @@
 #include "UObject/Interface.h"
 #include "PawnUIInterface.generated.h"
 
+class UEnemyUIComponent;
 class UPlayerUIComponent;
 class UPawnUIComponent;
 
@@ -29,4 +30,6 @@ public:
 	virtual UPawnUIComponent* GetPawnUIComponent() const = 0;
 	
 	virtual UPlayerUIComponent* GetPlayerUIComponent() const;
+	
+	virtual UEnemyUIComponent* GetEnemyUIComponent() const;
 };

@@ -5,7 +5,6 @@
 
 #include "Characters/HuntedPlayerCharacter.h"
 #include "HuntedDebugHelper.h"
-#include "IPropertyTable.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "Components/Inventory/PlayerInventoryComponent.h"
 #include "Blueprint/WidgetLayoutLibrary.h"

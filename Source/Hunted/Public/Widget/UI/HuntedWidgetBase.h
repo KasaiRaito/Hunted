@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "HuntedWidgetBase.generated.h"
 
+class UEnemyUIComponent;
 class UPlayerUIComponent;
 /**
  * 
@@ -19,5 +20,18 @@ protected:
 	virtual void NativeOnInitialized() override;
 	
 	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "OnOwningHeroUIComponentInitialized"))
-	void BP_OnOwningHeroUIComponentInitialized(UPlayerUIComponent* OwningPlayerUIComponent);
+	void BP_OnOwningPlayerUIComponentInitialized(UPlayerUIComponent* OwningPlayerUIComponent);
+	
+	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "OnOwningEnemyUIComponentInitialized"))
+	void BP_OnOwningEnemyUIComponentInitialized(UEnemyUIComponent* OwningEnemyUIComponent);
+	
+	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "OnOwningObjectUIComponentInitialized"))
+	void BP_OnOwningObjectUIComponentInitialized(UObject* OwningObjectUIComponent);
+	
+public:
+	UFUNCTION(BlueprintCallable)
+	void InitEnemyCreateWidget(AActor* OwningEnemyActor);
+	
+	UFUNCTION(BlueprintCallable)
+	void InitInteractCreateWidget(AActor* OwningObjectActor);
 };
