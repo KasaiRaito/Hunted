@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "HuntedTypes/HuntedStructTypes.h"
 #include "HuntedInventoryItemBase.generated.h"
 
 class USphereComponent;
@@ -23,17 +24,20 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Item-World")
 	USphereComponent* CollisionSphere;
 	
+	UPROPERTY(EditAnywhere, Category = "Item-World")
+	bool  ItemIsInVew;
+	
+	UPROPERTY(EditAnywhere, Category = "Item-World")
+	bool IsInRangeOfPlayer;	
+	
 	UPROPERTY(EditAnywhere, Category = "Item-Inventory | Info")
 	FIntPoint ObjectInventorySize;
 	
 	UPROPERTY(EditAnywhere, Category = "Item-Inventory | Info")
 	UMaterialInterface* Icon;
 	
-	UPROPERTY(EditAnywhere, Category = "Item-World")
-	bool  ItemIsInVew;
-	
-	UPROPERTY(EditAnywhere, Category = "Item-World")
-	bool IsInRangeOfPlayer;	
+	UPROPERTY(EditAnywhere, Category = "Item-Inventory | Info")
+	FHuntedPlayerItemData ItemData;
 	
 protected:	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")
@@ -52,7 +56,7 @@ public:
 	FORCEINLINE bool GetItemIsInVew() { return ItemIsInVew;};
 	
 	UFUNCTION(BlueprintCallable, Category = "Item-Inventory")
-	FORCEINLINE void SetItemIsInVew(bool val) { ItemIsInVew = val; };
+	void SetItemIsInVew(bool val);
 	
 	UFUNCTION(BlueprintCallable, Category = "Item-Inventory")
 	FORCEINLINE bool GetIsInRangeOfPlayer() { return IsInRangeOfPlayer;};
@@ -65,6 +69,9 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category = "Item-Inventory")
 	FORCEINLINE void SetIcon(UMaterialInterface* NewIcon) { Icon = NewIcon; }
+	
+	UFUNCTION(BlueprintCallable, Category = "Item-Inventory")
+	FORCEINLINE FHuntedPlayerItemData GetItemData() { return ItemData; }
 	
 protected:
 	virtual void BeginPlay() override;
