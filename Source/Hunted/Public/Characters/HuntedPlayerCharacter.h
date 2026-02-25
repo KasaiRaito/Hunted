@@ -143,9 +143,6 @@ private:
 	void Input_Sneak(const FInputActionValue& Sneak);
 	void Input_Sprint(const FInputActionValue& Sprint);
 	void Input_Crouch(const FInputActionValue& Crouch);
-	void Input_Snap(const FInputActionValue& Snap);
-
-	void Input_Echo(const FInputActionValue& Echo);
 	
 	void ProcessMovementInput(const FInputActionValue& InputActionValue);
 
