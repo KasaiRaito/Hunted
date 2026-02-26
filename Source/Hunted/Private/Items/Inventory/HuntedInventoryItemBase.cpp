@@ -24,6 +24,16 @@ AHuntedInventoryItemBase::AHuntedInventoryItemBase()
 	InteractWidgetComponent->SetupAttachment(MeshComponent);
 }
 
+void AHuntedInventoryItemBase::SetItemIsInVew(bool val)
+{
+	ItemIsInVew = val; 
+	
+	if (val)
+	{
+		ItemData.SetItemAmount();
+	}
+}
+
 void AHuntedInventoryItemBase::BeginPlay()
 {
 	Super::BeginPlay();

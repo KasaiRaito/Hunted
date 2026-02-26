@@ -32,6 +32,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category= "InventoryComponent Info | Inventory Size")
 	TArray<AHuntedInventoryItemBase*> Items;
 	
+	UPROPERTY(EditAnywhere, Category= "InventoryComponent Info | Item Counters")
+	int16 BaseBulletsCount; 
+	
 	bool AddedItem = false;
 	
 	UPROPERTY()
@@ -71,6 +74,16 @@ public:
 	bool GetAddedItem() { return AddedItem; }
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	void SetAddedItem(bool val) { AddedItem = val; }
+	
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	FORCEINLINE int GetBaseBulletsCount () { return BaseBulletsCount; }
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	FORCEINLINE void SetBaseBulletsCount (int val) { BaseBulletsCount = val; }
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	FORCEINLINE void AddToBaseBulletsCount(int val) { BaseBulletsCount += val; }
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	FORCEINLINE void SubtractToBaseBulletsCount(float val) { BaseBulletsCount -= val; }
+	
 	
 protected:
 	

@@ -3,6 +3,7 @@
 #pragma once
 
 #include  "GameplayTagContainer.h"
+#include "HuntedGameplayTags.h"
 #include "ScalableFloat.h"
 
 #include "HuntedStructTypes.generated.h"
@@ -76,9 +77,6 @@ struct  FHuntedPlayerItemData
 	FGameplayTag ItemTag;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	bool ItemInventory;
-	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	bool ItemUsable;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
@@ -91,13 +89,13 @@ struct  FHuntedPlayerItemData
 	FString ItemDescription;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	UStaticMesh* ItemMesh;
+	FScalableFloat ItemMinAmount;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	UTexture2D* ItemImage;
+	FScalableFloat ItemMaxAmount;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	int ItemAmount;	
+	int ItemAmount;
 	
-	bool IsValid() const;
+	void SetItemAmount();
 };

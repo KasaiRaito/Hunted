@@ -2,20 +2,14 @@
 
 #include "HuntedTypes/HuntedStructTypes.h"
 #include "AbilitySystem/Abilities/HuntedGameplayAbility.h"
+#include "Kismet/KismetMathLibrary.h"
 
 bool FHuntedPlayerAbilitySet::IsValid() const
 {
 	return InputTag.IsValid() && AbilityToGrant;
 }
 
-bool FHuntedPlayerItemData::IsValid() const
+void FHuntedPlayerItemData::SetItemAmount()
 {
-	if (!ItemName.IsEmpty() && !ItemDescription.IsEmpty() &&
-		&ItemMesh != nullptr && ItemImage != nullptr && ItemAmount > 0 &&
-		ItemTag != FGameplayTag::EmptyTag)
-	{
-		return true;
-	}
-	
-	return false;
+	ItemAmount = FMath::RandRange(ItemMinAmount.GetValue(), ItemMaxAmount.GetValue());
 }
