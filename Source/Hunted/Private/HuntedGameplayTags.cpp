@@ -74,7 +74,8 @@ namespace  HuntedGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Player_Weapon_Gun, "Player.Weapon.Gun")
 	
 		/** Player Item Tags **/
-	//UE_DEFINE_GAMEPLAY_TAG(Player_Item_Cure, "Player.Item.Cure");
+	UE_DEFINE_GAMEPLAY_TAG(Player_Item_Cure_Small, "Player.Item.Cure.Small");
+	UE_DEFINE_GAMEPLAY_TAG(Player_Item_Bullets_BaseGun, "Player.Item.Bullets.BaseGun")
 	
 		/** Set By Caller **/
 	UE_DEFINE_GAMEPLAY_TAG(Player_SetByCaller_AttackType_BasicKnife, "Player.SetByCaller.AttackType.BasicKnife");
