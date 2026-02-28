@@ -82,7 +82,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	FORCEINLINE void AddToBaseBulletsCount(int val) { BaseBulletsCount += val; }
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
-	FORCEINLINE void SubtractToBaseBulletsCount(float val) { BaseBulletsCount -= val; }
+	FORCEINLINE void SubtractToBaseBulletsCount(int val) { BaseBulletsCount -= val; }
 	
 	
 protected:
