@@ -24,6 +24,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "WeaponData")
 	int MagSize = 0;
 	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "WeaponData")
+	float BloomMultiplier = 5.0f;
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "WeaponData")
 	int ShootCount;
 	
