@@ -13,7 +13,8 @@
 				"EnhancedInput",
 				"GameplayAbilities",
 				"Niagara",
-				"UMG"
+				"UMG",
+				"AIModule"
 			]
 		}
 	],
