@@ -6,6 +6,7 @@
 #include "Perception/AIPerceptionComponent.h"
 #include "Perception/AISenseConfig_Sight.h"
 #include "Perception/AISenseConfig_Hearing.h"
+#include "BehaviorTree/BlackboardComponent.h"
 
 #include "HuntedDebugHelper.h"
 
@@ -60,13 +61,11 @@ ETeamAttitude::Type AHuntedAIController::GetTeamAttitudeTowards(const AActor& Ot
 
 void AHuntedAIController::OnEnemyPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 {
-	if (Stimulus.WasSuccessfullySensed())
+	if (Stimulus.WasSuccessfullySensed() && Actor)
 	{
-		Debug::Print(TEXT("STIMULUS"), FColor::Yellow);
-		
-		if (Actor)
+		if ( UBlackboardComponent* BlackboardComponent = GetBlackboardComponent())
 		{
-			Debug::Print(Actor->GetActorNameOrLabel() + TEXT(" was sensed "), FColor::Yellow);
+			BlackboardComponent->SetValueAsObject(FName("TargetActor"), Actor);
 		}
 	}
 }
