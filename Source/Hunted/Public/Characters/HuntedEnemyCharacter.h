@@ -39,10 +39,13 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
 	UEnemyUIComponent* EnemyUIComponent;
 	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Echo")
+	bool IsInvisible = false;
 	
 private:
 	void InitEnemyStartUpData();
 	
 public:
-	FORCEINLINE UEnemyCombatComponent* GetEnemyCombatComponent() const {return EnemyCombatComponent; };
+	FORCEINLINE UEnemyCombatComponent* GetEnemyCombatComponent() const {return EnemyCombatComponent; }
+
 };
