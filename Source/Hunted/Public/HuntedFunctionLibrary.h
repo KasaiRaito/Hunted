@@ -40,4 +40,7 @@ public:
 		meta = (DisplayName = "GetPawnCombatComponentFromActor", 
 			ExpandEnumAsExecs = "OutValidType"))
 	static UPawnCombatComponent* BP_GetPawnCombatComponentFromActor(AActor* InActor, EHuntedValidType& OutValidType);
+	
+	UFUNCTION(BlueprintCallable,Category = "Hunted|FunctionLibrary", meta = (WorldContext = "WorldContextObject"))
+	static void ToggleInputMode(const UObject* WorldContextObject, EHuntedInputMode InInputMode);
 };
