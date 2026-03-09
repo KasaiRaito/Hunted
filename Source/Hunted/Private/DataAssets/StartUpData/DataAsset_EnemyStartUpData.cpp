@@ -18,7 +18,7 @@ void UDataAsset_EnemyStartUpData::GivenToAbilitySystemComponent(UHuntedAbilitySy
 				continue;
 			}
 			
-			FGameplayAbilitySpec AbilitySpec;
+			FGameplayAbilitySpec AbilitySpec(AbilityClass);
 			AbilitySpec.SourceObject = InASCToGive->GetAvatarActor();
 			AbilitySpec.Level = ApplyLevel;
 			
