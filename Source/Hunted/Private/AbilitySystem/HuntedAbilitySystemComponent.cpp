@@ -2,7 +2,9 @@
 
 
 #include "AbilitySystem/HuntedAbilitySystemComponent.h"
-#include "AbilitySystem/Abilities/HuntedGameplayAbility.h"
+#include "AbilitySystem/Abilities/HuntedPlayerGameplayAbility.h"
+
+#include "HuntedDebugHelper.h"
 
 void UHuntedAbilitySystemComponent::OnAbilityInputPressed(const FGameplayTag& InInputTag)
 {
@@ -70,4 +72,26 @@ void UHuntedAbilitySystemComponent::RemoveGrantedPlayerWeaponAbilities(
 	}
 	
 	InSpecHandlesToRemove.Empty();
+}
+
+bool UHuntedAbilitySystemComponent::TryActivateAbilityByTag(FGameplayTag AbilityTagToActivate)
+{
+	check(AbilityTagToActivate.IsValid());
+	
+	TArray<FGameplayAbilitySpec*> FoundAbilitySpecs;
+	GetActivatableGameplayAbilitySpecsByAllMatchingTags(AbilityTagToActivate.GetSingleTagContainer(), FoundAbilitySpecs);
+	
+	if (!FoundAbilitySpecs.IsEmpty())
+	{
+		const int32 RandomAbilityIndex = FMath::RandRange(0, FoundAbilitySpecs.Num() - 1);
+		FGameplayAbilitySpec* SpecToActivate = FoundAbilitySpecs[RandomAbilityIndex];
+		
+		check (SpecToActivate);
+		
+		if (!SpecToActivate->IsActive())
+		{
+			return TryActivateAbility(SpecToActivate->Handle);
+		}
+	}
+	return false;
 }

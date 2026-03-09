@@ -2,6 +2,8 @@
 
 
 #include "AbilitySystem/Abilities/HuntedPlayerGameplayAbility.h"
+//#include "Components/Combat/PlayerCombatComponent.h"
+//#include "Components/Inventory/PlayerInventoryComponent.h"
 #include "Characters/HuntedPlayerCharacter.h"
 #include "Controllers/HuntedPlayerController.h"
 #include "AbilitySystem/HuntedAbilitySystemComponent.h"

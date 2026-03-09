@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="17e7a8d1-40de-4160-85a4-f373e4a125c8" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/../../../../../Content/_Hunted/EnemyCharacter/BTTask/BTTask_ActivateAbilityByTag.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/../../../../../Content/_Hunted/EnemyCharacter/BTTask/BTTask_ActivateAbilityByTag.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../../../Content/_Hunted/EnemyCharacter/PlayTestEnemy/BT_PlayTestEnemy.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/../../../../../Content/_Hunted/EnemyCharacter/PlayTestEnemy/BT_PlayTestEnemy.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../../../Content/_Hunted/EnemyCharacter/PlayTestEnemy/DA_PlayTestEnemy.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/../../../../../Content/_Hunted/EnemyCharacter/PlayTestEnemy/DA_PlayTestEnemy.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../../../Content/_Hunted/EnemyCharacter/PlayTestEnemy/GameplayAbility/Attack/GA_PlayTestEnemy_MeeleAttack_1.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/../../../../../Content/_Hunted/EnemyCharacter/PlayTestEnemy/GameplayAbility/Attack/GA_PlayTestEnemy_MeeleAttack_1.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../../../Content/_Hunted/EnemyCharacter/PlayTestEnemy/GameplayAbility/Attack/GA_PlayTestEnemy_MeeleAttack_2.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/../../../../../Content/_Hunted/EnemyCharacter/PlayTestEnemy/GameplayAbility/Attack/GA_PlayTestEnemy_MeeleAttack_2.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../../../Content/_Hunted/EnemyCharacter/PlayTestEnemy/Montages/Attack/MM_Stabbing1_UE_Montage_Enemy.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/../../../../../Content/_Hunted/EnemyCharacter/PlayTestEnemy/Montages/Attack/MM_Stabbing1_UE_Montage_Enemy.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../../../Content/_Hunted/EnemyCharacter/PlayTestEnemy/Montages/Attack/MM_Stabbing_UE_Montage_Enemy.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../../../Content/_Hunted/Shared/GameplayAbility/GA_Enemy_MeeleAttack_Base.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/../../../../../Content/_Hunted/Shared/GameplayAbility/GA_Enemy_MeeleAttack_Base.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../../../Content/_Hunted/TestElements/FeatureDevMap.umap" beforeDir="false" afterPath="$PROJECT_DIR$/../../../../../Content/_Hunted/TestElements/FeatureDevMap.umap" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../../../Content/__ExternalActors__/_Hunted/TestElements/FeatureDevMap/0/JL/0HJQU3RQCIN8RIVE5Z7VR9.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/../../../../../Content/__ExternalActors__/_Hunted/TestElements/FeatureDevMap/0/JL/0HJQU3RQCIN8RIVE5Z7VR9.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../../../Content/__ExternalActors__/_Hunted/TestElements/FeatureDevMap/3/V3/03OJ4USZA38PPIJU3DZ235.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/../../../../../Content/__ExternalActors__/_Hunted/TestElements/FeatureDevMap/3/V3/03OJ4USZA38PPIJU3DZ235.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../../../Content/__ExternalActors__/_Hunted/TestElements/FeatureDevMap/B/2X/9PH3285W3CJM386W8QP40N.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/../../../../../Content/__ExternalActors__/_Hunted/TestElements/FeatureDevMap/B/2X/9PH3285W3CJM386W8QP40N.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../AbilitySystem/Abilities/HuntedPlayerGameplayAbility.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../AbilitySystem/Abilities/HuntedPlayerGameplayAbility.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../AbilitySystem/HuntedAbilitySystemComponent.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../AbilitySystem/HuntedAbilitySystemComponent.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/DataAsset_EnemyStartUpData.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/DataAsset_EnemyStartUpData.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../Public/Characters/HuntedBaseCharacter.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../../Public/Characters/HuntedBaseCharacter.h" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ClangdSettings">
+    <option name="formatViaClangd" value="false" />
+  </component>
+  <component name="ProjectApplicationVersion">
+    <option name="ide" value="CLion" />
+    <option name="majorVersion" value="2025" />
+    <option name="minorVersion" value="3.3" />
+    <option name="productBranch" value="Classic" />
+  </component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "associatedIndex": 2
+}]]></component>
+  <component name="ProjectId" id="3Ah5Aov41n1hvPXeiW5aOQ4sbBt" />
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.RadMigrateCodeStyle": "true",
+    "RunOnceActivity.cidr.known.project.marker": "true",
+    "RunOnceActivity.readMode.enableVisualFormatting": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "cf.first.check.clang-format": "false",
+    "cidr.known.project.marker": "true",
+    "org.rust.first.attach.projects": "true"
+  }
+}]]></component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="17e7a8d1-40de-4160-85a4-f373e4a125c8" name="Changes" comment="" />
+      <created>1773031823164</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1773031823164</updated>
+      <workItem from="1773031824870" duration="1000" />
+    </task>
+    <servers />
+  </component>
+</project>
