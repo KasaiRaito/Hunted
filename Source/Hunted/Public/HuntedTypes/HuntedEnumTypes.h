@@ -22,3 +22,10 @@ enum class EHuntedSuccessType : uint8
 	Successful,
 	Failed,
 };
+
+UENUM(BlueprintType)
+enum class EHuntedInputMode: uint8
+{
+	GameOnly,
+	UIOnly
+};

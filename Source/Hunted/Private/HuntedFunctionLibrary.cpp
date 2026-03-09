@@ -5,6 +5,8 @@
 
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystem/HuntedAbilitySystemComponent.h"
+#include "AI/NavigationSystemBase.h"
+#include "Components/WidgetComponent.h"
 #include "Interfaces/PawnCombatInterface.h"
 
 UHuntedAbilitySystemComponent* UHuntedFunctionLibrary::NativeGetHuntedASCFromActor(AActor* InActor)
@@ -67,4 +69,41 @@ UPawnCombatComponent* UHuntedFunctionLibrary::BP_GetPawnCombatComponentFromActor
 	OutValidType = CombatComponent? EHuntedValidType::Valid : EHuntedValidType::Invalid; 
 	
 	return CombatComponent;
+}
+
+void UHuntedFunctionLibrary::ToggleInputMode(const UObject* WorldContextObject, EHuntedInputMode InInputMode)
+{
+	APlayerController* PlayerController = nullptr;
+	
+	if (GEngine)
+	{
+		if (UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject , EGetWorldErrorMode::LogAndReturnNull))
+		{
+			PlayerController = World->GetFirstPlayerController();
+		}
+	}
+	
+	if (!PlayerController)
+	{
+		return;
+	}
+	
+	FInputModeGameOnly GameOnlyMode;
+	FInputModeUIOnly UIOnlyMode;
+	
+	switch (InInputMode)
+	{
+	case EHuntedInputMode::GameOnly:
+		PlayerController->SetInputMode(GameOnlyMode);
+		PlayerController->bShowMouseCursor = false;
+		break;
+		
+	case EHuntedInputMode::UIOnly:
+		PlayerController->SetInputMode(UIOnlyMode);
+		PlayerController->bShowMouseCursor = true;
+		break;
+		
+	default:
+		break;
+	}
 }
