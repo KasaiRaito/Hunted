@@ -8,6 +8,7 @@
 #include "AI/NavigationSystemBase.h"
 #include "Components/WidgetComponent.h"
 #include "Interfaces/PawnCombatInterface.h"
+#include "GenericTeamAgentInterface.h"
 
 UHuntedAbilitySystemComponent* UHuntedFunctionLibrary::NativeGetHuntedASCFromActor(AActor* InActor)
 {
@@ -69,6 +70,21 @@ UPawnCombatComponent* UHuntedFunctionLibrary::BP_GetPawnCombatComponentFromActor
 	OutValidType = CombatComponent? EHuntedValidType::Valid : EHuntedValidType::Invalid; 
 	
 	return CombatComponent;
+}
+
+bool UHuntedFunctionLibrary::IsTargetPawnHostile(APawn* QueryPawn, APawn* TargetPawn)
+{
+	check(QueryPawn && TargetPawn);
+	
+	IGenericTeamAgentInterface* QueryTeamAgent = Cast<IGenericTeamAgentInterface>(QueryPawn->GetController());
+	IGenericTeamAgentInterface* TargetTeamAgent = Cast<IGenericTeamAgentInterface>(TargetPawn->GetController());
+	
+	if (QueryTeamAgent && TargetTeamAgent)
+	{
+		return QueryTeamAgent->GetGenericTeamId() != TargetTeamAgent->GetGenericTeamId();
+	}
+	
+	return false;
 }
 
 void UHuntedFunctionLibrary::ToggleInputMode(const UObject* WorldContextObject, EHuntedInputMode InInputMode)
