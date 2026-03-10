@@ -18,6 +18,7 @@
 class UHuntedAbilitySystemComponent;
 class UHuntedAttributeSet;
 class UDataAsset_StartUpDataBase;
+class UMotionWarpingComponent;
 
 UCLASS()
 class HUNTED_API AHuntedBaseCharacter : public ACharacter, public IAbilitySystemInterface, public IPawnCombatInterface,public IPawnUIInterface
@@ -51,6 +52,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, Blueprintable, Category = "AbilitySystem")
 	UHuntedAttributeSet* HuntedAttributeSet;
 
+	UPROPERTY(VisibleAnywhere, Blueprintable, Category = "MotionWarping")
+	UMotionWarpingComponent* MotionWarpingComponent;
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "CharacterData")
 	TSoftObjectPtr<UDataAsset_StartUpDataBase> CharacterStartUpData;
 	
