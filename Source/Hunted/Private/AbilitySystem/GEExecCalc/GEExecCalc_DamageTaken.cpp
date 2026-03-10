@@ -86,13 +86,18 @@ void UGEExecCalc_DamageTaken::Execute_Implementation(const FGameplayEffectCustom
 		if (TagMagnitude.Key.MatchesTagExact(HuntedGameplayTags::Shared_SetByCaller_BaseDamage))
 		{
 			BaseDamage = TagMagnitude.Value;
-			//Debug::Print(TEXT( "Base Damage"), BaseDamage);
+			Debug::Print(TEXT( "Base Damage"), BaseDamage);
 		}
 			
 		if (TagMagnitude.Key.MatchesAny(HitTypeTags))
 		{
 			DamageScalar = TagMagnitude.Value;
-			//Debug::Print(TEXT( "Damage Scalar"), DamageScalar);
+			Debug::Print(TEXT( "Damage Scalar"), DamageScalar);
+		}
+		else
+		{
+			Debug::Print(TEXT( "DIDNT GET DAMAGE SCALAR FROM TAG"), DamageScalar);
+			DamageScalar = 1.0f;
 		}
 	}
 	
@@ -106,10 +111,8 @@ void UGEExecCalc_DamageTaken::Execute_Implementation(const FGameplayEffectCustom
 	
 	const float FinalDamageDone = (BaseDamage* DamageScalar) - TargetDefencePower;
 	
-	/**
 	Debug::Print(TEXT( "Final Damage"), FinalDamageDone);
-	**/
-	
+		
 	if (FinalDamageDone > 0.0f)
 	{
 		OutExecutionOutput.AddOutputModifier(
