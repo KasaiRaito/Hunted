@@ -41,6 +41,9 @@ public:
 			ExpandEnumAsExecs = "OutValidType"))
 	static UPawnCombatComponent* BP_GetPawnCombatComponentFromActor(AActor* InActor, EHuntedValidType& OutValidType);
 	
+	UFUNCTION(BlueprintPure, Category = "Hunted|FunctionLibrary")
+	static bool IsTargetPawnHostile(APawn* QueryPawn, APawn* TargetPawn);
+	
 	UFUNCTION(BlueprintCallable,Category = "Hunted|FunctionLibrary", meta = (WorldContext = "WorldContextObject"))
 	static void ToggleInputMode(const UObject* WorldContextObject, EHuntedInputMode InInputMode);
 };

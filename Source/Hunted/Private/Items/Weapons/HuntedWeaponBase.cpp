@@ -2,7 +2,9 @@
 
 
 #include "Items/Weapons/HuntedWeaponBase.h"
+
 #include "Components/BoxComponent.h"
+#include "HuntedFunctionLibrary.h"
 
 #include "HuntedDebugHelper.h"
 
@@ -31,10 +33,9 @@ void AHuntedWeaponBase::OnCollisionBoxBeginOverlap(UPrimitiveComponent* Overlapp
 	
 	if (APawn* HitPawn= Cast<APawn>(OtherActor))
 	{
-		if (WeaponOwningPawn != HitPawn)
+		if (UHuntedFunctionLibrary::IsTargetPawnHostile(WeaponOwningPawn, HitPawn))
 		{
 			OnWeaponHitTarget.ExecuteIfBound(OtherActor);
-			//Debug::Print(GetName() + TEXT("beguin ovelap with ") + HitPawn->GetName(), FColor::Green);
 		}
 	}
 }
@@ -48,10 +49,9 @@ void AHuntedWeaponBase::OnCollisionBoxEndOverlap(UPrimitiveComponent* Overlapped
 	
 	if (APawn* HitPawn= Cast<APawn>(OtherActor))
 	{
-		if (WeaponOwningPawn != HitPawn)
+		if (UHuntedFunctionLibrary::IsTargetPawnHostile(WeaponOwningPawn, HitPawn))
 		{
 			OnWeaponPulledFromTarget.ExecuteIfBound(OtherActor);
-			//Debug::Print(GetName() + TEXT("end overlap with ") + HitPawn->GetName(), FColor::Red);
 		}
 	}
 }

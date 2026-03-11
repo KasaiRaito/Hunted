@@ -4,6 +4,7 @@
 #include "Characters/HuntedBaseCharacter.h"
 #include "AbilitySystem/HuntedAbilitySystemComponent.h"
 #include "AbilitySystem/HuntedAttributeSet.h"
+#include "MotionWarpingComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "HuntedGameplayTags.h"
 
@@ -18,6 +19,8 @@ AHuntedBaseCharacter::AHuntedBaseCharacter()
 
 	HuntedAbilitySystemComponent = CreateDefaultSubobject<UHuntedAbilitySystemComponent>(FName("HuntedAbilitySystemComponent"));
 	HuntedAttributeSet = CreateDefaultSubobject<UHuntedAttributeSet>(FName("HuntedAttributeSet"));
+	
+	MotionWarpingComponent = CreateDefaultSubobject<UMotionWarpingComponent>(FName("MotionWarpingComponent"));
 }
 
 UAbilitySystemComponent* AHuntedBaseCharacter::GetAbilitySystemComponent() const
@@ -45,39 +48,4 @@ void AHuntedBaseCharacter::PossessedBy(AController* NewController)
 		
 		ensureMsgf(!CharacterStartUpData.IsNull(), TEXT("Forgot to Assign STARTUP DATA to %s"), *GetName());
 	}
-}
-
-AActor* AHuntedBaseCharacter::HuntedRayCast(FVector startLocation, FVector rotation, float range)
-{
-	if (!GetWorld())
-	{
-		return nullptr;
-	}
-	
-	FVector start = startLocation;
-	FVector forward = rotation;
-	
-	start = FVector(start.X + (forward.X * 100),
-		start.Y + (forward.Y * 100),
-		start.Z + (forward.Z * 100));
-	
-	FVector end = start + (forward * range);
-	
-	FHitResult hit;
-	
-	bool actorHit = GetWorld()->LineTraceSingleByChannel(
-		hit, start, end, 
-		ECC_Pawn, FCollisionQueryParams(), 
-		FCollisionResponseParams()
-	);
-	
-	DrawDebugLine(GetWorld(), start, end, FColor::Red, false, 1.f, 0.f, 10.f);
-	
-	if (actorHit && hit.GetActor())
-	{		
-		//GEngine->AddOnScreenDebugMessage(-1,2.0f, FColor::Green, hit.GetActor()->GetFName().ToString());
-		return hit.GetActor();
-	}
-	
-	return nullptr;
 }
