@@ -17,6 +17,8 @@ public class Hunted : ModuleRules
 			"GameplayTags",
 			"EnhancedInput",
 			"GameplayTasks",
+			"AnimGraphRuntime",
+			"MotionWarping",
 			"UMG"
 		});
 

@@ -2,4 +2,45 @@
 
 
 #include "Components/Combat/EnemyCombatComponent.h"
+#include "AbilitySystemBlueprintLibrary.h"
+#include "HuntedGameplayTags.h"
 
+#include "HuntedDebugHelper.h"
+
+void UEnemyCombatComponent::OnWeaponHitTarget(AActor* HitActor)
+{
+	if (OverlappedActors.Contains(HitActor))
+	{
+		return;
+	}
+	
+	OverlappedActors.AddUnique(HitActor);
+	
+	//TODO: Implement block check
+	const bool bIsValidBlock = false;
+	
+	const bool bIsPlayerBlocking = false;
+	const bool bIsMyAttackUnblockable = false;
+	
+	if (bIsPlayerBlocking && !bIsMyAttackUnblockable)
+	{
+		//TODO: check if block is valid
+	}
+	
+	FGameplayEventData EventData;
+	EventData.Instigator = GetOwningPawn();
+	EventData.Target = HitActor;
+	
+	if (bIsValidBlock)
+	{
+		//TODO: handle successful block
+	}
+	else
+	{
+		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(
+			GetOwningPawn(),
+			HuntedGameplayTags::Shared_Event_MeleeHit,
+			EventData
+		);
+	}
+}
