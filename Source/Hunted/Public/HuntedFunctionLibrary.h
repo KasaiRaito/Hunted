@@ -46,5 +46,4 @@ public:
 	
 	UFUNCTION(BlueprintCallable,Category = "Hunted|FunctionLibrary", meta = (WorldContext = "WorldContextObject"))
 	static void ToggleInputMode(const UObject* WorldContextObject, EHuntedInputMode InInputMode);
-	
 };

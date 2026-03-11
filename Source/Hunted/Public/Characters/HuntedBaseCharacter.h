@@ -70,9 +70,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	void SetAimingState(bool bAimingState) { AimingState = bAimingState; };
 	
-	UFUNCTION(BlueprintCallable, Category = "Weapon")
-	AActor* HuntedRayCast(FVector startLocation = FVector::ZeroVector, FVector rotation = FVector::ZeroVector, float range = 1000.f);
-	
 	/*
 	UFUNCTION(Blueprintable, Category = "Weapon")
 	HuntedGameplayTags GetDamageTagToApply(USkeletalMeshSocket PartHitten);
