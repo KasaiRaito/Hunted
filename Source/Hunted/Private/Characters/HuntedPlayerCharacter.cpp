@@ -112,6 +112,13 @@ void AHuntedPlayerCharacter::SetupPlayerInputComponent(UInputComponent* InPlayer
 	PlayerInputComponent->BindNativeInputAction(InputConfigDataAsset, HuntedGameplayTags::InputTag_Crouch,
 		ETriggerEvent::Triggered, this, &ThisClass::Input_Crouch);
 	
+	PlayerInputComponent->BindNativeInputAction(InputConfigDataAsset, HuntedGameplayTags::InputTag_Aim,
+		ETriggerEvent::Started, this, &ThisClass::Input_Aim);
+	PlayerInputComponent->BindNativeInputAction(InputConfigDataAsset, HuntedGameplayTags::InputTag_Aim,
+		ETriggerEvent::Triggered, this, &ThisClass::Input_Aim);
+	PlayerInputComponent->BindNativeInputAction(InputConfigDataAsset, HuntedGameplayTags::InputTag_Aim,
+		ETriggerEvent::Completed, this, &ThisClass::Input_Aim);
+		
 	PlayerInputComponent->BindAbilityInputAction(InputConfigDataAsset,this,
 		&ThisClass::Input_AbilityInputPressed,&ThisClass::Input_AbilityInputReleased);
 }
@@ -182,6 +189,16 @@ void AHuntedPlayerCharacter::Input_Crouch(const FInputActionValue& Crouch)
 	{
 		GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
 	}
+}
+
+void AHuntedPlayerCharacter::Input_Aim(const FInputActionValue& Aim)
+{
+	if (bool InputVale = Aim.Get<bool>())
+		IsAiming = IsAimToggle ? !IsAiming : true;	
+	else
+		IsAiming = IsAimToggle ? IsAiming : false;
+
+	Debug::Print(IsAiming ? TEXT("Aiming: TRUE") : TEXT("Aiming: FALSE"));
 }
 
 void AHuntedPlayerCharacter::ProcessMovementInput(const FInputActionValue& InputActionValue)

@@ -16,7 +16,7 @@ namespace  HuntedGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(InputTag_Echo, "InputTag.Echo");
 	UE_DEFINE_GAMEPLAY_TAG(InputTag_Snap, "InputTag.Snap");
 		/** Combat **/
-	UE_DEFINE_GAMEPLAY_TAG(InputTag_Aim_Gun, "InputTag.Aim.Gun");
+	UE_DEFINE_GAMEPLAY_TAG(InputTag_Aim, "InputTag.Aim");
 	UE_DEFINE_GAMEPLAY_TAG(InputTag_Shoot_Gun, "InputTag.Shoot.Gun");
 	UE_DEFINE_GAMEPLAY_TAG(InputTag_Reload_Gun, "InputTag.Reload.Gun");
 	UE_DEFINE_GAMEPLAY_TAG(InputTag_Shoot_Knife, "InputTag.Shoot.Knife");
@@ -37,7 +37,7 @@ namespace  HuntedGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Player_Ability_Echo, "Player.Ability.Echo");
 	UE_DEFINE_GAMEPLAY_TAG(Player_Ability_Snap, "Player.Ability.Snap");
 			/** Combat **/
-	UE_DEFINE_GAMEPLAY_TAG(Player_Ability_Aim_Gun, "Player.Ability.Aim.Gun");
+	UE_DEFINE_GAMEPLAY_TAG(Player_Ability_Aim, "Player.Ability.Aim");
 	UE_DEFINE_GAMEPLAY_TAG(Player_Ability_Shoot_Gun, "Player.Ability.Shoot.Gun");
 	UE_DEFINE_GAMEPLAY_TAG(Player_Ability_Reload_Gun, "Player.Ability.Reload.Gun");
 	UE_DEFINE_GAMEPLAY_TAG(Player_Ability_Shoot_Knife, "Player.Ability.Shoot.Knife");

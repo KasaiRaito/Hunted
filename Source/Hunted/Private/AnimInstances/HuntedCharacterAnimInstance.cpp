@@ -29,7 +29,5 @@ void UHuntedCharacterAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSe
 	GroundSpeed = OwningCharacter->GetActorTransform().InverseTransformVectorNoScale(GlobalVelocity);
 
 	bHasAcceleration = (OwningMovementComponent->GetCurrentAcceleration().SizeSquared2D() > 0.f);
-	
-	Aiming = OwningCharacter->GetAimingState();
 	//Pitch = OwningCharacter->GetControlRotation().Pitch;
 }

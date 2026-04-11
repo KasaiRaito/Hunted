@@ -143,6 +143,7 @@ private:
 	void Input_Sneak(const FInputActionValue& Sneak);
 	void Input_Sprint(const FInputActionValue& Sprint);
 	void Input_Crouch(const FInputActionValue& Crouch);
+	void Input_Aim(const FInputActionValue& Aim);
 	
 	void ProcessMovementInput(const FInputActionValue& InputActionValue);
 
@@ -156,6 +157,16 @@ private:
 	bool IsSprint = false;
 	bool IsCrouch = false;
 	bool IsEcho = false;
+	bool IsAiming = false;
+	
+	bool IsAimToggle = false;
+	
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	bool GetAimingState() const { return IsAiming; };
+
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	void SetAimingState(bool bAimingState) { IsAiming = bAimingState; };
+	
 	
 #pragma endregion
 

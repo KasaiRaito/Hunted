@@ -56,19 +56,10 @@ protected:
 	UMotionWarpingComponent* MotionWarpingComponent;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "CharacterData")
-	TSoftObjectPtr<UDataAsset_StartUpDataBase> CharacterStartUpData;
-	
-	UPROPERTY()
-	bool AimingState = false;
+	TSoftObjectPtr<UDataAsset_StartUpDataBase> CharacterStartUpData;	
 
 public:
 	FORCEINLINE UHuntedAbilitySystemComponent* GetHuntedAbilitySystemComponent() const { return HuntedAbilitySystemComponent; }
-	
-	UFUNCTION(BlueprintCallable, Category = "Weapon")
-	bool GetAimingState() const { return AimingState; };
-
-	UFUNCTION(BlueprintCallable, Category = "Weapon")
-	void SetAimingState(bool bAimingState) { AimingState = bAimingState; };
 	
 	/*
 	UFUNCTION(Blueprintable, Category = "Weapon")
