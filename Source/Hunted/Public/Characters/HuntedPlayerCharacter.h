@@ -52,6 +52,7 @@ public:
 	virtual UPlayerUIComponent* GetPlayerUIComponent() const override;
 	//~ End IPawnUIInterface Interface
 	
+	//MOVEMENT
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Speed)
 	float SprintSpeed = 600.f;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Speed)
@@ -60,7 +61,26 @@ public:
 	float CrouchSpeed = 100.f;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Speed)
 	float WalkSpeed = 250.f;
+	
+	//CAMERA
+	float CurrentYaw = 0.f;
+	float CurrentPitch = 0.f;
+	
+	UPROPERTY(EditAnywhere, Category="Camera")
+	float BaseSpeed = 1.0f;
+	float AimSpeed = BaseSpeed / 2.0f;
+	float LookSpeed = BaseSpeed;
+	
+	UPROPERTY(EditAnywhere, Category="Camera")
+	float LookAcceleration = 10.f;
+	
+	UPROPERTY(EditAnywhere, Category="Camera")
+	float LookDeceleration = 10.f;
 
+	FVector2D TargetLookInput = FVector2D::ZeroVector;
+	FVector2D CurrentLookInput = FVector2D::ZeroVector;
+	
+	// ECHO
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Echo") 
 	TArray<AActor*> StaticMeshActors;
 
@@ -159,8 +179,6 @@ private:
 	bool IsEcho = false;
 	bool IsAiming = false;
 	
-	bool IsAimToggle = false;
-	
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	bool GetAimingState() const { return IsAiming; };
 
@@ -177,6 +195,9 @@ private:
 #pragma endregion
 
 public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Aim")
+	bool IsAimToggle = false;
+	
 	UFUNCTION(BlueprintCallable, Category = "Echo")
 	void EnterEcho();
 

@@ -113,12 +113,8 @@ void AHuntedPlayerCharacter::SetupPlayerInputComponent(UInputComponent* InPlayer
 		ETriggerEvent::Triggered, this, &ThisClass::Input_Crouch);
 	
 	PlayerInputComponent->BindNativeInputAction(InputConfigDataAsset, HuntedGameplayTags::InputTag_Aim,
-		ETriggerEvent::Started, this, &ThisClass::Input_Aim);
-	PlayerInputComponent->BindNativeInputAction(InputConfigDataAsset, HuntedGameplayTags::InputTag_Aim,
 		ETriggerEvent::Triggered, this, &ThisClass::Input_Aim);
-	PlayerInputComponent->BindNativeInputAction(InputConfigDataAsset, HuntedGameplayTags::InputTag_Aim,
-		ETriggerEvent::Completed, this, &ThisClass::Input_Aim);
-		
+	
 	PlayerInputComponent->BindAbilityInputAction(InputConfigDataAsset,this,
 		&ThisClass::Input_AbilityInputPressed,&ThisClass::Input_AbilityInputReleased);
 }
@@ -194,11 +190,21 @@ void AHuntedPlayerCharacter::Input_Crouch(const FInputActionValue& Crouch)
 void AHuntedPlayerCharacter::Input_Aim(const FInputActionValue& Aim)
 {
 	if (bool InputVale = Aim.Get<bool>())
-		IsAiming = IsAimToggle ? !IsAiming : true;	
+	{
+		IsAiming = IsAimToggle ? !IsAiming : true;
+		Debug::Print(TEXT("Press"));
+	}
 	else
+	{
 		IsAiming = IsAimToggle ? IsAiming : false;
-
+		Debug::Print(TEXT("Release"));
+		
+	}
+		
+	
 	Debug::Print(IsAiming ? TEXT("Aiming: TRUE") : TEXT("Aiming: FALSE"));
+	
+	LookSpeed = IsAiming ? AimSpeed : BaseSpeed;
 }
 
 void AHuntedPlayerCharacter::ProcessMovementInput(const FInputActionValue& InputActionValue)
@@ -216,23 +222,40 @@ void AHuntedPlayerCharacter::ProcessMovementInput(const FInputActionValue& Input
 	if (MovementVector.X != 0.f)
 	{
 		const FVector RightDirection = MovementRotator.RotateVector(FVector::RightVector);
-
+		
 		AddMovementInput(RightDirection, MovementVector.X);
 	}
 }
 
 void AHuntedPlayerCharacter::Input_Look(const FInputActionValue& InputActionValue)
 {
-	const FVector2D LookAxisVector = InputActionValue.Get<FVector2D>();
+	const FVector2D LookInput = InputActionValue.Get<FVector2D>();
+	const float DeltaTime = GetWorld()->GetDeltaSeconds();
 
-	if (LookAxisVector.X != 0.f)
+	if (abs(LookInput.X) < 0.1f)
 	{
-		AddControllerYawInput(LookAxisVector.X);
+		CurrentYaw = 0.0f;
 	}
-	if (LookAxisVector.Y != 0.f)
+	if (abs(LookInput.Y) < 0.1f)
 	{
-		AddControllerPitchInput(LookAxisVector.Y);
+		CurrentPitch = 0.0f;
 	}
+		
+	// Target input
+	float TargetYaw = LookInput.X;
+	float TargetPitch = LookInput.Y;
+
+	// Choose accel/decel depending on input
+	float YawSpeed = (FMath::Abs(TargetYaw) > 0.01f) ? LookAcceleration : LookDeceleration;
+	float PitchSpeed = (FMath::Abs(TargetPitch) > 0.01f) ? LookAcceleration : LookDeceleration;
+	
+	// Smooth interpolation
+	CurrentYaw = FMath::FInterpTo(CurrentYaw, TargetYaw, DeltaTime, YawSpeed);
+	CurrentPitch = FMath::FInterpTo(CurrentPitch, TargetPitch, DeltaTime, PitchSpeed);
+
+	// Apply your existing LookSpeed
+	AddControllerYawInput(CurrentYaw * LookSpeed);
+	AddControllerPitchInput(CurrentPitch * LookSpeed);
 }
 
 void AHuntedPlayerCharacter::Input_AbilityInputPressed(FGameplayTag InInputTag)
