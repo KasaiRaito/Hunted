@@ -63,22 +63,30 @@ public:
 	float WalkSpeed = 250.f;
 	
 	//CAMERA
-	float CurrentYaw = 0.f;
-	float CurrentPitch = 0.f;
+	UPROPERTY(EditAnywhere, Category="Camera")
+	float BaseSpeed = 2.0f;
 	
 	UPROPERTY(EditAnywhere, Category="Camera")
-	float BaseSpeed = 1.0f;
-	float AimSpeed = BaseSpeed / 2.0f;
-	float LookSpeed = BaseSpeed;
-	
-	UPROPERTY(EditAnywhere, Category="Camera")
-	float LookAcceleration = 10.f;
-	
-	UPROPERTY(EditAnywhere, Category="Camera")
-	float LookDeceleration = 10.f;
+	float AimSpeed = 0.5f;
 
-	FVector2D TargetLookInput = FVector2D::ZeroVector;
-	FVector2D CurrentLookInput = FVector2D::ZeroVector;
+	float LookSpeed = 1.0f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Camera")
+	bool CameraAcceleration = false;
+	
+	UPROPERTY(EditAnywhere, Category="Camera")
+	float LookAcceleration = 8.0f;
+
+	UPROPERTY(EditAnywhere, Category="Camera")
+	float LookDeceleration = 12.0f;
+	
+	UPROPERTY(EditAnywhere, Category="Camera")
+	bool bUseLookSmoothing = true;
+	
+	UPROPERTY()
+	float CurrentYaw = 0.f;
+	UPROPERTY()
+	float CurrentPitch = 0.f;
 	
 	// ECHO
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Echo") 
@@ -168,6 +176,7 @@ private:
 	void ProcessMovementInput(const FInputActionValue& InputActionValue);
 
 	void Input_Look(const FInputActionValue& InputActionValue);
+	void Input_LookStopped(const FInputActionValue& InputActionValue);
 
 	void Input_AbilityInputPressed(FGameplayTag InInputTag);
 	void Input_AbilityInputReleased(FGameplayTag InInputTag);
@@ -195,7 +204,7 @@ private:
 #pragma endregion
 
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Aim")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Aim")
 	bool IsAimToggle = false;
 	
 	UFUNCTION(BlueprintCallable, Category = "Echo")

@@ -21,6 +21,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/UI/PlayerUIComponent.h"
 #include "Components/Inventory/PlayerInventoryComponent.h"
+#include "GameFramework/SpringArmComponent.h"
 
 #include "Items/Inventory/HuntedInventoryItemBase.h"
 
@@ -31,13 +32,11 @@ AHuntedPlayerCharacter::AHuntedPlayerCharacter()
 	GetCapsuleComponent()->OnComponentEndOverlap.AddDynamic(this, &AHuntedPlayerCharacter::OnEndOverlap);
 	
 	bUseControllerRotationPitch = false;
-	bUseControllerRotationYaw = true;
 	bUseControllerRotationRoll = false;
-
-	//I REMOVED CAMERA BOOM, TO MAKE IT FIRST PERSON
+	bUseControllerRotationYaw = true;
 
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
-	FollowCamera->SetupAttachment(GetRootComponent());
+	FollowCamera->SetupAttachment(GetCapsuleComponent());
 	FollowCamera->bUsePawnControlRotation = true;
 
 	GetCharacterMovement()->bOrientRotationToMovement = false;
@@ -108,6 +107,8 @@ void AHuntedPlayerCharacter::SetupPlayerInputComponent(UInputComponent* InPlayer
 
 	PlayerInputComponent->BindNativeInputAction(InputConfigDataAsset, HuntedGameplayTags::InputTag_Look,
 		ETriggerEvent::Triggered, this, &ThisClass::Input_Look);
+	PlayerInputComponent->BindNativeInputAction(InputConfigDataAsset, HuntedGameplayTags::InputTag_Look,
+		ETriggerEvent::Completed, this, &ThisClass::Input_LookStopped);
 
 	PlayerInputComponent->BindNativeInputAction(InputConfigDataAsset, HuntedGameplayTags::InputTag_Crouch,
 		ETriggerEvent::Triggered, this, &ThisClass::Input_Crouch);
@@ -198,12 +199,9 @@ void AHuntedPlayerCharacter::Input_Aim(const FInputActionValue& Aim)
 	{
 		IsAiming = IsAimToggle ? IsAiming : false;
 		Debug::Print(TEXT("Release"));
-		
 	}
-		
 	
 	Debug::Print(IsAiming ? TEXT("Aiming: TRUE") : TEXT("Aiming: FALSE"));
-	
 	LookSpeed = IsAiming ? AimSpeed : BaseSpeed;
 }
 
@@ -230,32 +228,44 @@ void AHuntedPlayerCharacter::ProcessMovementInput(const FInputActionValue& Input
 void AHuntedPlayerCharacter::Input_Look(const FInputActionValue& InputActionValue)
 {
 	const FVector2D LookInput = InputActionValue.Get<FVector2D>();
+
+	if (!Controller)
+	{
+		return;
+	}
+
+	if (!LookAcceleration || !CameraAcceleration)
+	{
+		AddControllerYawInput(LookInput.X * LookSpeed);
+		AddControllerPitchInput(LookInput.Y * LookSpeed);
+		return;
+	}
+
 	const float DeltaTime = GetWorld()->GetDeltaSeconds();
 
-	if (abs(LookInput.X) < 0.1f)
-	{
-		CurrentYaw = 0.0f;
-	}
-	if (abs(LookInput.Y) < 0.1f)
-	{
-		CurrentPitch = 0.0f;
-	}
-		
-	// Target input
-	float TargetYaw = LookInput.X;
-	float TargetPitch = LookInput.Y;
+	const float TargetYaw = (FMath::Abs(LookInput.X) > 0.05f) ? LookInput.X : 0.0f;
+	const float TargetPitch = (FMath::Abs(LookInput.Y) > 0.05f) ? LookInput.Y : 0.0f;
 
-	// Choose accel/decel depending on input
-	float YawSpeed = (FMath::Abs(TargetYaw) > 0.01f) ? LookAcceleration : LookDeceleration;
-	float PitchSpeed = (FMath::Abs(TargetPitch) > 0.01f) ? LookAcceleration : LookDeceleration;
-	
-	// Smooth interpolation
-	CurrentYaw = FMath::FInterpTo(CurrentYaw, TargetYaw, DeltaTime, YawSpeed);
-	CurrentPitch = FMath::FInterpTo(CurrentPitch, TargetPitch, DeltaTime, PitchSpeed);
+	const float YawInterpSpeed =
+		(FMath::Abs(TargetYaw) > FMath::Abs(CurrentYaw)) ? LookAcceleration : LookDeceleration;
 
-	// Apply your existing LookSpeed
+	const float PitchInterpSpeed =
+		(FMath::Abs(TargetPitch) > FMath::Abs(CurrentPitch)) ? LookAcceleration : LookDeceleration;
+
+	CurrentYaw = FMath::FInterpTo(CurrentYaw, TargetYaw, DeltaTime, YawInterpSpeed);
+	CurrentPitch = FMath::FInterpTo(CurrentPitch, TargetPitch, DeltaTime, PitchInterpSpeed);
+
 	AddControllerYawInput(CurrentYaw * LookSpeed);
 	AddControllerPitchInput(CurrentPitch * LookSpeed);
+	Debug::Print(TEXT("Input_Look"));
+}
+
+void AHuntedPlayerCharacter::Input_LookStopped(const FInputActionValue& InputActionValue)
+{
+	CurrentYaw = 0.f;
+	CurrentPitch = 0.f;
+	
+	Debug::Print(TEXT("Input_Canceled"));
 }
 
 void AHuntedPlayerCharacter::Input_AbilityInputPressed(FGameplayTag InInputTag)
