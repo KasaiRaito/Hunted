@@ -1,3 +1,5 @@
 # Auto detect text files and perform LF normalization
 * text=auto
 inventory_search_new.uasset filter=lfs diff=lfs merge=lfs -text
+MHC_Player.uasset filter=lfs diff=lfs merge=lfs -text
+SKM_MHC_Player_FaceMesh.uasset filter=lfs diff=lfs merge=lfs -text

@@ -18,6 +18,7 @@ All programing sistems and elements have been recreated, modified or cited in th
 
 ## Art:
 ### KasaiRaito:
+- Code Things. (2024, 22 junio). How to use a Metahuman as a Realistic First Person Character (Fixed Foot IK) in Unreal Engine 5 [Vídeo]. YouTube. https://www.youtube.com/watch?v=BI815wgXzUM
 - Rimaye [ Assets and Tutorials - NIAGARA ]. (2025, 22 julio). UE5 : Create splashes & Decals from Scratch with Niagara (Implementation, Parameters) - Part 3 [Vídeo]. YouTube. https://www.youtube.com/watch?v=-lF3DRpT98Y
 - Patsanoob. (2023, 27 octubre). “EchoLocation” | UE5 Tutorial [Vídeo]. YouTube. https://www.youtube.com/watch?v=YoQGYuR65qs
 
@@ -29,12 +30,19 @@ All programing sistems and elements have been recreated, modified or cited in th
 (Not visible on GitHub)
 
 # Studio Notes
+RPG TUTORIAL UDEMY:
 Add Locomotion animations to weapon:
 Chapter 38 - Time 7:20
 
 Change Damage Calculation:
 Chapter 70 - Time 1:30
 
-Add sound to enemyes on hit:
+Add sound to Enemies on hit:
 Chapter 80 - Time 3:50
+
+
+How to use a Metahuman as a Realistic First Person Character
+Add Rigging to metahuman and use as character:
+~ VIDEO
+
 -->
