@@ -65,17 +65,17 @@ namespace  HuntedGameplayTags
 		/** Events **/
 	UE_DEFINE_GAMEPLAY_TAG(Player_Event_Equip_Gun, "Player.Event.Equip.Gun");
 	UE_DEFINE_GAMEPLAY_TAG(Player_Event_Unequip_Gun, "Player.Event.Unequip.Gun");
-	UE_DEFINE_GAMEPLAY_TAG(Player_Event_Reload_Gun, "Player.Event.Reload.Gun")
+	UE_DEFINE_GAMEPLAY_TAG(Player_Event_Reload_Gun, "Player.Event.Reload.Gun");
 	UE_DEFINE_GAMEPLAY_TAG(Player_Event_Equip_Knife, "Player.Event.Equip.Knife");
 	UE_DEFINE_GAMEPLAY_TAG(Player_Event_Unequip_Knife, "Player.Event.Unequip.Knife");
  
-		/** Player Weapon Tags **/
+	/** Player Weapon Tags **/
 	UE_DEFINE_GAMEPLAY_TAG(Player_Weapon_BasicKnife, "Player.Weapon.BasicKnife");
-	UE_DEFINE_GAMEPLAY_TAG(Player_Weapon_Gun, "Player.Weapon.Gun")
+	UE_DEFINE_GAMEPLAY_TAG(Player_Weapon_Gun, "Player.Weapon.Gun");
 	
-		/** Player Item Tags **/
+	/** Player Item Tags **/
 	UE_DEFINE_GAMEPLAY_TAG(Player_Item_Cure_Small, "Player.Item.Cure.Small");
-	UE_DEFINE_GAMEPLAY_TAG(Player_Item_Bullets_BaseGun, "Player.Item.Bullets.BaseGun")
+	UE_DEFINE_GAMEPLAY_TAG(Player_Item_Bullets_BaseGun, "Player.Item.Bullets.BaseGun");
 	
 		/** Set By Caller **/
 	UE_DEFINE_GAMEPLAY_TAG(Player_SetByCaller_AttackType_BasicKnife, "Player.SetByCaller.AttackType.BasicKnife");
@@ -102,8 +102,8 @@ namespace  HuntedGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Enemy_Weapon, "Enemy.Weapon");
 	
 	/** Shared Tags **/
-	UE_DEFINE_GAMEPLAY_TAG(Shared_Ability_Hit, "Shared.Ability.HitReact")
-	UE_DEFINE_GAMEPLAY_TAG(Shared_Event_Hit, "Shared.Event.HitReact");
+	UE_DEFINE_GAMEPLAY_TAG(Shared_Ability_HitReact, "Shared.Ability.HitReact");
+	UE_DEFINE_GAMEPLAY_TAG(Shared_Event_HitReact, "Shared.Event.HitReact");
 	
 	UE_DEFINE_GAMEPLAY_TAG(Shared_Event_MeleeHit, "Shared.Event.MeleeHit");
 	

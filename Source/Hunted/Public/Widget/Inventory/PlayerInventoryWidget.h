@@ -6,10 +6,11 @@
 #include "Widget/UI/HuntedWidgetBase.h"
 #include "PlayerInventoryWidget.generated.h"
 
-class UCanvasPanel;
 class UBorder;
+class UCanvasPanel;
 class UBackgroundBlur;
-
+class AHuntedPlayerCharacter;
+class AHuntedInventoryItemBase;
 
 UCLASS()
 class HUNTED_API UPlayerInventoryWidget : public UHuntedWidgetBase
@@ -26,6 +27,16 @@ public:
 	UPROPERTY(VisibleAnywhere, meta = (BindWidget), Category= "UI")
 	UBackgroundBlur* BackgroundBlur;
 	
+	AHuntedInventoryItemBase* SpawnedItem;
+	
 protected:
+	AHuntedPlayerCharacter* CharacterReference;
+	
 	virtual void NativeConstruct() override;
+	
+	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
+	
+	virtual bool NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation) override;
+	
+	FHitResult GetLocationBelow(FVector Start);
 };

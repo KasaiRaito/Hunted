@@ -107,7 +107,7 @@ namespace HuntedGameplayTags
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Enemy_Weapon);
 	
 	/** Shared tags **/
-	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Shared_Ability_HitRact);
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Shared_Ability_HitReact);
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Shared_Event_HitReact);
 	
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Shared_Event_MeleeHit);

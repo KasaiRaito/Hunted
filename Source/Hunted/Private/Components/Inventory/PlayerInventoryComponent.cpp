@@ -2,6 +2,7 @@
 
 
 #include "Components/Inventory/PlayerInventoryComponent.h"
+
 #include "Items/Inventory/HuntedInventoryItemBase.h"
 
 #include "HuntedDebugHelper.h"
@@ -31,7 +32,6 @@ void UPlayerInventoryComponent::BeginPlay()
 void UPlayerInventoryComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	
 }
 
 TMap<AHuntedInventoryItemBase*, FIntPoint> UPlayerInventoryComponent::GetAllItems()
@@ -151,4 +151,20 @@ void UPlayerInventoryComponent::AddItemAtIndex(AHuntedInventoryItemBase* ItemToA
 	}
 	
 	AddedItem = true;
+}
+
+void UPlayerInventoryComponent::RemoveItem(AHuntedInventoryItemBase* ItemToRemove)
+{
+	if (!ItemToRemove)
+	{
+		return;
+	}
+	
+	for (int16 i = 0; i < Items.Num(); i++)
+	{
+		if (ItemToRemove == Items[i])
+		{
+			Items[i] = nullptr;
+		}
+	}
 }

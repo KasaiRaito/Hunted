@@ -117,4 +117,6 @@ public:
 	
 	UFUNCTION(BlueprintCallable)
 	void SetInventoryGridWidget(UPlayerInventoryGridWidget* GridWidget) { InventoryGridWidgetReference = GridWidget; };
+	
+	void RemoveItem(AHuntedInventoryItemBase* ItemToRemove);
 };
