@@ -68,6 +68,20 @@ struct FLines
 	
 };
 
+USTRUCT()
+struct FMousePositionInTile
+{
+	GENERATED_USTRUCT_BODY();
+	
+	FMousePositionInTile()
+	{
+		
+	};
+	
+	bool Vertical;
+	bool Horizontal;
+};
+
 USTRUCT(BlueprintType)
 struct  FHuntedPlayerItemData
 {
@@ -80,7 +94,10 @@ struct  FHuntedPlayerItemData
 	bool ItemUsable;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	bool IsStackable;
+	bool IsStackable = false;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = "1", UIMin = "1"))
+	int32 MaxStackPerCell = 1;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	FString ItemName;

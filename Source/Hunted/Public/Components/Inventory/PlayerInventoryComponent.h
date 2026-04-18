@@ -40,7 +40,11 @@ protected:
 	UPROPERTY()
 	UPlayerInventoryGridWidget* InventoryGridWidgetReference;
 	
-	bool IsTileValid(FIntPoint Tile);
+	bool IsTileValid(FIntPoint Tile) const;
+	bool CanItemsStackTogether(const AHuntedInventoryItemBase* SourceItem, const AHuntedInventoryItemBase* TargetItem) const;
+	bool CanStackItemAtIndex(const AHuntedInventoryItemBase* SourceItem, int8 TopLeftIndex) const;
+	AHuntedInventoryItemBase* SpawnStackCloneFromItem(const AHuntedInventoryItemBase* SourceItem) const;
+	void RefreshInventoryGrid() const;
 	
 public:
 	UFUNCTION()	
@@ -98,7 +102,7 @@ public:
 	bool TryAddItem(AHuntedInventoryItemBase* ItemToAdd);
 	
 	UFUNCTION()
-	bool RoomForItemInInventory(AHuntedInventoryItemBase* ItemToAdd, int8 TopLeftIndex);
+	bool RoomForItemInInventory(AHuntedInventoryItemBase* ItemToAdd, int8 TopLeftIndex) const;
 		
 	UFUNCTION()
 	FIntPoint IndexToTile(int8 Index) const;
@@ -111,9 +115,18 @@ public:
 	
 	UFUNCTION()
 	AHuntedInventoryItemBase* GetItemAtIndex(int8 Index);
+
+	UFUNCTION()
+	bool FindItemTopLeftTile(AHuntedInventoryItemBase* ItemToFind, FIntPoint& OutTopLeftTile) const;
 	
 	UFUNCTION()
 	void AddItemAtIndex(AHuntedInventoryItemBase* ItemToAdd, int8 TopLeftIndex);
+
+	UFUNCTION()
+	bool CanPlaceOrStackItemAtIndex(AHuntedInventoryItemBase* ItemToAdd, int8 TopLeftIndex) const;
+
+	UFUNCTION()
+	bool TryStackItemAtIndex(AHuntedInventoryItemBase* ItemToStack, int8 TopLeftIndex, bool& bOutSourceConsumed);
 	
 	UFUNCTION(BlueprintCallable)
 	void SetInventoryGridWidget(UPlayerInventoryGridWidget* GridWidget) { InventoryGridWidgetReference = GridWidget; };

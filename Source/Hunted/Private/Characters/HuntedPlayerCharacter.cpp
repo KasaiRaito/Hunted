@@ -257,7 +257,7 @@ void AHuntedPlayerCharacter::Input_Look(const FInputActionValue& InputActionValu
 
 	AddControllerYawInput(CurrentYaw * LookSpeed);
 	AddControllerPitchInput(CurrentPitch * LookSpeed);
-	Debug::Print(TEXT("Input_Look"));
+	//Debug::Print(TEXT("Input_Look"));
 }
 
 void AHuntedPlayerCharacter::Input_LookStopped(const FInputActionValue& InputActionValue)
@@ -265,7 +265,7 @@ void AHuntedPlayerCharacter::Input_LookStopped(const FInputActionValue& InputAct
 	CurrentYaw = 0.f;
 	CurrentPitch = 0.f;
 	
-	Debug::Print(TEXT("Input_Canceled"));
+	//Debug::Print(TEXT("Input_Canceled"));
 }
 
 void AHuntedPlayerCharacter::Input_AbilityInputPressed(FGameplayTag InInputTag)

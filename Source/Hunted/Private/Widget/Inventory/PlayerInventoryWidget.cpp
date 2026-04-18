@@ -23,9 +23,22 @@ FReply UPlayerInventoryWidget::NativeOnMouseButtonDown(const FGeometry& InGeomet
 bool UPlayerInventoryWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent,
 	UDragDropOperation* InOperation)
 {
-	if (!InOperation->Payload)
+	if (!InOperation || !InOperation->Payload)
 	{
 		return false;
+	}
+
+	AHuntedInventoryItemBase* PayloadItem = Cast<AHuntedInventoryItemBase>(InOperation->Payload);
+	if (!PayloadItem)
+	{
+		return false;
+	}
+
+	// Remove state: item is discarded from the inventory without spawning in the world.
+	if (!PayloadItem->droppable)
+	{
+		InOperation->Tag = TEXT("RemovedFromInventory");
+		return true;
 	}
 	
 	//Set the object offset to the ground with a ray cast
@@ -41,12 +54,18 @@ bool UPlayerInventoryWidget::NativeOnDrop(const FGeometry& InGeometry, const FDr
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 	
-	SpawnedItem = GetWorld()->SpawnActor<AHuntedInventoryItemBase>(InOperation->Payload->GetClass(), SpawnLocation, SpawnRotation, SpawnParams);
+	SpawnedItem = GetWorld()->SpawnActor<AHuntedInventoryItemBase>(PayloadItem->GetClass(), SpawnLocation, SpawnRotation, SpawnParams);
+	if (!SpawnedItem)
+	{
+		return false;
+	}
+
+	InOperation->Tag = TEXT("DroppedToWorld");
 	
 	return true;
 }
 
-FHitResult UPlayerInventoryWidget::GetLocationBelow(FVector Start)
+FHitResult UPlayerInventoryWidget::GetLocationBelow(FVector Start) const
 {
 	FHitResult HitResult;
 	FVector End = Start - FVector(0, 0, 1000.0f); // Trace 1000 units down
