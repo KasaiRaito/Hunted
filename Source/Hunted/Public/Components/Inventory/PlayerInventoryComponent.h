@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "Components/ActorComponent.h"
 #include "Components/PawnExtensionComponentBase.h"
 #include "PlayerInventoryComponent.generated.h"
@@ -100,6 +101,15 @@ public:
 	
 	UFUNCTION(BlueprintCallable)
 	bool TryAddItem(AHuntedInventoryItemBase* ItemToAdd);
+
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	int32 GetTotalItemAmountByTag(FGameplayTag ItemTag) const;
+
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	bool HasItemAmountByTag(FGameplayTag ItemTag, int32 RequiredAmount) const;
+
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	bool TryRemoveItemAmountByTag(FGameplayTag ItemTag, int32 AmountToRemove);
 	
 	UFUNCTION()
 	bool RoomForItemInInventory(AHuntedInventoryItemBase* ItemToAdd, int8 TopLeftIndex) const;

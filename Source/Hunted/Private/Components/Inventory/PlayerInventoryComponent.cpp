@@ -160,6 +160,108 @@ bool UPlayerInventoryComponent::TryAddItem(AHuntedInventoryItemBase* ItemToAdd)
 	return true;
 }
 
+int32 UPlayerInventoryComponent::GetTotalItemAmountByTag(FGameplayTag ItemTag) const
+{
+	if (!ItemTag.IsValid())
+	{
+		return 0;
+	}
+
+	int32 TotalAmount = 0;
+	TSet<const AHuntedInventoryItemBase*> CountedItems;
+
+	for (AHuntedInventoryItemBase* Item : Items)
+	{
+		if (!Item || CountedItems.Contains(Item))
+		{
+			continue;
+		}
+
+		CountedItems.Add(Item);
+
+		const FHuntedPlayerItemData ItemData = Item->GetItemData();
+		if (ItemData.ItemTag != ItemTag)
+		{
+			continue;
+		}
+
+		TotalAmount += Item->IsItemStackable() ? FMath::Max(0, Item->GetItemAmount()) : 1;
+	}
+
+	return TotalAmount;
+}
+
+bool UPlayerInventoryComponent::HasItemAmountByTag(FGameplayTag ItemTag, int32 RequiredAmount) const
+{
+	if (RequiredAmount <= 0)
+	{
+		return false;
+	}
+
+	return GetTotalItemAmountByTag(ItemTag) >= RequiredAmount;
+}
+
+bool UPlayerInventoryComponent::TryRemoveItemAmountByTag(FGameplayTag ItemTag, int32 AmountToRemove)
+{
+	if (!ItemTag.IsValid() || AmountToRemove <= 0)
+	{
+		return false;
+	}
+
+	if (!HasItemAmountByTag(ItemTag, AmountToRemove))
+	{
+		return false;
+	}
+
+	int32 RemainingAmountToRemove = AmountToRemove;
+	TSet<AHuntedInventoryItemBase*> ProcessedItems;
+
+	for (AHuntedInventoryItemBase* Item : Items)
+	{
+		if (!Item || ProcessedItems.Contains(Item))
+		{
+			continue;
+		}
+
+		ProcessedItems.Add(Item);
+
+		const FHuntedPlayerItemData ItemData = Item->GetItemData();
+		if (ItemData.ItemTag != ItemTag)
+		{
+			continue;
+		}
+
+		const int32 ItemAmount = Item->IsItemStackable() ? FMath::Max(0, Item->GetItemAmount()) : 1;
+		if (ItemAmount <= 0)
+		{
+			continue;
+		}
+
+		const int32 ConsumedAmount = FMath::Min(ItemAmount, RemainingAmountToRemove);
+		const int32 NewAmount = ItemAmount - ConsumedAmount;
+		RemainingAmountToRemove -= ConsumedAmount;
+
+		if (Item->IsItemStackable() && NewAmount > 0)
+		{
+			Item->SetItemAmount(NewAmount);
+		}
+		else
+		{
+			RemoveItem(Item);
+			Item->Destroy();
+		}
+
+		if (RemainingAmountToRemove <= 0)
+		{
+			RefreshInventoryGrid();
+			return true;
+		}
+	}
+
+	RefreshInventoryGrid();
+	return false;
+}
+
 bool UPlayerInventoryComponent::RoomForItemInInventory(AHuntedInventoryItemBase* ItemToAdd, int8 TopLeftIndex) const
 {
 	FIntPoint Dimensions = ItemToAdd->GetItemInventorySize();
