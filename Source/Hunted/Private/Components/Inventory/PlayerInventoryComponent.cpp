@@ -5,6 +5,7 @@
 
 #include "Engine/World.h"
 #include "GameFramework/Pawn.h"
+#include "HuntedTypes/HuntedStructTypes.h"
 #include "Items/Inventory/HuntedInventoryItemBase.h"
 #include "Widget/Inventory/PlayerInventoryGridWidget.h"
 
@@ -305,6 +306,242 @@ bool UPlayerInventoryComponent::TryRemoveItemAmountByTag(FGameplayTag ItemTag, i
 	return false;
 }
 
+bool UPlayerInventoryComponent::BeginCombineSelection(AHuntedInventoryItemBase* ItemToCombine)
+{
+	if (!ItemToCombine || !IsItemInInventory(ItemToCombine))
+	{
+		return false;
+	}
+
+	PendingCombineItem = ItemToCombine;
+	RefreshInventoryGrid();
+	return true;
+}
+
+void UPlayerInventoryComponent::CancelCombineSelection()
+{
+	if (!PendingCombineItem)
+	{
+		return;
+	}
+
+	PendingCombineItem = nullptr;
+	RefreshInventoryGrid();
+}
+
+bool UPlayerInventoryComponent::CanCombineItems(AHuntedInventoryItemBase* FirstItem, AHuntedInventoryItemBase* SecondItem) const
+{
+	FHuntedInventoryCombinationRecipe MatchingRecipe;
+	int32 FirstAmount = 0;
+	int32 SecondAmount = 0;
+	return TryMatchCombinationRecipe(FirstItem, SecondItem, MatchingRecipe, FirstAmount, SecondAmount);
+}
+
+bool UPlayerInventoryComponent::TryCombineItems(AHuntedInventoryItemBase* FirstItem, AHuntedInventoryItemBase* SecondItem)
+{
+	FHuntedInventoryCombinationRecipe MatchingRecipe;
+	int32 FirstAmount = 0;
+	int32 SecondAmount = 0;
+	if (!TryMatchCombinationRecipe(FirstItem, SecondItem, MatchingRecipe, FirstAmount, SecondAmount))
+	{
+		return false;
+	}
+
+	if (!MatchingRecipe.Result)
+	{
+		return false;
+	}
+
+	struct FConsumedItemSnapshot
+	{
+		AHuntedInventoryItemBase* Item = nullptr;
+		int32 OriginalAmount = 0;
+		bool bWasPresent = false;
+		FIntPoint OriginalTopLeftTile = FIntPoint::ZeroValue;
+	};
+
+	TArray<FConsumedItemSnapshot> Snapshots;
+	auto CaptureSnapshot = [this, &Snapshots](AHuntedInventoryItemBase* ItemToCapture)
+	{
+		if (!ItemToCapture)
+		{
+			return;
+		}
+
+		for (const FConsumedItemSnapshot& ExistingSnapshot : Snapshots)
+		{
+			if (ExistingSnapshot.Item == ItemToCapture)
+			{
+				return;
+			}
+		}
+
+		FConsumedItemSnapshot Snapshot;
+		Snapshot.Item = ItemToCapture;
+		Snapshot.OriginalAmount = ItemToCapture->GetItemAmount();
+		Snapshot.bWasPresent = FindItemTopLeftTile(ItemToCapture, Snapshot.OriginalTopLeftTile);
+		Snapshots.Add(Snapshot);
+	};
+
+	CaptureSnapshot(FirstItem);
+	CaptureSnapshot(SecondItem);
+
+	auto ConsumeSpecificItem = [this](AHuntedInventoryItemBase* ItemToConsume, int32 AmountToConsume) -> bool
+	{
+		if (!ItemToConsume || AmountToConsume <= 0)
+		{
+			return false;
+		}
+
+		if (ItemToConsume->IsItemStackable())
+		{
+			if (ItemToConsume->GetItemAmount() < AmountToConsume)
+			{
+				return false;
+			}
+
+			const int32 RemainingAmount = ItemToConsume->GetItemAmount() - AmountToConsume;
+			ItemToConsume->SetItemAmount(RemainingAmount);
+			if (RemainingAmount <= 0)
+			{
+				RemoveItem(ItemToConsume);
+			}
+
+			return true;
+		}
+
+		if (AmountToConsume > 1)
+		{
+			return false;
+		}
+
+		RemoveItem(ItemToConsume);
+		return true;
+	};
+
+	const bool bUsingSingleStackForBothRequirements = FirstItem == SecondItem;
+	if (bUsingSingleStackForBothRequirements)
+	{
+		if (!ConsumeSpecificItem(FirstItem, FirstAmount + SecondAmount))
+		{
+			return false;
+		}
+	}
+	else
+	{
+		if (!ConsumeSpecificItem(FirstItem, FirstAmount) || !ConsumeSpecificItem(SecondItem, SecondAmount))
+		{
+			for (const FConsumedItemSnapshot& Snapshot : Snapshots)
+			{
+				if (!Snapshot.Item)
+				{
+					continue;
+				}
+
+				Snapshot.Item->SetItemAmount(Snapshot.OriginalAmount);
+				if (Snapshot.bWasPresent)
+				{
+					RemoveItem(Snapshot.Item);
+					AddItemAtIndex(Snapshot.Item, TileToIndex(Snapshot.OriginalTopLeftTile));
+				}
+			}
+			RefreshInventoryGrid();
+			return false;
+		}
+	}
+
+	AHuntedInventoryItemBase* ResultItem = SpawnInventoryItemInstance(MatchingRecipe.Result);
+	if (!ResultItem)
+	{
+		for (const FConsumedItemSnapshot& Snapshot : Snapshots)
+		{
+			if (!Snapshot.Item)
+			{
+				continue;
+			}
+
+			Snapshot.Item->SetItemAmount(Snapshot.OriginalAmount);
+			if (Snapshot.bWasPresent)
+			{
+				RemoveItem(Snapshot.Item);
+				AddItemAtIndex(Snapshot.Item, TileToIndex(Snapshot.OriginalTopLeftTile));
+			}
+		}
+		RefreshInventoryGrid();
+		return false;
+	}
+
+	ResultItem->SetItemAmount(FMath::Max(1, MatchingRecipe.ResultAmount));
+
+	if (!TryAddItem(ResultItem))
+	{
+		ResultItem->Destroy();
+
+		for (const FConsumedItemSnapshot& Snapshot : Snapshots)
+		{
+			if (!Snapshot.Item)
+			{
+				continue;
+			}
+
+			Snapshot.Item->SetItemAmount(Snapshot.OriginalAmount);
+			if (Snapshot.bWasPresent)
+			{
+				RemoveItem(Snapshot.Item);
+				AddItemAtIndex(Snapshot.Item, TileToIndex(Snapshot.OriginalTopLeftTile));
+			}
+		}
+
+		RefreshInventoryGrid();
+		return false;
+	}
+
+	for (const FConsumedItemSnapshot& Snapshot : Snapshots)
+	{
+		if (!Snapshot.Item)
+		{
+			continue;
+		}
+
+		if (!IsItemInInventory(Snapshot.Item) && Snapshot.Item != ResultItem)
+		{
+			Snapshot.Item->Destroy();
+		}
+	}
+
+	PendingCombineItem = nullptr;
+	RefreshInventoryGrid();
+	return true;
+}
+
+bool UPlayerInventoryComponent::CanItemCombineWithPendingSelection(AHuntedInventoryItemBase* CandidateItem) const
+{
+	if (!PendingCombineItem || !CandidateItem)
+	{
+		return false;
+	}
+
+	return CanCombineItems(PendingCombineItem, CandidateItem);
+}
+
+bool UPlayerInventoryComponent::DiscardItem(AHuntedInventoryItemBase* ItemToDiscard)
+{
+	if (!ItemToDiscard || !IsItemInInventory(ItemToDiscard))
+	{
+		return false;
+	}
+
+	if (PendingCombineItem == ItemToDiscard)
+	{
+		PendingCombineItem = nullptr;
+	}
+
+	RemoveItem(ItemToDiscard);
+	ItemToDiscard->Destroy();
+	RefreshInventoryGrid();
+	return true;
+}
+
 bool UPlayerInventoryComponent::RoomForItemInInventory(AHuntedInventoryItemBase* ItemToAdd, int8 TopLeftIndex) const
 {
 	return RoomForItemInInventoryIgnoringItem(ItemToAdd, TopLeftIndex, nullptr);
@@ -475,12 +712,143 @@ AHuntedInventoryItemBase* UPlayerInventoryComponent::SpawnStackCloneFromItem(con
 	return NewStackItem;
 }
 
+AHuntedInventoryItemBase* UPlayerInventoryComponent::SpawnInventoryItemInstance(TSubclassOf<AHuntedInventoryItemBase> ItemClass) const
+{
+	if (!ItemClass || !GetWorld())
+	{
+		return nullptr;
+	}
+
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.Owner = GetOwner();
+	SpawnParams.Instigator = Cast<APawn>(GetOwner());
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+	AHuntedInventoryItemBase* SpawnedItem = GetWorld()->SpawnActor<AHuntedInventoryItemBase>(
+		ItemClass,
+		FVector(0.0f, 0.0f, -50000.0f),
+		FRotator::ZeroRotator,
+		SpawnParams
+	);
+
+	if (SpawnedItem)
+	{
+		SpawnedItem->SetActorHiddenInGame(true);
+		SpawnedItem->SetActorEnableCollision(false);
+	}
+
+	return SpawnedItem;
+}
+
 void UPlayerInventoryComponent::RefreshInventoryGrid() const
 {
 	if (InventoryGridWidgetReference)
 	{
 		InventoryGridWidgetReference->RefreshItemWidgets();
 	}
+}
+
+bool UPlayerInventoryComponent::IsItemInInventory(const AHuntedInventoryItemBase* Item) const
+{
+	if (!Item)
+	{
+		return false;
+	}
+
+	for (AHuntedInventoryItemBase* InventoryItem : Items)
+	{
+		if (InventoryItem == Item)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool UPlayerInventoryComponent::CanItemSatisfyAmount(const AHuntedInventoryItemBase* Item, int32 RequiredAmount) const
+{
+	if (!Item || RequiredAmount <= 0)
+	{
+		return false;
+	}
+
+	if (Item->IsItemStackable())
+	{
+		return Item->GetItemAmount() >= RequiredAmount;
+	}
+
+	return RequiredAmount == 1;
+}
+
+bool UPlayerInventoryComponent::TryMatchCombinationRecipe(const AHuntedInventoryItemBase* FirstItem,
+	const AHuntedInventoryItemBase* SecondItem, FHuntedInventoryCombinationRecipe& OutRecipe, int32& OutFirstAmount,
+	int32& OutSecondAmount) const
+{
+	OutFirstAmount = 0;
+	OutSecondAmount = 0;
+
+	if (!FirstItem || !SecondItem || !IsItemInInventory(FirstItem) || !IsItemInInventory(SecondItem))
+	{
+		return false;
+	}
+
+	for (const FHuntedInventoryCombinationRecipe& Recipe : CombinationRecipes)
+	{
+		if (!Recipe.Item1 || !Recipe.Item2 || !Recipe.Result)
+		{
+			continue;
+		}
+
+		const bool bDirectMatch = FirstItem->IsA(Recipe.Item1) && SecondItem->IsA(Recipe.Item2);
+		const bool bReverseMatch = FirstItem->IsA(Recipe.Item2) && SecondItem->IsA(Recipe.Item1);
+		if (!bDirectMatch && !bReverseMatch)
+		{
+			continue;
+		}
+
+		const int32 DirectFirstAmount = FMath::Max(1, Recipe.Amount1);
+		const int32 DirectSecondAmount = FMath::Max(1, Recipe.Amount2);
+		const int32 ReverseFirstAmount = FMath::Max(1, Recipe.Amount2);
+		const int32 ReverseSecondAmount = FMath::Max(1, Recipe.Amount1);
+
+		if (FirstItem == SecondItem)
+		{
+			if (!(Recipe.Item1 == Recipe.Item2))
+			{
+				continue;
+			}
+
+			const int32 TotalRequiredAmount = FMath::Max(1, Recipe.Amount1) + FMath::Max(1, Recipe.Amount2);
+			if (!FirstItem->IsA(Recipe.Item1) || !CanItemSatisfyAmount(FirstItem, TotalRequiredAmount))
+			{
+				continue;
+			}
+
+			OutRecipe = Recipe;
+			OutFirstAmount = FMath::Max(1, Recipe.Amount1);
+			OutSecondAmount = FMath::Max(1, Recipe.Amount2);
+			return true;
+		}
+
+		if (bDirectMatch && CanItemSatisfyAmount(FirstItem, DirectFirstAmount) && CanItemSatisfyAmount(SecondItem, DirectSecondAmount))
+		{
+			OutRecipe = Recipe;
+			OutFirstAmount = DirectFirstAmount;
+			OutSecondAmount = DirectSecondAmount;
+			return true;
+		}
+
+		if (bReverseMatch && CanItemSatisfyAmount(FirstItem, ReverseFirstAmount) && CanItemSatisfyAmount(SecondItem, ReverseSecondAmount))
+		{
+			OutRecipe = Recipe;
+			OutFirstAmount = ReverseFirstAmount;
+			OutSecondAmount = ReverseSecondAmount;
+			return true;
+		}
+	}
+
+	return false;
 }
 
 bool UPlayerInventoryComponent::CanPlaceOrStackItemAtIndex(AHuntedInventoryItemBase* ItemToAdd, int8 TopLeftIndex) const

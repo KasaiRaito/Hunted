@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Styling/SlateColor.h"
+#include "HuntedTypes/HuntedStructTypes.h"
 #include "Widget/UI/HuntedWidgetBase.h"
 #include "PlayerInventoryItemWidget.generated.h"
 
@@ -12,6 +13,9 @@ class UBorder;
 class USizeBox;
 class UCanvasPanel;
 class UTextBlock;
+class UButton;
+class UVerticalBox;
+class UHorizontalBox;
 class AHuntedPlayerCharacter;
 class AHuntedInventoryItemBase;
 class UDragDropOperation;
@@ -82,10 +86,61 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "UI|Stack Counter")
 	FSlateColor StackCounterColor = FSlateColor(FLinearColor::White);
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI|Combine Feedback")
+	FLinearColor CombineSelectedBackgroundColor = FLinearColor(0.45f, 0.1f, 0.65f, 0.95f);
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI|Combine Feedback")
+	FLinearColor CombineSelectedImageColor = FLinearColor(1.0f, 1.0f, 1.0f, 1.0f);
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI|Combine Feedback")
+	FLinearColor CombineCompatibleBackgroundColor = FLinearColor(0.35f, 0.2f, 0.5f, 0.55f);
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI|Combine Feedback")
+	FLinearColor CombineCompatibleImageColor = FLinearColor(1.0f, 1.0f, 1.0f, 0.95f);
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI|Combine Feedback")
+	FLinearColor CombineIncompatibleBackgroundColor = FLinearColor(0.18f, 0.18f, 0.18f, 0.65f);
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI|Combine Feedback")
+	FLinearColor CombineIncompatibleImageColor = FLinearColor(0.45f, 0.45f, 0.45f, 0.75f);
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI|Context Menu")
+	UTexture2D* InspectActionIcon = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI|Context Menu")
+	UTexture2D* CombineActionIcon = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI|Context Menu")
+	UTexture2D* DiscardActionIcon = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI|Context Menu", meta = (ClampMin = "8.0", UIMin = "8.0"))
+	float ContextMenuIconSize = 14.0f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI|Context Menu", meta = (ClampMin = "0.5", UIMin = "0.5"))
+	float ContextMenuFontSize = 10.0f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI|Context Menu")
+	FMargin ContextMenuPadding = FMargin(4.0f);
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI|Context Menu")
+	FMargin ContextMenuEntryPadding = FMargin(4.0f, 2.0f);
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI|Context Menu")
+	FVector2D ContextMenuOffset = FVector2D(8.0f, 0.0f);
 	
 	bool bIsDragging = false;
 	bool bHasDragStartTile = false;
 	FIntPoint DragStartTopLeftTile = FIntPoint::ZeroValue;
+
+	UPROPERTY(Transient)
+	UBorder* ContextMenuBorder = nullptr;
+
+	UPROPERTY(Transient)
+	UVerticalBox* ContextMenuBox = nullptr;
+
+	UPROPERTY(Transient)
+	TArray<FHuntedInventoryContextActionEntry> ContextMenuActions;
 	
 protected:
 	virtual void NativeConstruct() override;
@@ -105,6 +160,22 @@ protected:
 	void ApplyBackgroundAndImageColors(const FLinearColor& InBackgroundColor, const FLinearColor& InImageColor);
 	void EnsureStackCounterWidget();
 	void UpdateStackCounterVisual();
+	void EnsureContextMenuWidget();
+	void RebuildContextMenuEntries();
+	void ToggleContextMenu();
+	void HideContextMenu();
+	void RefreshCombineVisualState();
+	void ApplyCombineVisualState(bool bIsSelectedSource, bool bCanCombine);
+	FHuntedInventoryContextActionEntry MakeContextActionEntry(EInventoryContextAction Action, const FText& Label, UTexture2D* Icon) const;
+
+	UFUNCTION()
+	void HandleInspectClicked();
+
+	UFUNCTION()
+	void HandleCombineClicked();
+
+	UFUNCTION()
+	void HandleDiscardClicked();
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
@@ -112,4 +183,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	void SetDragVisualState(EInventoryDragVisualState NewState);
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Inventory")
+	void BP_OnInspectRequested(AHuntedInventoryItemBase* InspectedItem);
 };

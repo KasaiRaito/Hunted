@@ -11,6 +11,7 @@
 
 class UPlayerInventoryGridWidget;
 class AHuntedInventoryItemBase;
+struct FHuntedInventoryCombinationRecipe;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class HUNTED_API UPlayerInventoryComponent : public UPawnExtensionComponentBase
@@ -34,8 +35,14 @@ protected:
 	
 	UPROPERTY(EditAnywhere, Category= "InventoryComponent Info | Item Counters")
 	int16 BaseBulletsCount;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InventoryComponent | Combination")
+	TArray<FHuntedInventoryCombinationRecipe> CombinationRecipes;
 	
 	bool AddedItem = false;
+
+	UPROPERTY(Transient)
+	AHuntedInventoryItemBase* PendingCombineItem = nullptr;
 	
 	UPlayerInventoryGridWidget* InventoryGridWidgetReference;
 	
@@ -45,7 +52,12 @@ protected:
 	bool CanItemsStackTogether(const AHuntedInventoryItemBase* SourceItem, const AHuntedInventoryItemBase* TargetItem) const;
 	bool CanStackItemAtIndex(const AHuntedInventoryItemBase* SourceItem, int8 TopLeftIndex) const;
 	AHuntedInventoryItemBase* SpawnStackCloneFromItem(const AHuntedInventoryItemBase* SourceItem) const;
+	AHuntedInventoryItemBase* SpawnInventoryItemInstance(TSubclassOf<AHuntedInventoryItemBase> ItemClass) const;
 	void RefreshInventoryGrid() const;
+	bool IsItemInInventory(const AHuntedInventoryItemBase* Item) const;
+	bool CanItemSatisfyAmount(const AHuntedInventoryItemBase* Item, int32 RequiredAmount) const;
+	bool TryMatchCombinationRecipe(const AHuntedInventoryItemBase* FirstItem, const AHuntedInventoryItemBase* SecondItem,
+		FHuntedInventoryCombinationRecipe& OutRecipe, int32& OutFirstAmount, int32& OutSecondAmount) const;
 	
 public:
 	UFUNCTION()	
@@ -113,6 +125,30 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	bool TryRemoveItemAmountByTag(FGameplayTag ItemTag, int32 AmountToRemove);
+
+	UFUNCTION(BlueprintCallable, Category = "Inventory|Combination")
+	bool BeginCombineSelection(AHuntedInventoryItemBase* ItemToCombine);
+
+	UFUNCTION(BlueprintCallable, Category = "Inventory|Combination")
+	void CancelCombineSelection();
+
+	UFUNCTION(BlueprintPure, Category = "Inventory|Combination")
+	bool IsCombineModeActive() const { return PendingCombineItem != nullptr; }
+
+	UFUNCTION(BlueprintPure, Category = "Inventory|Combination")
+	AHuntedInventoryItemBase* GetPendingCombineItem() const { return PendingCombineItem; }
+
+	UFUNCTION(BlueprintCallable, Category = "Inventory|Combination")
+	bool CanCombineItems(AHuntedInventoryItemBase* FirstItem, AHuntedInventoryItemBase* SecondItem) const;
+
+	UFUNCTION(BlueprintCallable, Category = "Inventory|Combination")
+	bool TryCombineItems(AHuntedInventoryItemBase* FirstItem, AHuntedInventoryItemBase* SecondItem);
+
+	UFUNCTION(BlueprintCallable, Category = "Inventory|Combination")
+	bool CanItemCombineWithPendingSelection(AHuntedInventoryItemBase* CandidateItem) const;
+
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	bool DiscardItem(AHuntedInventoryItemBase* ItemToDiscard);
 	
 	UFUNCTION()
 	bool RoomForItemInInventory(AHuntedInventoryItemBase* ItemToAdd, int8 TopLeftIndex) const;

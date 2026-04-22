@@ -14,8 +14,15 @@
 #include "Components/Image.h"
 #include "Components/Border.h"
 #include "Components/TextBlock.h"
+#include "Components/Button.h"
+#include "Components/VerticalBox.h"
+#include "Components/VerticalBoxSlot.h"
+#include "Components/HorizontalBox.h"
+#include "Components/HorizontalBoxSlot.h"
+#include "Components/CanvasPanelSlot.h"
 #include "Blueprint/DragDropOperation.h"
 #include "Widget/Inventory/PlayerInventoryGridWidget.h"
+#include "Engine/Texture2D.h"
 
 #include "HuntedDebugHelper.h"
 
@@ -66,9 +73,10 @@ void UPlayerInventoryItemWidget::AddItemWidget(AHuntedInventoryItemBase* ItemToA
 	}
 
 	EnsureStackCounterWidget();
+	EnsureContextMenuWidget();
+	RebuildContextMenuEntries();
 	UpdateStackCounterVisual();
-	
-	SetDragVisualState(EInventoryDragVisualState::Idle);
+	RefreshCombineVisualState();
 }
 
 void UPlayerInventoryItemWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
@@ -79,7 +87,14 @@ void UPlayerInventoryItemWidget::NativeOnMouseEnter(const FGeometry& InGeometry,
 	{
 		return;
 	}
-	
+
+	if (CharacterReference && CharacterReference->GetPlayerInventoryComponent()
+		&& CharacterReference->GetPlayerInventoryComponent()->IsCombineModeActive())
+	{
+		RefreshCombineVisualState();
+		return;
+	}
+
 	ApplyBackgroundAndImageColors(HoverBackgroundColor, HoverImageColor);
 }
 
@@ -91,7 +106,14 @@ void UPlayerInventoryItemWidget::NativeOnMouseLeave(const FPointerEvent& InMouse
 	{
 		return;
 	}
-	
+
+	if (CharacterReference && CharacterReference->GetPlayerInventoryComponent()
+		&& CharacterReference->GetPlayerInventoryComponent()->IsCombineModeActive())
+	{
+		RefreshCombineVisualState();
+		return;
+	}
+
 	ApplyBackgroundAndImageColors(IdleBackgroundColor, IdleImageColor);
 }
 
@@ -100,6 +122,8 @@ void UPlayerInventoryItemWidget::NativeOnDragDetected(const FGeometry& InGeometr
 {
 	Super::NativeOnDragDetected(InGeometry, InMouseEvent, OutOperation);
 	//Debug::Print("Plater Inventory Widget: Drag Detected", FColor::Red);
+
+	HideContextMenu();
 	
 	bIsDragging = true;
 	SetDragVisualState(EInventoryDragVisualState::InvalidPlacement);
@@ -153,6 +177,32 @@ void UPlayerInventoryItemWidget::NativeOnDragDetected(const FGeometry& InGeometr
 FReply UPlayerInventoryItemWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry,
 	const FPointerEvent& InMouseEvent)
 {
+	if (!CharacterReference || !CharacterReference->GetPlayerInventoryComponent() || !Item)
+	{
+		return FReply::Unhandled();
+	}
+
+	UPlayerInventoryComponent* InventoryComponent = CharacterReference->GetPlayerInventoryComponent();
+	if (InMouseEvent.GetEffectingButton() == EKeys::RightMouseButton)
+	{
+		ToggleContextMenu();
+		return FReply::Handled();
+	}
+
+	if (InMouseEvent.GetEffectingButton() == EKeys::LeftMouseButton && InventoryComponent->IsCombineModeActive())
+	{
+		HideContextMenu();
+
+		if (InventoryComponent->GetPendingCombineItem() == Item)
+		{
+			InventoryComponent->CancelCombineSelection();
+			return FReply::Handled();
+		}
+
+		InventoryComponent->TryCombineItems(InventoryComponent->GetPendingCombineItem(), Item);
+		return FReply::Handled();
+	}
+
 	return FReply::Handled().DetectDrag(TakeWidget(), EKeys::LeftMouseButton);
 }
 
@@ -184,6 +234,7 @@ void UPlayerInventoryItemWidget::HandleDragOperationFinished(UDragDropOperation*
 	SetDragVisualState(EInventoryDragVisualState::Idle);
 	bHasDragStartTile = false;
 	DragStartTopLeftTile = FIntPoint::ZeroValue;
+	RefreshCombineVisualState();
 }
 
 void UPlayerInventoryItemWidget::ApplyBackgroundAndImageColors(const FLinearColor& InBackgroundColor,
@@ -252,6 +303,216 @@ void UPlayerInventoryItemWidget::UpdateStackCounterVisual()
 	StackCounterText->SetText(FText::AsNumber(StackAmount));
 	StackCounterText->SetColorAndOpacity(StackCounterColor);
 	StackCounterText->SetVisibility(ESlateVisibility::HitTestInvisible);
+}
+
+void UPlayerInventoryItemWidget::EnsureContextMenuWidget()
+{
+	if (ContextMenuBorder || !CanvasPanel || !WidgetTree)
+	{
+		return;
+	}
+
+	ContextMenuBorder = WidgetTree->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("InventoryContextMenuBorder"));
+	ContextMenuBox = WidgetTree->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass(), TEXT("InventoryContextMenuBox"));
+	if (!ContextMenuBorder || !ContextMenuBox)
+	{
+		return;
+	}
+
+	ContextMenuBorder->SetBrushColor(FLinearColor(0.05f, 0.05f, 0.05f, 0.95f));
+	ContextMenuBorder->SetPadding(ContextMenuPadding);
+	ContextMenuBorder->SetVisibility(ESlateVisibility::Collapsed);
+	ContextMenuBorder->SetContent(ContextMenuBox);
+
+	CanvasPanel->AddChild(ContextMenuBorder);
+	if (UCanvasPanelSlot* MenuSlot = Cast<UCanvasPanelSlot>(ContextMenuBorder->Slot))
+	{
+		MenuSlot->SetAutoSize(true);
+		MenuSlot->SetAnchors(FAnchors(1.0f, 0.5f));
+		MenuSlot->SetAlignment(FVector2D(0.0f, 0.5f));
+		MenuSlot->SetPosition(ContextMenuOffset);
+		MenuSlot->SetZOrder(200);
+	}
+}
+
+void UPlayerInventoryItemWidget::RebuildContextMenuEntries()
+{
+	if (!ContextMenuBox || !WidgetTree)
+	{
+		return;
+	}
+
+	ContextMenuActions.Reset();
+	ContextMenuActions.Add(MakeContextActionEntry(EInventoryContextAction::Inspect, FText::FromString(TEXT("Inspect")), InspectActionIcon));
+	ContextMenuActions.Add(MakeContextActionEntry(EInventoryContextAction::Combine, FText::FromString(TEXT("Combine")), CombineActionIcon));
+	ContextMenuActions.Add(MakeContextActionEntry(EInventoryContextAction::Discard, FText::FromString(TEXT("Discard")), DiscardActionIcon));
+
+	ContextMenuBox->ClearChildren();
+
+	for (const FHuntedInventoryContextActionEntry& ActionEntry : ContextMenuActions)
+	{
+		UButton* ActionButton = WidgetTree->ConstructWidget<UButton>(UButton::StaticClass());
+		UHorizontalBox* Row = WidgetTree->ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass());
+		if (!ActionButton || !Row)
+		{
+			continue;
+		}
+
+		ActionButton->SetContent(Row);
+
+		UImage* IconImage = WidgetTree->ConstructWidget<UImage>(UImage::StaticClass());
+		if (IconImage)
+		{
+			if (ActionEntry.Icon)
+			{
+				IconImage->SetBrushFromTexture(ActionEntry.Icon);
+				IconImage->SetDesiredSizeOverride(FVector2D(ContextMenuIconSize, ContextMenuIconSize));
+				IconImage->SetVisibility(ESlateVisibility::HitTestInvisible);
+			}
+			else
+			{
+				IconImage->SetVisibility(ESlateVisibility::Collapsed);
+			}
+
+			Row->AddChildToHorizontalBox(IconImage);
+			if (UHorizontalBoxSlot* IconSlot = Cast<UHorizontalBoxSlot>(IconImage->Slot))
+			{
+				IconSlot->SetPadding(FMargin(0.0f, 0.0f, 5.0f, 0.0f));
+				IconSlot->SetVerticalAlignment(VAlign_Center);
+				IconSlot->SetSize(FSlateChildSize(ESlateSizeRule::Automatic));
+			}
+		}
+
+		UTextBlock* LabelText = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass());
+		if (LabelText)
+		{
+			LabelText->SetText(ActionEntry.Label);
+			LabelText->SetColorAndOpacity(FSlateColor(FLinearColor::White));
+			LabelText->SetFont(FSlateFontInfo(LabelText->GetFont().FontObject, ContextMenuFontSize, LabelText->GetFont().TypefaceFontName));
+			LabelText->SetVisibility(ESlateVisibility::HitTestInvisible);
+			Row->AddChildToHorizontalBox(LabelText);
+		}
+
+		switch (ActionEntry.Action)
+		{
+		case EInventoryContextAction::Inspect:
+			ActionButton->OnClicked.AddDynamic(this, &UPlayerInventoryItemWidget::HandleInspectClicked);
+			break;
+		case EInventoryContextAction::Combine:
+			ActionButton->OnClicked.AddDynamic(this, &UPlayerInventoryItemWidget::HandleCombineClicked);
+			break;
+		case EInventoryContextAction::Discard:
+			ActionButton->OnClicked.AddDynamic(this, &UPlayerInventoryItemWidget::HandleDiscardClicked);
+			break;
+		default:
+			break;
+		}
+
+		ContextMenuBox->AddChildToVerticalBox(ActionButton);
+		if (UVerticalBoxSlot* ButtonSlot = Cast<UVerticalBoxSlot>(ActionButton->Slot))
+		{
+			ButtonSlot->SetPadding(ContextMenuEntryPadding);
+		}
+	}
+}
+
+void UPlayerInventoryItemWidget::ToggleContextMenu()
+{
+	EnsureContextMenuWidget();
+	RebuildContextMenuEntries();
+
+	if (!ContextMenuBorder)
+	{
+		return;
+	}
+
+	const bool bIsVisible = ContextMenuBorder->GetVisibility() != ESlateVisibility::Collapsed;
+	ContextMenuBorder->SetVisibility(bIsVisible ? ESlateVisibility::Collapsed : ESlateVisibility::SelfHitTestInvisible);
+}
+
+void UPlayerInventoryItemWidget::HideContextMenu()
+{
+	if (ContextMenuBorder)
+	{
+		ContextMenuBorder->SetVisibility(ESlateVisibility::Collapsed);
+	}
+}
+
+void UPlayerInventoryItemWidget::RefreshCombineVisualState()
+{
+	if (!CharacterReference || !CharacterReference->GetPlayerInventoryComponent() || !Item)
+	{
+		SetDragVisualState(EInventoryDragVisualState::Idle);
+		return;
+	}
+
+	UPlayerInventoryComponent* InventoryComponent = CharacterReference->GetPlayerInventoryComponent();
+	if (!InventoryComponent->IsCombineModeActive())
+	{
+		ApplyBackgroundAndImageColors(IdleBackgroundColor, IdleImageColor);
+		return;
+	}
+
+	const bool bIsSelectedSource = InventoryComponent->GetPendingCombineItem() == Item;
+	const bool bCanCombine = InventoryComponent->CanItemCombineWithPendingSelection(Item);
+	ApplyCombineVisualState(bIsSelectedSource, bCanCombine);
+}
+
+void UPlayerInventoryItemWidget::ApplyCombineVisualState(bool bIsSelectedSource, bool bCanCombine)
+{
+	if (bIsSelectedSource)
+	{
+		ApplyBackgroundAndImageColors(CombineSelectedBackgroundColor, CombineSelectedImageColor);
+		return;
+	}
+
+	if (bCanCombine)
+	{
+		ApplyBackgroundAndImageColors(CombineCompatibleBackgroundColor, CombineCompatibleImageColor);
+		return;
+	}
+
+	ApplyBackgroundAndImageColors(CombineIncompatibleBackgroundColor, CombineIncompatibleImageColor);
+}
+
+FHuntedInventoryContextActionEntry UPlayerInventoryItemWidget::MakeContextActionEntry(EInventoryContextAction Action,
+	const FText& Label, UTexture2D* Icon) const
+{
+	FHuntedInventoryContextActionEntry Entry;
+	Entry.Action = Action;
+	Entry.Label = Label;
+	Entry.Icon = Icon;
+	return Entry;
+}
+
+void UPlayerInventoryItemWidget::HandleInspectClicked()
+{
+	HideContextMenu();
+	BP_OnInspectRequested(Item);
+}
+
+void UPlayerInventoryItemWidget::HandleCombineClicked()
+{
+	HideContextMenu();
+
+	if (!CharacterReference || !CharacterReference->GetPlayerInventoryComponent() || !Item)
+	{
+		return;
+	}
+
+	CharacterReference->GetPlayerInventoryComponent()->BeginCombineSelection(Item);
+}
+
+void UPlayerInventoryItemWidget::HandleDiscardClicked()
+{
+	HideContextMenu();
+
+	if (!CharacterReference || !CharacterReference->GetPlayerInventoryComponent() || !Item)
+	{
+		return;
+	}
+
+	CharacterReference->GetPlayerInventoryComponent()->DiscardItem(Item);
 }
 
 void UPlayerInventoryItemWidget::InitializeInventoryItem(AHuntedInventoryItemBase* ItemToAdd)
