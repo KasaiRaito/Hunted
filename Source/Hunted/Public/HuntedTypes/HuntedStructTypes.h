@@ -11,6 +11,8 @@
 class UHuntedPlayerLinkedAnimLayer;
 class UHuntedGameplayAbility;
 class UInputMappingContext;
+class AHuntedInventoryItemBase;
+class UTexture2D;
 /**
  * 
  */
@@ -68,6 +70,20 @@ struct FLines
 	
 };
 
+USTRUCT()
+struct FMousePositionInTile
+{
+	GENERATED_USTRUCT_BODY();
+	
+	FMousePositionInTile()
+	{
+		
+	};
+	
+	bool Vertical;
+	bool Horizontal;
+};
+
 USTRUCT(BlueprintType)
 struct  FHuntedPlayerItemData
 {
@@ -80,7 +96,13 @@ struct  FHuntedPlayerItemData
 	bool ItemUsable;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	bool IsStackable;
+	bool IsStackable = false;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	bool IsDroppable = false;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = "1", UIMin = "1"))
+	int32 MaxStackPerCell = 1;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	FString ItemName;
@@ -98,4 +120,51 @@ struct  FHuntedPlayerItemData
 	int ItemAmount;
 	
 	void SetItemAmount();
+};
+
+UENUM(BlueprintType)
+enum class EInventoryContextAction : uint8
+{
+	Inspect,
+	Combine,
+	Discard
+};
+
+USTRUCT(BlueprintType)
+struct FHuntedInventoryCombinationRecipe
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
+	TSubclassOf<AHuntedInventoryItemBase> Item1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory", meta = (ClampMin = "1", UIMin = "1"))
+	int32 Amount1 = 1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
+	TSubclassOf<AHuntedInventoryItemBase> Item2;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory", meta = (ClampMin = "1", UIMin = "1"))
+	int32 Amount2 = 1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
+	TSubclassOf<AHuntedInventoryItemBase> Result;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory", meta = (ClampMin = "1", UIMin = "1"))
+	int32 ResultAmount = 1;
+};
+
+USTRUCT(BlueprintType)
+struct FHuntedInventoryContextActionEntry
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
+	EInventoryContextAction Action = EInventoryContextAction::Inspect;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
+	FText Label;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
+	UTexture2D* Icon = nullptr;
 };

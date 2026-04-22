@@ -38,5 +38,5 @@ protected:
 	
 	virtual bool NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation) override;
 	
-	FHitResult GetLocationBelow(FVector Start);
+	FHitResult GetLocationBelow(FVector Start) const;
 };

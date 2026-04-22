@@ -14,8 +14,6 @@ UCLASS()
 class HUNTED_API AHuntedInventoryItemBase : public AActor
 {
 	GENERATED_BODY()
-public:
-	
 	
 private:
 	UPROPERTY(EditAnywhere, Category = "Item-World")
@@ -71,7 +69,28 @@ public:
 	FORCEINLINE void SetIcon(UMaterialInterface* NewIcon) { Icon = NewIcon; }
 	
 	UFUNCTION(BlueprintCallable, Category = "Item-Inventory")
-	FORCEINLINE FHuntedPlayerItemData GetItemData() { return ItemData; }
+	FORCEINLINE FHuntedPlayerItemData GetItemData() const { return ItemData; }
+
+	UFUNCTION(BlueprintCallable, Category = "Item-Inventory")
+	FORCEINLINE void SetItemData(const FHuntedPlayerItemData& NewItemData) { ItemData = NewItemData; }
+
+	UFUNCTION(BlueprintCallable, Category = "Item-Inventory")
+	FORCEINLINE int32 GetItemAmount() const { return ItemData.ItemAmount; }
+
+	UFUNCTION(BlueprintCallable, Category = "Item-Inventory")
+	FORCEINLINE void SetItemAmount(int32 NewAmount) { ItemData.ItemAmount = FMath::Max(0, NewAmount); }
+
+	UFUNCTION(BlueprintCallable, Category = "Item-Inventory")
+	FORCEINLINE void AddItemAmount(int32 DeltaAmount) { SetItemAmount(ItemData.ItemAmount + DeltaAmount); }
+
+	UFUNCTION(BlueprintCallable, Category = "Item-Inventory")
+	FORCEINLINE bool IsItemStackable() const { return ItemData.IsStackable; }
+	
+	UFUNCTION(BlueprintCallable, Category = "Item-Inventory")
+	FORCEINLINE bool IsItemDroppable() const { return ItemData.IsDroppable; }
+	
+	UFUNCTION(BlueprintCallable, Category = "Item-Inventory")
+	FORCEINLINE int32 GetMaxStackPerCell() const { return ItemData.MaxStackPerCell; }
 	
 protected:
 	virtual void BeginPlay() override;
