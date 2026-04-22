@@ -5,8 +5,10 @@
 
 #include "Blueprint/DragDropOperation.h"
 #include "Characters/HuntedPlayerCharacter.h"
+#include "Components/Inventory/PlayerInventoryComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Items/Inventory/HuntedInventoryItemBase.h"
+#include "Widget/Inventory/PlayerInventoryGridWidget.h"
 
 void UPlayerInventoryWidget::NativeConstruct()
 {
@@ -34,9 +36,23 @@ bool UPlayerInventoryWidget::NativeOnDrop(const FGeometry& InGeometry, const FDr
 		return false;
 	}
 
-	// Remove state: item is discarded from the inventory without spawning in the world.
-	if (!PayloadItem->droppable)
+	UPlayerInventoryComponent* InventoryComponent = CharacterReference
+		? CharacterReference->GetPlayerInventoryComponent()
+		: nullptr;
+	if (!InventoryComponent)
 	{
+		return false;
+	}
+
+	// Remove state: item is discarded from the inventory without spawning in the world.
+	if (!PayloadItem->IsItemDroppable())
+	{
+		InventoryComponent->RemoveItem(PayloadItem);
+		CharacterReference->ClearCachedItem();
+		if (UPlayerInventoryGridWidget* InventoryGrid = InventoryComponent->GetPlayerInventoryGridWidget())
+		{
+			InventoryGrid->RefreshItemWidgets();
+		}
 		InOperation->Tag = TEXT("RemovedFromInventory");
 		return true;
 	}
@@ -60,6 +76,19 @@ bool UPlayerInventoryWidget::NativeOnDrop(const FGeometry& InGeometry, const FDr
 		return false;
 	}
 
+	SpawnedItem->SetItemInventorySize(PayloadItem->GetItemInventorySize());
+	SpawnedItem->SetIcon(PayloadItem->GetIcon());
+	SpawnedItem->SetItemData(PayloadItem->GetItemData());
+	SpawnedItem->SetActorHiddenInGame(false);
+	SpawnedItem->SetActorEnableCollision(true);
+
+	InventoryComponent->RemoveItem(PayloadItem);
+	CharacterReference->ClearCachedItem();
+	if (UPlayerInventoryGridWidget* InventoryGrid = InventoryComponent->GetPlayerInventoryGridWidget())
+	{
+		InventoryGrid->RefreshItemWidgets();
+	}
+	
 	InOperation->Tag = TEXT("DroppedToWorld");
 	
 	return true;

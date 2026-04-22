@@ -115,7 +115,7 @@ void UPlayerInventoryItemWidget::NativeOnDragDetected(const FGeometry& InGeometr
 		DragOperation->OnDragCancelled.AddDynamic(this, &UPlayerInventoryItemWidget::HandleDragOperationFinished);
 	}
 	
-	//Remove widget from inventory & Preview
+	// Remove the widget from the grid while keeping the inventory data intact until drop resolution.
 	if (UPlayerInventoryComponent* InventoryComponent = CharacterReference->GetPlayerInventoryComponent())
 	{
 		bHasDragStartTile = InventoryComponent->FindItemTopLeftTile(Item, DragStartTopLeftTile);
@@ -143,8 +143,6 @@ void UPlayerInventoryItemWidget::NativeOnDragDetected(const FGeometry& InGeometr
 				InventoryGrid->ClearDraggedSourceTiles();
 			}
 		}
-		
-		InventoryComponent->RemoveItem(Item);
 	}
 	
 	OutOperation = DragOperation;
@@ -175,16 +173,6 @@ void UPlayerInventoryItemWidget::HandleDragOperationFinished(UDragDropOperation*
 
 	if (UPlayerInventoryComponent* InventoryComponent = CharacterReference->GetPlayerInventoryComponent())
 	{
-		const bool bDroppedToWorld = Operation->Tag.Equals(TEXT("DroppedToWorld"));
-		const bool bRemovedFromInventory = Operation->Tag.Equals(TEXT("RemovedFromInventory"));
-
-		FIntPoint ExistingTile;
-		const bool bItemAlreadyInInventory = Item && InventoryComponent->FindItemTopLeftTile(Item, ExistingTile);
-		if (!bItemAlreadyInInventory && bHasDragStartTile && !bDroppedToWorld && !bRemovedFromInventory)
-		{
-			InventoryComponent->AddItemAtIndex(Item, InventoryComponent->TileToIndex(DragStartTopLeftTile));
-		}
-
 		if (UPlayerInventoryGridWidget* InventoryGrid = InventoryComponent->GetPlayerInventoryGridWidget())
 		{
 			InventoryGrid->ClearDraggedSourceTiles();

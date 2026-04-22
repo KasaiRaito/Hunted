@@ -202,31 +202,19 @@ bool UPlayerInventoryGridWidget::NativeOnDrop(const FGeometry& InGeometry, const
 
 	const int8 TargetIndex = InventoryComponent->TileToIndex(DraggedItemTopLeftTile);
 
-	bool bSourceConsumedByStacking = false;
-	if (InventoryComponent->TryStackItemAtIndex(DropedItem, TargetIndex, bSourceConsumedByStacking))
+	bool bSourceConsumed = false;
+	if (InventoryComponent->TryMoveItemToIndex(DropedItem, TargetIndex, bSourceConsumed))
 	{
-		SetDraggedItemVisualState(InOperation, EInventoryDragVisualState::ValidPlacement);
-		ClearDraggedSourceTiles();
-		ClearDraggedTargetTiles();
-
-		if (bSourceConsumedByStacking)
-		{
-			InOperation->Tag = TEXT("DroppedToGrid");
-			return true;
-		}
-
-		// Partial stack: the drag finish callback will place the residue back in its source cell.
-		return true;
-	}
-	
-	if (IsRoomAvailableFroPayload(DropedItem))
-	{
-		InventoryComponent->AddItemAtIndex(DropedItem, TargetIndex);
 		InOperation->Tag = TEXT("DroppedToGrid");
 		SetDraggedItemVisualState(InOperation, EInventoryDragVisualState::ValidPlacement);
 		ClearDraggedSourceTiles();
 		ClearDraggedTargetTiles();
-		
+
+		if (bSourceConsumed)
+		{
+			// Full stack merges consume the dragged source item entirely.
+		}
+
 		return true;
 	}
 
@@ -307,7 +295,7 @@ bool UPlayerInventoryGridWidget::IsRoomAvailableFroPayload(AHuntedInventoryItemB
 		return false;
 	}
 	
-	return InventoryComponent->CanPlaceOrStackItemAtIndex(Item, InventoryComponent->TileToIndex(DraggedItemTopLeftTile));
+	return InventoryComponent->CanMoveItemToIndex(Item, InventoryComponent->TileToIndex(DraggedItemTopLeftTile));
 }
 
 FMousePositionInTile UPlayerInventoryGridWidget::MousePositionInTileResult(FVector2D MousePosition)

@@ -95,6 +95,9 @@ struct  FHuntedPlayerItemData
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	bool IsStackable = false;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	bool IsDroppable = false;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = "1", UIMin = "1"))
 	int32 MaxStackPerCell = 1;

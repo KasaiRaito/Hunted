@@ -30,18 +30,18 @@ protected:
 	UPROPERTY(EditAnywhere, Category= "InventoryComponent Info | Inventory Size")
 	float TileSize;
 	
-	UPROPERTY(EditDefaultsOnly, Category= "InventoryComponent Info | Inventory Size")
 	TArray<AHuntedInventoryItemBase*> Items;
 	
 	UPROPERTY(EditAnywhere, Category= "InventoryComponent Info | Item Counters")
-	int16 BaseBulletsCount; 
+	int16 BaseBulletsCount;
 	
 	bool AddedItem = false;
 	
-	UPROPERTY()
 	UPlayerInventoryGridWidget* InventoryGridWidgetReference;
 	
 	bool IsTileValid(FIntPoint Tile) const;
+	bool RoomForItemInInventoryIgnoringItem(const AHuntedInventoryItemBase* ItemToAdd, int8 TopLeftIndex,
+		const AHuntedInventoryItemBase* IgnoredItem) const;
 	bool CanItemsStackTogether(const AHuntedInventoryItemBase* SourceItem, const AHuntedInventoryItemBase* TargetItem) const;
 	bool CanStackItemAtIndex(const AHuntedInventoryItemBase* SourceItem, int8 TopLeftIndex) const;
 	AHuntedInventoryItemBase* SpawnStackCloneFromItem(const AHuntedInventoryItemBase* SourceItem) const;
@@ -105,6 +105,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	int32 GetTotalItemAmountByTag(FGameplayTag ItemTag) const;
 
+	UFUNCTION(BlueprintCallable, Category = "Inventory", meta = (DisplayName = "Get Available Item Amount By Tag"))
+	int32 GetAvailableItemAmountByTag(FGameplayTag ItemTag) const;
+
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	bool HasItemAmountByTag(FGameplayTag ItemTag, int32 RequiredAmount) const;
 
@@ -136,7 +139,13 @@ public:
 	bool CanPlaceOrStackItemAtIndex(AHuntedInventoryItemBase* ItemToAdd, int8 TopLeftIndex) const;
 
 	UFUNCTION()
+	bool CanMoveItemToIndex(AHuntedInventoryItemBase* ItemToMove, int8 TargetIndex) const;
+
+	UFUNCTION()
 	bool TryStackItemAtIndex(AHuntedInventoryItemBase* ItemToStack, int8 TopLeftIndex, bool& bOutSourceConsumed);
+
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	bool TryMoveItemToIndex(AHuntedInventoryItemBase* ItemToMove, int TargetIndex, bool& bOutSourceConsumed);
 	
 	UFUNCTION(BlueprintCallable)
 	void SetInventoryGridWidget(UPlayerInventoryGridWidget* GridWidget) { InventoryGridWidgetReference = GridWidget; };

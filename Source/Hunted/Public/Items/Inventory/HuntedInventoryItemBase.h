@@ -14,10 +14,6 @@ UCLASS()
 class HUNTED_API AHuntedInventoryItemBase : public AActor
 {
 	GENERATED_BODY()
-public:
-	UPROPERTY(EditAnywhere, Category = "Item-Properties")
-	bool droppable = false;
-	
 	
 private:
 	UPROPERTY(EditAnywhere, Category = "Item-World")
@@ -89,7 +85,10 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Item-Inventory")
 	FORCEINLINE bool IsItemStackable() const { return ItemData.IsStackable; }
-
+	
+	UFUNCTION(BlueprintCallable, Category = "Item-Inventory")
+	FORCEINLINE bool IsItemDroppable() const { return ItemData.IsDroppable; }
+	
 	UFUNCTION(BlueprintCallable, Category = "Item-Inventory")
 	FORCEINLINE int32 GetMaxStackPerCell() const { return ItemData.MaxStackPerCell; }
 	

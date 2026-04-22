@@ -26,6 +26,44 @@ bool UPlayerInventoryComponent::IsTileValid(FIntPoint Tile) const
 	return false;
 }
 
+bool UPlayerInventoryComponent::RoomForItemInInventoryIgnoringItem(const AHuntedInventoryItemBase* ItemToAdd,
+	int8 TopLeftIndex, const AHuntedInventoryItemBase* IgnoredItem) const
+{
+	if (!ItemToAdd)
+	{
+		return false;
+	}
+
+	const FIntPoint Dimensions = ItemToAdd->GetItemInventorySize();
+	const FIntPoint Tile = IndexToTile(TopLeftIndex);
+
+	for (int16 i = Tile.X; i <= (Tile.X + Dimensions.X - 1); i++)
+	{
+		for (int16 j = Tile.Y; j <= (Tile.Y + Dimensions.Y - 1); j++)
+		{
+			const FIntPoint CurrentTile(i, j);
+			if (!IsTileValid(CurrentTile))
+			{
+				return false;
+			}
+
+			const int8 Index = TileToIndex(CurrentTile);
+			if (!GetResultAtIndex(Index))
+			{
+				return false;
+			}
+
+			AHuntedInventoryItemBase* OccupyingItem = Items[Index];
+			if (OccupyingItem && OccupyingItem != IgnoredItem)
+			{
+				return false;
+			}
+		}
+	}
+
+	return true;
+}
+
 void UPlayerInventoryComponent::BeginPlay()
 {
 	Super::BeginPlay();
@@ -191,6 +229,11 @@ int32 UPlayerInventoryComponent::GetTotalItemAmountByTag(FGameplayTag ItemTag) c
 	return TotalAmount;
 }
 
+int32 UPlayerInventoryComponent::GetAvailableItemAmountByTag(FGameplayTag ItemTag) const
+{
+	return GetTotalItemAmountByTag(ItemTag);
+}
+
 bool UPlayerInventoryComponent::HasItemAmountByTag(FGameplayTag ItemTag, int32 RequiredAmount) const
 {
 	if (RequiredAmount <= 0)
@@ -264,37 +307,7 @@ bool UPlayerInventoryComponent::TryRemoveItemAmountByTag(FGameplayTag ItemTag, i
 
 bool UPlayerInventoryComponent::RoomForItemInInventory(AHuntedInventoryItemBase* ItemToAdd, int8 TopLeftIndex) const
 {
-	FIntPoint Dimensions = ItemToAdd->GetItemInventorySize();
-	FIntPoint Tile = IndexToTile(TopLeftIndex);
-	
-	for (int16 i = Tile.X; i <= (Tile.X + Dimensions.X -1); i++)
-	{
-		for (int16 j = Tile.Y; j <= (Tile.Y + Dimensions.Y -1); j++)
-		{
-			if (IsTileValid(FIntPoint(i, j)))
-			{
-				int8 Index = TileToIndex(FIntPoint(i, j));
-				
-				if (GetResultAtIndex(Index))
-				{
-					if (Items[Index])
-					{
-						return false;
-					}
-				}
-				else
-				{
-					return false;
-				}
-			}
-			else
-			{
-				return false;
-			}
-		}
-	}
-	
-	return true;
+	return RoomForItemInInventoryIgnoringItem(ItemToAdd, TopLeftIndex, nullptr);
 }
 
 FIntPoint UPlayerInventoryComponent::IndexToTile(int8 Index) const
@@ -485,6 +498,21 @@ bool UPlayerInventoryComponent::CanPlaceOrStackItemAtIndex(AHuntedInventoryItemB
 	return CanStackItemAtIndex(ItemToAdd, TopLeftIndex);
 }
 
+bool UPlayerInventoryComponent::CanMoveItemToIndex(AHuntedInventoryItemBase* ItemToMove, int8 TargetIndex) const
+{
+	if (!ItemToMove || !GetResultAtIndex(TargetIndex))
+	{
+		return false;
+	}
+
+	if (RoomForItemInInventoryIgnoringItem(ItemToMove, TargetIndex, ItemToMove))
+	{
+		return true;
+	}
+
+	return CanStackItemAtIndex(ItemToMove, TargetIndex);
+}
+
 bool UPlayerInventoryComponent::TryStackItemAtIndex(AHuntedInventoryItemBase* ItemToStack, int8 TopLeftIndex,
 	bool& bOutSourceConsumed)
 {
@@ -517,5 +545,36 @@ bool UPlayerInventoryComponent::TryStackItemAtIndex(AHuntedInventoryItemBase* It
 	bOutSourceConsumed = ItemToStack->GetItemAmount() <= 0;
 
 	RefreshInventoryGrid();
+	return true;
+}
+
+bool UPlayerInventoryComponent::TryMoveItemToIndex(AHuntedInventoryItemBase* ItemToMove, int TargetIndex,
+	bool& bOutSourceConsumed)
+{
+	bOutSourceConsumed = false;
+
+	if (!ItemToMove || !GetResultAtIndex(TargetIndex))
+	{
+		return false;
+	}
+
+	if (TryStackItemAtIndex(ItemToMove, TargetIndex, bOutSourceConsumed))
+	{
+		if (bOutSourceConsumed)
+		{
+			RemoveItem(ItemToMove);
+			RefreshInventoryGrid();
+		}
+
+		return true;
+	}
+
+	if (!RoomForItemInInventoryIgnoringItem(ItemToMove, TargetIndex, ItemToMove))
+	{
+		return false;
+	}
+
+	RemoveItem(ItemToMove);
+	AddItemAtIndex(ItemToMove, TargetIndex);
 	return true;
 }
