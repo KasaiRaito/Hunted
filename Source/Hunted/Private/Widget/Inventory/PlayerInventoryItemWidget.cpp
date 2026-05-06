@@ -23,6 +23,7 @@
 #include "Blueprint/DragDropOperation.h"
 #include "Widget/Inventory/PlayerInventoryGridWidget.h"
 #include "Engine/Texture2D.h"
+#include "InputCoreTypes.h"
 
 #include "HuntedDebugHelper.h"
 
@@ -129,7 +130,7 @@ void UPlayerInventoryItemWidget::NativeOnDragDetected(const FGeometry& InGeometr
 	SetDragVisualState(EInventoryDragVisualState::InvalidPlacement);
 	
 	//Set Variables for the Drag Ability
-	UDragDropOperation* DragOperation = NewObject<UDragDropOperation>();
+	UPlayerInventoryDragDropOperation* DragOperation = NewObject<UPlayerInventoryDragDropOperation>();
 	DragOperation->DefaultDragVisual = this;
 	DragOperation->Payload = Item;
 
@@ -168,6 +169,8 @@ void UPlayerInventoryItemWidget::NativeOnDragDetected(const FGeometry& InGeometr
 			}
 		}
 	}
+
+	DragOperation->InitializeInventoryDrag(Item, bHasDragStartTile, DragStartTopLeftTile);
 	
 	OutOperation = DragOperation;
 	
@@ -219,6 +222,17 @@ void UPlayerInventoryItemWidget::HandleDragOperationFinished(UDragDropOperation*
 	{
 		SetDragVisualState(EInventoryDragVisualState::Idle);
 		return;
+	}
+
+	const bool bDropResolved = Operation->Tag == TEXT("DroppedToGrid")
+		|| Operation->Tag == TEXT("DroppedToWorld")
+		|| Operation->Tag == TEXT("RemovedFromInventory");
+	if (!bDropResolved)
+	{
+		if (UPlayerInventoryDragDropOperation* InventoryDragOperation = Cast<UPlayerInventoryDragDropOperation>(Operation))
+		{
+			InventoryDragOperation->RestoreOriginalItemSize();
+		}
 	}
 
 	if (UPlayerInventoryComponent* InventoryComponent = CharacterReference->GetPlayerInventoryComponent())
@@ -525,6 +539,14 @@ void UPlayerInventoryItemWidget::InitializeInventoryItem(AHuntedInventoryItemBas
 	}
 }
 
+void UPlayerInventoryItemWidget::RefreshItemVisualLayout()
+{
+	if (Item)
+	{
+		AddItemWidget(Item);
+	}
+}
+
 void UPlayerInventoryItemWidget::SetDragVisualState(EInventoryDragVisualState NewState)
 {
 	switch (NewState)
@@ -545,4 +567,75 @@ void UPlayerInventoryItemWidget::SetDragVisualState(EInventoryDragVisualState Ne
 		ApplyBackgroundAndImageColors(IdleBackgroundColor, IdleImageColor);
 		break;
 	}
+}
+
+void UPlayerInventoryDragDropOperation::InitializeInventoryDrag(AHuntedInventoryItemBase* InDraggedItem,
+	bool bInHasDragStartTile, FIntPoint InDragStartTopLeftTile)
+{
+	DraggedItem = InDraggedItem;
+	bHasDragStartTile = bInHasDragStartTile;
+	DragStartTopLeftTile = InDragStartTopLeftTile;
+	OriginalItemSize = DraggedItem ? DraggedItem->GetItemInventorySize() : FIntPoint::ZeroValue;
+	bWasRightMouseButtonDown = false;
+	bIsRotated = false;
+}
+
+bool UPlayerInventoryDragDropOperation::ToggleDraggedItemRotation()
+{
+	if (!DraggedItem)
+	{
+		return false;
+	}
+
+	if (OriginalItemSize.X <= 0 || OriginalItemSize.Y <= 0 || OriginalItemSize.X == OriginalItemSize.Y)
+	{
+		return false;
+	}
+
+	const FIntPoint NewSize = bIsRotated
+		? OriginalItemSize
+		: FIntPoint(OriginalItemSize.Y, OriginalItemSize.X);
+
+	DraggedItem->SetItemInventorySize(NewSize);
+	bIsRotated = !bIsRotated;
+
+	if (UPlayerInventoryItemWidget* DragVisualWidget = Cast<UPlayerInventoryItemWidget>(DefaultDragVisual))
+	{
+		DragVisualWidget->RefreshItemVisualLayout();
+	}
+
+	return true;
+}
+
+void UPlayerInventoryDragDropOperation::RestoreOriginalItemSize()
+{
+	if (!DraggedItem || OriginalItemSize.X <= 0 || OriginalItemSize.Y <= 0)
+	{
+		return;
+	}
+
+	DraggedItem->SetItemInventorySize(OriginalItemSize);
+	bIsRotated = false;
+
+	if (UPlayerInventoryItemWidget* DragVisualWidget = Cast<UPlayerInventoryItemWidget>(DefaultDragVisual))
+	{
+		DragVisualWidget->RefreshItemVisualLayout();
+	}
+}
+
+void UPlayerInventoryDragDropOperation::HandleRotationInput(const FPointerEvent& PointerEvent)
+{
+	const bool bIsRightMouseButtonDown = PointerEvent.IsMouseButtonDown(EKeys::RightMouseButton);
+	if (bIsRightMouseButtonDown && !bWasRightMouseButtonDown)
+	{
+		ToggleDraggedItemRotation();
+	}
+
+	bWasRightMouseButtonDown = bIsRightMouseButtonDown;
+}
+
+void UPlayerInventoryDragDropOperation::Dragged_Implementation(const FPointerEvent& PointerEvent)
+{
+	Super::Dragged_Implementation(PointerEvent);
+	HandleRotationInput(PointerEvent);
 }

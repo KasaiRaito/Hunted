@@ -236,6 +236,11 @@ bool UPlayerInventoryGridWidget::NativeOnDragOver(const FGeometry& InGeometry, c
 	{
 		return false;
 	}
+
+	if (UPlayerInventoryDragDropOperation* InventoryDragOperation = Cast<UPlayerInventoryDragDropOperation>(InOperation))
+	{
+		InventoryDragOperation->HandleRotationInput(InDragDropEvent);
+	}
 	
 	FVector2D ScreenPosition = InDragDropEvent.GetScreenSpacePosition();
 	FVector2D LocalPosition = InGeometry.AbsoluteToLocal(ScreenPosition);

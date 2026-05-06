@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Blueprint/DragDropOperation.h"
 #include "Styling/SlateColor.h"
 #include "HuntedTypes/HuntedStructTypes.h"
 #include "Widget/UI/HuntedWidgetBase.h"
@@ -18,7 +19,45 @@ class UVerticalBox;
 class UHorizontalBox;
 class AHuntedPlayerCharacter;
 class AHuntedInventoryItemBase;
-class UDragDropOperation;
+
+UCLASS()
+class HUNTED_API UPlayerInventoryDragDropOperation : public UDragDropOperation
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(Transient)
+	AHuntedInventoryItemBase* DraggedItem = nullptr;
+
+	UPROPERTY(Transient)
+	FIntPoint OriginalItemSize = FIntPoint::ZeroValue;
+
+	UPROPERTY(Transient)
+	FIntPoint DragStartTopLeftTile = FIntPoint::ZeroValue;
+
+	UPROPERTY(Transient)
+	bool bHasDragStartTile = false;
+
+	UPROPERTY(Transient)
+	bool bWasRightMouseButtonDown = false;
+
+	UPROPERTY(Transient)
+	bool bIsRotated = false;
+
+	UFUNCTION()
+	void InitializeInventoryDrag(AHuntedInventoryItemBase* InDraggedItem, bool bInHasDragStartTile,
+		FIntPoint InDragStartTopLeftTile);
+
+	UFUNCTION()
+	bool ToggleDraggedItemRotation();
+
+	UFUNCTION()
+	void RestoreOriginalItemSize();
+
+	void HandleRotationInput(const FPointerEvent& PointerEvent);
+
+	virtual void Dragged_Implementation(const FPointerEvent& PointerEvent) override;
+};
 
 UENUM()
 enum class EInventoryDragVisualState : uint8
@@ -183,6 +222,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	void SetDragVisualState(EInventoryDragVisualState NewState);
+
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	void RefreshItemVisualLayout();
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Inventory")
 	void BP_OnInspectRequested(AHuntedInventoryItemBase* InspectedItem);
