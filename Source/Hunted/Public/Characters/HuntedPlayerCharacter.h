@@ -74,6 +74,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Camera")
 	bool CameraAcceleration = false;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Aim")
+	bool IsAimToggle = false;
+	
 	UPROPERTY(EditAnywhere, Category="Camera")
 	float LookAcceleration = 8.0f;
 
@@ -159,6 +162,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	FORCEINLINE AHuntedInventoryItemBase* GetCachedItem() const { return CachedItem; }
 	
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	bool GetAimingState() const { return IsAiming; };
+
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	void SetAimingState(bool bAimingState) { IsAiming = bAimingState; };
+	
 private:
 	
 #pragma endregion
@@ -188,13 +197,6 @@ private:
 	bool IsEcho = false;
 	bool IsAiming = false;
 	
-	UFUNCTION(BlueprintCallable, Category = "Weapon")
-	bool GetAimingState() const { return IsAiming; };
-
-	UFUNCTION(BlueprintCallable, Category = "Weapon")
-	void SetAimingState(bool bAimingState) { IsAiming = bAimingState; };
-	
-	
 #pragma endregion
 
 #pragma region Functions
@@ -203,10 +205,7 @@ private:
 	void UpdateStaticMeshList();	
 #pragma endregion
 
-public:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Aim")
-	bool IsAimToggle = false;
-	
+public:	
 	UFUNCTION(BlueprintCallable, Category = "Echo")
 	void EnterEcho();
 
