@@ -6,6 +6,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 
 #include "HuntedDebugHelper.h"
+#include "Characters/HuntedPlayerCharacter.h"
 
 void UHuntedCharacterAnimInstance::NativeInitializeAnimation()
 {
@@ -29,5 +30,12 @@ void UHuntedCharacterAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSe
 	GroundSpeed = OwningCharacter->GetActorTransform().InverseTransformVectorNoScale(GlobalVelocity);
 
 	bHasAcceleration = (OwningMovementComponent->GetCurrentAcceleration().SizeSquared2D() > 0.f);
-	//Pitch = OwningCharacter->GetControlRotation().Pitch;
+	
+	//CurrentPitch = OwningCharacter->GetControlRotation().Pitch;
+	
+	if (AHuntedPlayerCharacter* Player = Cast<AHuntedPlayerCharacter>(OwningCharacter))
+	{
+		Aiming = Player->GetAimingState();
+	}
 }
+

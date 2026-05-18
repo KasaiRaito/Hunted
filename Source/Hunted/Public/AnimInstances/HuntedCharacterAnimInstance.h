@@ -34,10 +34,10 @@ protected:
 	bool bHasAcceleration;
 	
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "AnimData|LocomotionData")
-	float Pitch;
+	float CurrentPitch;
 	
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "AnimData|LocomotionData")
-	float Yaw;
+	float AnimPitch;
 	
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "AnimData|LocomotionData")
 	bool Aiming;
