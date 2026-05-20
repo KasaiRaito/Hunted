@@ -204,6 +204,7 @@ void AHuntedPlayerCharacter::Input_Aim(const FInputActionValue& Aim)
 	Debug::Print(IsAiming ? TEXT("Aiming: TRUE") : TEXT("Aiming: FALSE"));
 	LookSpeed = IsAiming ? AimSpeed : BaseSpeed;
 	
+	/*
 	if (IsAiming)
 	{
 		
@@ -213,6 +214,7 @@ void AHuntedPlayerCharacter::Input_Aim(const FInputActionValue& Aim)
 	{
 		
 	}
+	*/
 }
 
 void AHuntedPlayerCharacter::ProcessMovementInput(const FInputActionValue& InputActionValue)

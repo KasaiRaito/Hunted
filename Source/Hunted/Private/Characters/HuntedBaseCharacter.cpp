@@ -5,6 +5,7 @@
 #include "AbilitySystem/HuntedAbilitySystemComponent.h"
 #include "AbilitySystem/HuntedAttributeSet.h"
 #include "MotionWarpingComponent.h"
+#include "ContextualAnimSceneActorComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "HuntedGameplayTags.h"
 
@@ -21,6 +22,7 @@ AHuntedBaseCharacter::AHuntedBaseCharacter()
 	HuntedAttributeSet = CreateDefaultSubobject<UHuntedAttributeSet>(FName("HuntedAttributeSet"));
 	
 	MotionWarpingComponent = CreateDefaultSubobject<UMotionWarpingComponent>(FName("MotionWarpingComponent"));
+	ContextualAnimSceneActor = CreateDefaultSubobject<UContextualAnimSceneActorComponent>(FName("ContextualAnimSceneActorComponent"));
 }
 
 UAbilitySystemComponent* AHuntedBaseCharacter::GetAbilitySystemComponent() const

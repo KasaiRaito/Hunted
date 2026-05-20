@@ -19,6 +19,7 @@ public class Hunted : ModuleRules
 			"GameplayTasks",
 			"AnimGraphRuntime",
 			"MotionWarping",
+			"ContextualAnimation",
 			"UMG",
 			"Slate",
 			"SlateCore"
