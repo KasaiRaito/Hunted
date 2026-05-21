@@ -56,9 +56,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, Blueprintable, Category = "MotionWarping")
 	UMotionWarpingComponent* MotionWarpingComponent;
 	
-	UPROPERTY(VisibleAnywhere, Blueprintable, Category = "ContextualAnimSceneActor")
-	UContextualAnimSceneActorComponent* ContextualAnimSceneActor;
-	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "CharacterData")
 	TSoftObjectPtr<UDataAsset_StartUpDataBase> CharacterStartUpData;	
 

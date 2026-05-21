@@ -87,6 +87,7 @@ namespace  HuntedGameplayTags
 		/** Attack **/
 	UE_DEFINE_GAMEPLAY_TAG(Enemy_Ability_Melee, "Enemy.Ability.Melee");
 	UE_DEFINE_GAMEPLAY_TAG(Enemy_Ability_Ranged, "Enemy.Ability.Ranged");
+	UE_DEFINE_GAMEPLAY_TAG(Enemy_Ability_Grab, "Enemy.Ability.Grab");
 	
 		/** Hit React **/	
 	UE_DEFINE_GAMEPLAY_TAG(Shared_Ability_HitReact_Head, "Shared.Ability.HitReact.Head");

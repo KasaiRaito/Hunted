@@ -22,7 +22,6 @@ AHuntedBaseCharacter::AHuntedBaseCharacter()
 	HuntedAttributeSet = CreateDefaultSubobject<UHuntedAttributeSet>(FName("HuntedAttributeSet"));
 	
 	MotionWarpingComponent = CreateDefaultSubobject<UMotionWarpingComponent>(FName("MotionWarpingComponent"));
-	ContextualAnimSceneActor = CreateDefaultSubobject<UContextualAnimSceneActorComponent>(FName("ContextualAnimSceneActorComponent"));
 }
 
 UAbilitySystemComponent* AHuntedBaseCharacter::GetAbilitySystemComponent() const
