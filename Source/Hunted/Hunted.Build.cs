@@ -18,8 +18,8 @@ public class Hunted : ModuleRules
 			"EnhancedInput",
 			"GameplayTasks",
 			"AnimGraphRuntime",
-			"MotionWarping",
 			"ContextualAnimation",
+			"MotionWarping",
 			"UMG",
 			"Slate",
 			"SlateCore"
