@@ -5,6 +5,7 @@
 #include "AbilitySystem/HuntedAbilitySystemComponent.h"
 #include "AbilitySystem/HuntedAttributeSet.h"
 #include "MotionWarpingComponent.h"
+#include "ContextualAnimSceneActorComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "HuntedGameplayTags.h"
 

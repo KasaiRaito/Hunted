@@ -118,8 +118,6 @@ int32 UPlayerInventoryGridWidget::NativePaint(const FPaintArgs& Args, const FGeo
 {
 	const int32 SuperLayerId = Super::NativePaint(Args, AllottedGeometry, MyCullingRect, OutDrawElements, LayerId, InWidgetStyle, bParentEnabled);
 	
-	FPaintContext PaintContext(AllottedGeometry, MyCullingRect, OutDrawElements, SuperLayerId, InWidgetStyle, bParentEnabled);
-	
 	if (!GridBorder)
 	{
 		return SuperLayerId;
@@ -133,6 +131,12 @@ int32 UPlayerInventoryGridWidget::NativePaint(const FPaintArgs& Args, const FGeo
 		return SuperLayerId;
 	}
 
+	if (UPlayerInventoryItemWidget::IsAnyContextMenuOpen())
+	{
+		return SuperLayerId;
+	}
+
+	FPaintContext PaintContext(AllottedGeometry, MyCullingRect, OutDrawElements, SuperLayerId, InWidgetStyle, bParentEnabled);
 	FVector2D Offset = GridBorder->GetCachedGeometry().GetLocalPositionAtCoordinates(FVector2D(0.0f,0.0f));
 	const FSlateBrush* WhiteBrush = FCoreStyle::Get().GetBrush(TEXT("WhiteBrush"));
 
@@ -181,7 +185,7 @@ int32 UPlayerInventoryGridWidget::NativePaint(const FPaintArgs& Args, const FGeo
 			FVector2D(EndX[i], EndY[i]) + Offset, CustomLineColor,
 			false, InventoryLineThickness);
 	}
-		
+
 	return PaintContext.MaxLayer;
 }
 

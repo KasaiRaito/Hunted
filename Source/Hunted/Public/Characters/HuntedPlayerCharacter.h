@@ -168,6 +168,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	void SetAimingState(bool bAimingState) { IsAiming = bAimingState; };
 	
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	bool GetHaveGun() const { return HaveGun; };
+	
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	void SetHaveGun(bool bHaveGun) { HaveGun = bHaveGun; };
+	
 private:
 	
 #pragma endregion
@@ -196,6 +202,7 @@ private:
 	bool IsCrouch = false;
 	bool IsEcho = false;
 	bool IsAiming = false;
+	bool HaveGun = false;
 	
 #pragma endregion
 

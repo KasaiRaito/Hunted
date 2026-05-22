@@ -36,6 +36,7 @@ void UHuntedCharacterAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSe
 	if (AHuntedPlayerCharacter* Player = Cast<AHuntedPlayerCharacter>(OwningCharacter))
 	{
 		Aiming = Player->GetAimingState();
+		HaveGun = Player->GetHaveGun();
 	}
 }
 

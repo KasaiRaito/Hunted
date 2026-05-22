@@ -27,6 +27,12 @@
 
 #include "HuntedDebugHelper.h"
 
+namespace
+{
+	TWeakObjectPtr<UPlayerInventoryItemWidget> ActiveInventoryContextMenuOwner;
+	constexpr int32 InventoryContextMenuLayerZOrder = 10000;
+}
+
 void UPlayerInventoryItemWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
@@ -44,6 +50,12 @@ void UPlayerInventoryItemWidget::NativeConstruct()
 	}
 
 	AddItemWidget(CharacterReference->GetCachedItem());
+}
+
+void UPlayerInventoryItemWidget::NativeDestruct()
+{
+	HideContextMenu();
+	Super::NativeDestruct();
 }
 
 void UPlayerInventoryItemWidget::AddItemWidget(AHuntedInventoryItemBase* ItemToAdd)
@@ -186,6 +198,11 @@ FReply UPlayerInventoryItemWidget::NativeOnMouseButtonDown(const FGeometry& InGe
 	}
 
 	UPlayerInventoryComponent* InventoryComponent = CharacterReference->GetPlayerInventoryComponent();
+	if (ActiveInventoryContextMenuOwner.IsValid() && ActiveInventoryContextMenuOwner.Get() != this)
+	{
+		ActiveInventoryContextMenuOwner->HideContextMenu();
+	}
+
 	if (InMouseEvent.GetEffectingButton() == EKeys::RightMouseButton)
 	{
 		ToggleContextMenu();
@@ -345,7 +362,7 @@ void UPlayerInventoryItemWidget::EnsureContextMenuWidget()
 		MenuSlot->SetAnchors(FAnchors(1.0f, 0.5f));
 		MenuSlot->SetAlignment(FVector2D(0.0f, 0.5f));
 		MenuSlot->SetPosition(ContextMenuOffset);
-		MenuSlot->SetZOrder(200);
+		MenuSlot->SetZOrder(InventoryContextMenuLayerZOrder);
 	}
 }
 
@@ -440,8 +457,20 @@ void UPlayerInventoryItemWidget::ToggleContextMenu()
 		return;
 	}
 
-	const bool bIsVisible = ContextMenuBorder->GetVisibility() != ESlateVisibility::Collapsed;
-	ContextMenuBorder->SetVisibility(bIsVisible ? ESlateVisibility::Collapsed : ESlateVisibility::SelfHitTestInvisible);
+	if (IsContextMenuVisible())
+	{
+		HideContextMenu();
+		return;
+	}
+
+	if (ActiveInventoryContextMenuOwner.IsValid() && ActiveInventoryContextMenuOwner.Get() != this)
+	{
+		ActiveInventoryContextMenuOwner->HideContextMenu();
+	}
+
+	ActiveInventoryContextMenuOwner = this;
+	RaiseContextMenuLayer();
+	ContextMenuBorder->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 }
 
 void UPlayerInventoryItemWidget::HideContextMenu()
@@ -450,6 +479,91 @@ void UPlayerInventoryItemWidget::HideContextMenu()
 	{
 		ContextMenuBorder->SetVisibility(ESlateVisibility::Collapsed);
 	}
+
+	if (ActiveInventoryContextMenuOwner.Get() == this)
+	{
+		ActiveInventoryContextMenuOwner.Reset();
+	}
+
+	RestoreContextMenuLayer();
+}
+
+bool UPlayerInventoryItemWidget::IsContextMenuVisible() const
+{
+	return ContextMenuBorder && ContextMenuBorder->GetVisibility() != ESlateVisibility::Collapsed;
+}
+
+bool UPlayerInventoryItemWidget::IsAnyContextMenuOpen()
+{
+	return ActiveInventoryContextMenuOwner.IsValid()
+		&& ActiveInventoryContextMenuOwner->IsContextMenuVisible();
+}
+
+void UPlayerInventoryItemWidget::RaiseContextMenuLayer()
+{
+	if (CharacterReference && CharacterReference->GetPlayerInventoryComponent())
+	{
+		if (UPlayerInventoryGridWidget* InventoryGrid = CharacterReference->GetPlayerInventoryComponent()->GetPlayerInventoryGridWidget())
+		{
+			if (UCanvasPanelSlot* GridCanvasSlot = Cast<UCanvasPanelSlot>(InventoryGrid->Slot))
+			{
+				if (!bHasCachedInventoryGridSlotZOrder)
+				{
+					CachedInventoryGridSlotZOrder = GridCanvasSlot->GetZOrder();
+					bHasCachedInventoryGridSlotZOrder = true;
+				}
+
+				GridCanvasSlot->SetZOrder(InventoryContextMenuLayerZOrder);
+			}
+		}
+	}
+
+	if (UCanvasPanelSlot* CanvasSlot = Cast<UCanvasPanelSlot>(Slot))
+	{
+		if (!bHasCachedCanvasSlotZOrder)
+		{
+			CachedCanvasSlotZOrder = CanvasSlot->GetZOrder();
+			bHasCachedCanvasSlotZOrder = true;
+		}
+
+		CanvasSlot->SetZOrder(InventoryContextMenuLayerZOrder);
+	}
+
+	if (ContextMenuBorder)
+	{
+		if (UCanvasPanelSlot* ContextMenuSlot = Cast<UCanvasPanelSlot>(ContextMenuBorder->Slot))
+		{
+			ContextMenuSlot->SetZOrder(InventoryContextMenuLayerZOrder);
+		}
+	}
+}
+
+void UPlayerInventoryItemWidget::RestoreContextMenuLayer()
+{
+	if (bHasCachedInventoryGridSlotZOrder && CharacterReference && CharacterReference->GetPlayerInventoryComponent())
+	{
+		if (UPlayerInventoryGridWidget* InventoryGrid = CharacterReference->GetPlayerInventoryComponent()->GetPlayerInventoryGridWidget())
+		{
+			if (UCanvasPanelSlot* GridCanvasSlot = Cast<UCanvasPanelSlot>(InventoryGrid->Slot))
+			{
+				GridCanvasSlot->SetZOrder(CachedInventoryGridSlotZOrder);
+			}
+		}
+	}
+
+	bHasCachedInventoryGridSlotZOrder = false;
+
+	if (!bHasCachedCanvasSlotZOrder)
+	{
+		return;
+	}
+
+	if (UCanvasPanelSlot* CanvasSlot = Cast<UCanvasPanelSlot>(Slot))
+	{
+		CanvasSlot->SetZOrder(CachedCanvasSlotZOrder);
+	}
+
+	bHasCachedCanvasSlotZOrder = false;
 }
 
 void UPlayerInventoryItemWidget::RefreshCombineVisualState()

@@ -91,6 +91,7 @@ namespace HuntedGameplayTags
 	/** Enemy Tags **/
 		/** Attack **/
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Enemy_Ability_Melee);
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Enemy_Ability_Grab)
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Enemy_Ability_Ranged);
 	
 		/** Hit React **/	

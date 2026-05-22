@@ -180,9 +180,15 @@ protected:
 
 	UPROPERTY(Transient)
 	TArray<FHuntedInventoryContextActionEntry> ContextMenuActions;
+
+	int32 CachedCanvasSlotZOrder = 0;
+	bool bHasCachedCanvasSlotZOrder = false;
+	int32 CachedInventoryGridSlotZOrder = 0;
+	bool bHasCachedInventoryGridSlotZOrder = false;
 	
 protected:
 	virtual void NativeConstruct() override;
+	virtual void NativeDestruct() override;
 	
 	void AddItemWidget(AHuntedInventoryItemBase* ItemToAdd);
 	
@@ -203,6 +209,9 @@ protected:
 	void RebuildContextMenuEntries();
 	void ToggleContextMenu();
 	void HideContextMenu();
+	bool IsContextMenuVisible() const;
+	void RaiseContextMenuLayer();
+	void RestoreContextMenuLayer();
 	void RefreshCombineVisualState();
 	void ApplyCombineVisualState(bool bIsSelectedSource, bool bCanCombine);
 	FHuntedInventoryContextActionEntry MakeContextActionEntry(EInventoryContextAction Action, const FText& Label, UTexture2D* Icon) const;
@@ -228,4 +237,6 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Inventory")
 	void BP_OnInspectRequested(AHuntedInventoryItemBase* InspectedItem);
+
+	static bool IsAnyContextMenuOpen();
 };
