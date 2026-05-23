@@ -49,7 +49,10 @@ void UPlayerInventoryItemWidget::NativeConstruct()
 		return;
 	}
 
-	AddItemWidget(CharacterReference->GetCachedItem());
+	if (AHuntedInventoryItemBase* CachedInventoryItem = Cast<AHuntedInventoryItemBase>(CharacterReference->GetCachedItem()))
+	{
+		AddItemWidget(CachedInventoryItem);
+	}
 }
 
 void UPlayerInventoryItemWidget::NativeDestruct()

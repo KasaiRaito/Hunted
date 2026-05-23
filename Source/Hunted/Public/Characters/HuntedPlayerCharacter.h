@@ -10,6 +10,7 @@
 #include "Camera/CameraComponent.h"
 #include "HuntedPlayerCharacter.generated.h"
 
+class AHuntedInteractable;
 struct FInputActionValue;
 class USpringArmComponent;
 class UCameraComponent;
@@ -150,17 +151,17 @@ private:
 	UPlayerInventoryComponent* PlayerInventoryComponent;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
-	AHuntedInventoryItemBase*  CachedItem;
+	AHuntedInteractable*  CachedItem;
 	
 public:
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
-	FORCEINLINE void SetCachedItem(AHuntedInventoryItemBase* Item) { CachedItem = Item; }
+	FORCEINLINE void SetCachedItem(AHuntedInteractable* Item) { CachedItem = Item; }
 	
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	FORCEINLINE void ClearCachedItem() { CachedItem = nullptr; }
 	
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
-	FORCEINLINE AHuntedInventoryItemBase* GetCachedItem() const { return CachedItem; }
+	FORCEINLINE AHuntedInteractable* GetCachedItem() const { return CachedItem; }
 	
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	bool GetAimingState() const { return IsAiming; };
