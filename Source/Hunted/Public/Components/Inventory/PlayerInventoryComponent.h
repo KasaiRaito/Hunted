@@ -125,6 +125,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory", meta = (DisplayName = "Get Available Item Amount By Tag"))
 	int32 GetAvailableItemAmountByTag(FGameplayTag ItemTag) const;
+	
+	UFUNCTION(BlueprintCallable, Category = "Inventory", meta = (DispayName = "CheckHaveItemByTag"))
+	bool CheckHaveItemByTag(FGameplayTag ItemTag) const;
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	bool HasItemAmountByTag(FGameplayTag ItemTag, int32 RequiredAmount) const;
