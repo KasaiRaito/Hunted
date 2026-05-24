@@ -8,6 +8,8 @@
 
 class AHuntedPlayerCharacter;
 class AHuntedPlayerController;
+class UPlayerCombatComponent;
+class UPlayerInventoryComponent;
 /**
  * 
  */

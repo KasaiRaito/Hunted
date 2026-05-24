@@ -27,10 +27,12 @@ public:
 	UPROPERTY(VisibleAnywhere, meta = (BindWidget), Category= "UI")
 	UBackgroundBlur* BackgroundBlur;
 	
-	AHuntedInventoryItemBase* SpawnedItem;
+	UPROPERTY(Transient)
+	AHuntedInventoryItemBase* SpawnedItem = nullptr;
 	
 protected:
-	AHuntedPlayerCharacter* CharacterReference;
+	UPROPERTY(Transient)
+	AHuntedPlayerCharacter* CharacterReference = nullptr;
 	
 	virtual void NativeConstruct() override;
 	

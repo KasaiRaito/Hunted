@@ -9,6 +9,12 @@
 
 void UEnemyCombatComponent::OnWeaponHitTarget(AActor* HitActor)
 {
+	// Weapon overlaps can outlive the target during enemy death/despawn.
+	if (!IsValid(GetOwningPawn()) || !IsValid(HitActor))
+	{
+		return;
+	}
+
 	if (OverlappedActors.Contains(HitActor))
 	{
 		return;

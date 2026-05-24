@@ -76,7 +76,10 @@ void UHuntedAbilitySystemComponent::RemoveGrantedPlayerWeaponAbilities(
 
 bool UHuntedAbilitySystemComponent::TryActivateAbilityByTag(FGameplayTag AbilityTagToActivate)
 {
-	check(AbilityTagToActivate.IsValid());
+	if (!AbilityTagToActivate.IsValid())
+	{
+		return false;
+	}
 	
 	TArray<FGameplayAbilitySpec*> FoundAbilitySpecs;
 	GetActivatableGameplayAbilitySpecsByAllMatchingTags(AbilityTagToActivate.GetSingleTagContainer(), FoundAbilitySpecs);
@@ -86,7 +89,11 @@ bool UHuntedAbilitySystemComponent::TryActivateAbilityByTag(FGameplayTag Ability
 		const int32 RandomAbilityIndex = FMath::RandRange(0, FoundAbilitySpecs.Num() - 1);
 		FGameplayAbilitySpec* SpecToActivate = FoundAbilitySpecs[RandomAbilityIndex];
 		
-		check (SpecToActivate);
+		if (!SpecToActivate)
+		{
+			// Ability specs can be removed while input is being processed.
+			return false;
+		}
 		
 		if (!SpecToActivate->IsActive())
 		{

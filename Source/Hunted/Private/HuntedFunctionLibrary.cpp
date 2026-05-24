@@ -12,16 +12,20 @@
 
 UHuntedAbilitySystemComponent* UHuntedFunctionLibrary::NativeGetHuntedASCFromActor(AActor* InActor)
 {
-	check(InActor);
+	if (!IsValid(InActor))
+	{
+		return nullptr;
+	}
 	
-	return CastChecked<UHuntedAbilitySystemComponent>(UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(InActor));
+	// Blueprint callers can pass actors during teardown; return nullptr instead of crashing on CastChecked.
+	return Cast<UHuntedAbilitySystemComponent>(UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(InActor));
 }
 
 void UHuntedFunctionLibrary::AddGameplayTagToActorIfNone(AActor* InActor, FGameplayTag TagToAdd)
 {
 	UHuntedAbilitySystemComponent* ASC = NativeGetHuntedASCFromActor(InActor);
 	
-	if (!ASC->HasMatchingGameplayTag(TagToAdd))
+	if (ASC && TagToAdd.IsValid() && !ASC->HasMatchingGameplayTag(TagToAdd))
 	{
 		ASC->AddLooseGameplayTag(TagToAdd);
 	}
@@ -31,7 +35,7 @@ void UHuntedFunctionLibrary::RemoveGameplayFromActorIfFound(AActor* InActor, FGa
 {
 	UHuntedAbilitySystemComponent* ASC = NativeGetHuntedASCFromActor(InActor);
 	
-	if (ASC->HasMatchingGameplayTag(TagToRemove))
+	if (ASC && TagToRemove.IsValid() && ASC->HasMatchingGameplayTag(TagToRemove))
 	{
 		ASC->RemoveLooseGameplayTag(TagToRemove);
 	}
@@ -41,12 +45,15 @@ bool UHuntedFunctionLibrary::NativeDoesActorHaveTag(AActor* InActor, FGameplayTa
 {
 	UHuntedAbilitySystemComponent* ASC = NativeGetHuntedASCFromActor(InActor);
 	
-	return  ASC->HasMatchingGameplayTag(TagToCheck);
+	return ASC && TagToCheck.IsValid() && ASC->HasMatchingGameplayTag(TagToCheck);
 }
 
 UPawnCombatComponent* UHuntedFunctionLibrary::NativeGetPawnCombatComponentFromActor(AActor* InActor)
 {
-	check(InActor);
+	if (!IsValid(InActor))
+	{
+		return nullptr;
+	}
 	
 	if (IPawnCombatInterface* PawnCombatInterface = Cast<IPawnCombatInterface>(InActor))
 	{
@@ -74,7 +81,10 @@ UPawnCombatComponent* UHuntedFunctionLibrary::BP_GetPawnCombatComponentFromActor
 
 bool UHuntedFunctionLibrary::IsTargetPawnHostile(APawn* QueryPawn, APawn* TargetPawn)
 {
-	check(QueryPawn && TargetPawn);
+	if (!IsValid(QueryPawn) || !IsValid(TargetPawn))
+	{
+		return false;
+	}
 	
 	IGenericTeamAgentInterface* QueryTeamAgent = Cast<IGenericTeamAgentInterface>(QueryPawn->GetController());
 	IGenericTeamAgentInterface* TargetTeamAgent = Cast<IGenericTeamAgentInterface>(TargetPawn->GetController());

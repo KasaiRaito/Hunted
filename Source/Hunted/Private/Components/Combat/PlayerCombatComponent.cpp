@@ -20,11 +20,18 @@ AHuntedPlayerWeaponBase* UPlayerCombatComponent::GetPlayerCurrentEquippedWeapon(
 
 float UPlayerCombatComponent::GetPlayerCurrentEquippWeaponDamageAtLevel(float InLevel) const
 {
-	return GetPlayerCurrentEquippedWeapon()->PlayerWeaponData.WeaponBaseDamage.GetValueAtLevel(InLevel);
+	const AHuntedPlayerWeaponBase* CurrentWeapon = GetPlayerCurrentEquippedWeapon();
+	return IsValid(CurrentWeapon) ? CurrentWeapon->PlayerWeaponData.WeaponBaseDamage.GetValueAtLevel(InLevel) : 0.0f;
 }
 
 void UPlayerCombatComponent::OnWeaponHitTarget(AActor* HitActor)
 {
+	// Overlap callbacks can arrive during teardown; ignore stale actors instead of dereferencing them.
+	if (!IsValid(GetOwningPawn()) || !IsValid(HitActor))
+	{
+		return;
+	}
+
 	Debug::Print(GetOwningPawn()->GetActorNameOrLabel() + TEXT(" hit ") + HitActor->GetActorNameOrLabel(), FColor::Green);
 
 	if (OverlappedActors.Contains(HitActor))

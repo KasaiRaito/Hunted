@@ -12,7 +12,7 @@ void UHuntedGameplayAbility::OnGiveAbility(const FGameplayAbilityActorInfo* Acto
 
 	if (AbilityActivationPolicy == EHuntedAbilityActivationPolicy::OnGiven)
 	{
-		if (ActorInfo && !Spec.IsActive())
+		if (ActorInfo && ActorInfo->AbilitySystemComponent.IsValid() && !Spec.IsActive())
 		{
 			ActorInfo->AbilitySystemComponent->TryActivateAbility(Spec.Handle);
 		}
@@ -27,7 +27,7 @@ void UHuntedGameplayAbility::EndAbility(const FGameplayAbilitySpecHandle Handle,
 
 	if (AbilityActivationPolicy == EHuntedAbilityActivationPolicy::OnGiven)
 	{
-		if (ActorInfo)
+		if (ActorInfo && ActorInfo->AbilitySystemComponent.IsValid())
 		{
 			ActorInfo->AbilitySystemComponent->ClearAbility(Handle);
 		}
@@ -36,12 +36,15 @@ void UHuntedGameplayAbility::EndAbility(const FGameplayAbilitySpecHandle Handle,
 
 UPawnCombatComponent* UHuntedGameplayAbility::GetPawnCombatComponentFromActorInfo() const
 {
-	return GetAvatarActorFromActorInfo()->FindComponentByClass<UPawnCombatComponent>();
+	AActor* AvatarActor = CurrentActorInfo ? CurrentActorInfo->AvatarActor.Get() : nullptr;
+	return IsValid(AvatarActor) ? AvatarActor->FindComponentByClass<UPawnCombatComponent>() : nullptr;
 }
 
 UHuntedAbilitySystemComponent* UHuntedGameplayAbility::GetHuntedAbilitySystemComponentFromActorInfo() const
 {
-	return Cast<UHuntedAbilitySystemComponent>(CurrentActorInfo->AbilitySystemComponent);
+	return CurrentActorInfo
+		? Cast<UHuntedAbilitySystemComponent>(CurrentActorInfo->AbilitySystemComponent.Get())
+		: nullptr;
 }
 
 FActiveGameplayEffectHandle UHuntedGameplayAbility::NativeApplyEffectSpecHandleToTarget(AActor* TargetActor,
@@ -49,9 +52,19 @@ FActiveGameplayEffectHandle UHuntedGameplayAbility::NativeApplyEffectSpecHandleT
 {
 	UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor);
 	
-	check(TargetASC && InSpecHandle.IsValid())
+	if (!TargetASC || !InSpecHandle.IsValid() || !InSpecHandle.Data.IsValid())
+	{
+		// Effects can be requested by Blueprint after a target dies; return a failed handle instead of crashing.
+		return FActiveGameplayEffectHandle();
+	}
+
+	UHuntedAbilitySystemComponent* SourceASC = GetHuntedAbilitySystemComponentFromActorInfo();
+	if (!SourceASC)
+	{
+		return FActiveGameplayEffectHandle();
+	}
 	
-	return GetHuntedAbilitySystemComponentFromActorInfo()->ApplyGameplayEffectSpecToTarget(
+	return SourceASC->ApplyGameplayEffectSpecToTarget(
 		*InSpecHandle.Data,
 		TargetASC
 	);

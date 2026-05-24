@@ -13,7 +13,9 @@ AHuntedPlayerCharacter* UHuntedPlayerGameplayAbility::GetPlayerCharacterFromActo
 {
 	if (!CachedWarriorHeroCharacter.IsValid())
 	{
-		CachedWarriorHeroCharacter = Cast<AHuntedPlayerCharacter>(CurrentActorInfo->AvatarActor);
+		CachedWarriorHeroCharacter = CurrentActorInfo
+			? Cast<AHuntedPlayerCharacter>(CurrentActorInfo->AvatarActor.Get())
+			: nullptr;
 	}
 
 	return CachedWarriorHeroCharacter.IsValid() ? CachedWarriorHeroCharacter.Get() : nullptr;
@@ -24,7 +26,9 @@ AHuntedPlayerController* UHuntedPlayerGameplayAbility::GetPlayerControllerFromAc
 {
 	if (!CachedWarriorHeroController.IsValid())
 	{
-		CachedWarriorHeroController = Cast<AHuntedPlayerController>(CurrentActorInfo->PlayerController);
+		CachedWarriorHeroController = CurrentActorInfo
+			? Cast<AHuntedPlayerController>(CurrentActorInfo->PlayerController.Get())
+			: nullptr;
 	}
 
 	return CachedWarriorHeroController.IsValid() ? CachedWarriorHeroController.Get() : nullptr;
@@ -32,29 +36,47 @@ AHuntedPlayerController* UHuntedPlayerGameplayAbility::GetPlayerControllerFromAc
 
 UPlayerCombatComponent* UHuntedPlayerGameplayAbility::GetPlayerCombatComponentForActorInfo()
 {
-	return GetPlayerCharacterFromActorInfo()->GetPlayerCombatComponent();
+	AHuntedPlayerCharacter* PlayerCharacter = GetPlayerCharacterFromActorInfo();
+	return IsValid(PlayerCharacter) ? PlayerCharacter->GetPlayerCombatComponent() : nullptr;
 }
 
 UPlayerInventoryComponent* UHuntedPlayerGameplayAbility::GetPlayerInventoryComponentForActorInfo()
 {
-	return GetPlayerCharacterFromActorInfo()->GetPlayerInventoryComponent();
+	AHuntedPlayerCharacter* PlayerCharacter = GetPlayerCharacterFromActorInfo();
+	return IsValid(PlayerCharacter) ? PlayerCharacter->GetPlayerInventoryComponent() : nullptr;
 }
 
 FGameplayEffectSpecHandle UHuntedPlayerGameplayAbility::MakePlayerSpecHandle(TSubclassOf<UGameplayEffect> EffectClass,
                                                                              float InWeaponBaseDamage, FGameplayTag InCurrentAttackTypeTag, float DamageScalar)
 {
-	check(EffectClass);
+	if (!EffectClass)
+	{
+		return FGameplayEffectSpecHandle();
+	}
+
+	UHuntedAbilitySystemComponent* ASC = GetHuntedAbilitySystemComponentFromActorInfo();
+	AActor* AvatarActor = CurrentActorInfo ? CurrentActorInfo->AvatarActor.Get() : nullptr;
+	if (!ASC || !IsValid(AvatarActor))
+	{
+		// Damage specs can be requested during ability cancellation; invalid context should fail quietly.
+		return FGameplayEffectSpecHandle();
+	}
 	
-	FGameplayEffectContextHandle ContextHandle = GetHuntedAbilitySystemComponentFromActorInfo()->MakeEffectContext();
+	FGameplayEffectContextHandle ContextHandle = ASC->MakeEffectContext();
 	ContextHandle.SetAbility(this);
-	ContextHandle.AddSourceObject(GetAvatarActorFromActorInfo());
-	ContextHandle.AddInstigator(GetAvatarActorFromActorInfo(),GetAvatarActorFromActorInfo());
+	ContextHandle.AddSourceObject(AvatarActor);
+	ContextHandle.AddInstigator(AvatarActor, AvatarActor);
 	
-	FGameplayEffectSpecHandle EffectSpecHandle = GetHuntedAbilitySystemComponentFromActorInfo()->MakeOutgoingSpec(
+	FGameplayEffectSpecHandle EffectSpecHandle = ASC->MakeOutgoingSpec(
 		EffectClass,
 		GetAbilityLevel(),
 		ContextHandle
 	);
+
+	if (!EffectSpecHandle.Data.IsValid())
+	{
+		return FGameplayEffectSpecHandle();
+	}
 	
 	EffectSpecHandle.Data->SetSetByCallerMagnitude(
 	HuntedGameplayTags::Shared_SetByCaller_BaseDamage,

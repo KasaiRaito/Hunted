@@ -30,7 +30,7 @@ bool UPlayerInventoryComponent::IsTileValid(FIntPoint Tile) const
 bool UPlayerInventoryComponent::RoomForItemInInventoryIgnoringItem(const AHuntedInventoryItemBase* ItemToAdd,
 	int8 TopLeftIndex, const AHuntedInventoryItemBase* IgnoredItem) const
 {
-	if (!ItemToAdd)
+	if (!IsValid(ItemToAdd))
 	{
 		return false;
 	}
@@ -55,7 +55,7 @@ bool UPlayerInventoryComponent::RoomForItemInInventoryIgnoringItem(const AHunted
 			}
 
 			AHuntedInventoryItemBase* OccupyingItem = Items[Index];
-			if (OccupyingItem && OccupyingItem != IgnoredItem)
+			if (IsValid(OccupyingItem) && OccupyingItem != IgnoredItem)
 			{
 				return false;
 			}
@@ -76,13 +76,88 @@ void UPlayerInventoryComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 }
 
+void UPlayerInventoryComponent::CompactInvalidInventoryItems()
+{
+	bool bRemovedInvalidReference = false;
+
+	for (AHuntedInventoryItemBase*& Item : Items)
+	{
+		if (Item && !IsValid(Item))
+		{
+			// Prevents later inventory queries from dereferencing actors that were destroyed by pickup/drop Blueprints.
+			Item = nullptr;
+			bRemovedInvalidReference = true;
+		}
+	}
+
+	if (PendingCombineItem && !IsValid(PendingCombineItem))
+	{
+		PendingCombineItem = nullptr;
+	}
+
+	if (PendingCombineItem)
+	{
+		bool bPendingItemStillPresent = false;
+		for (AHuntedInventoryItemBase* Item : Items)
+		{
+			if (Item == PendingCombineItem)
+			{
+				bPendingItemStillPresent = true;
+				break;
+			}
+		}
+
+		if (!bPendingItemStillPresent)
+		{
+			PendingCombineItem = nullptr;
+		}
+	}
+
+	if (bRemovedInvalidReference)
+	{
+		AllItems.Reset();
+	}
+}
+
+void UPlayerInventoryComponent::PrepareItemForInventory(AHuntedInventoryItemBase* ItemToPrepare) const
+{
+	if (!IsValid(ItemToPrepare))
+	{
+		return;
+	}
+
+	// Inventory-held actors must remain alive but not collide/render as world pickups.
+	ItemToPrepare->SetOwner(GetOwner());
+	ItemToPrepare->SetActorHiddenInGame(true);
+	ItemToPrepare->SetActorEnableCollision(false);
+	ItemToPrepare->SetActorTickEnabled(false);
+}
+
+AHuntedInventoryItemBase* UPlayerInventoryComponent::ResolveInventoryStorageItem(AHuntedInventoryItemBase* SourceItem)
+{
+	if (!IsValid(SourceItem))
+	{
+		return nullptr;
+	}
+
+	if (IsItemInInventory(SourceItem) || SourceItem->GetOwner() == GetOwner() || SourceItem->IsHidden())
+	{
+		PrepareItemForInventory(SourceItem);
+		return SourceItem;
+	}
+
+	// Pickup Blueprints often destroy their world actor after TryAddItem; store a hidden clone instead.
+	return SpawnStackCloneFromItem(SourceItem);
+}
+
 TMap<AHuntedInventoryItemBase*, FIntPoint> UPlayerInventoryComponent::GetAllItems()
 {
+	CompactInvalidInventoryItems();
 	AllItems.Reset();
 	
 	for (int32 i = 0; i < Items.Num(); i++)
 	{
-		if (Items[i])
+		if (IsValid(Items[i]))
 		{
 			if (!AllItems.Contains(Items[i]))
 			{
@@ -96,7 +171,9 @@ TMap<AHuntedInventoryItemBase*, FIntPoint> UPlayerInventoryComponent::GetAllItem
 
 bool UPlayerInventoryComponent::TryAddItem(AHuntedInventoryItemBase* ItemToAdd)
 {
-	if (!ItemToAdd)
+	CompactInvalidInventoryItems();
+
+	if (!IsValid(ItemToAdd))
 	{
 		Debug::Print(TEXT("Player Inventory Component - Try To Add Item: No Item To Add reference on call"), FColor::Red);
 		return false;
@@ -112,7 +189,13 @@ bool UPlayerInventoryComponent::TryAddItem(AHuntedInventoryItemBase* ItemToAdd)
 		{
 			if (RoomForItemInInventory(ItemToAdd, i))
 			{
-				AddItemAtIndex(ItemToAdd, i);
+				AHuntedInventoryItemBase* InventoryItem = ResolveInventoryStorageItem(ItemToAdd);
+				if (!InventoryItem)
+				{
+					return false;
+				}
+
+				AddItemAtIndex(InventoryItem, i);
 				return true;
 			}
 		}
@@ -130,7 +213,7 @@ bool UPlayerInventoryComponent::TryAddItem(AHuntedInventoryItemBase* ItemToAdd)
 	for (const TPair<AHuntedInventoryItemBase*, FIntPoint>& Pair : ExistingItems)
 	{
 		AHuntedInventoryItemBase* ExistingStack = Pair.Key;
-		if (!CanItemsStackTogether(ItemToAdd, ExistingStack))
+		if (!IsValid(ExistingStack) || !CanItemsStackTogether(ItemToAdd, ExistingStack))
 		{
 			continue;
 		}
@@ -182,9 +265,15 @@ bool UPlayerInventoryComponent::TryAddItem(AHuntedInventoryItemBase* ItemToAdd)
 			continue;
 		}
 
-		ItemToAdd->SetItemAmount(FMath::Min(RemainingAmount, MaxStackPerCell));
-		AddItemAtIndex(ItemToAdd, Index);
-		RemainingAmount -= ItemToAdd->GetItemAmount();
+		AHuntedInventoryItemBase* InventoryItem = ResolveInventoryStorageItem(ItemToAdd);
+		if (!InventoryItem)
+		{
+			break;
+		}
+
+		InventoryItem->SetItemAmount(FMath::Min(RemainingAmount, MaxStackPerCell));
+		AddItemAtIndex(InventoryItem, Index);
+		RemainingAmount -= InventoryItem->GetItemAmount();
 		break;
 	}
 
@@ -211,7 +300,7 @@ int32 UPlayerInventoryComponent::GetTotalItemAmountByTag(FGameplayTag ItemTag) c
 
 	for (AHuntedInventoryItemBase* Item : Items)
 	{
-		if (!Item || CountedItems.Contains(Item))
+		if (!IsValid(Item) || CountedItems.Contains(Item))
 		{
 			continue;
 		}
@@ -262,7 +351,7 @@ bool UPlayerInventoryComponent::TryRemoveItemAmountByTag(FGameplayTag ItemTag, i
 
 	for (AHuntedInventoryItemBase* Item : Items)
 	{
-		if (!Item || ProcessedItems.Contains(Item))
+		if (!IsValid(Item) || ProcessedItems.Contains(Item))
 		{
 			continue;
 		}
@@ -292,7 +381,10 @@ bool UPlayerInventoryComponent::TryRemoveItemAmountByTag(FGameplayTag ItemTag, i
 		else
 		{
 			RemoveItem(Item);
-			Item->Destroy();
+			if (IsValid(Item))
+			{
+				Item->Destroy();
+			}
 		}
 
 		if (RemainingAmountToRemove <= 0)
@@ -308,7 +400,9 @@ bool UPlayerInventoryComponent::TryRemoveItemAmountByTag(FGameplayTag ItemTag, i
 
 bool UPlayerInventoryComponent::BeginCombineSelection(AHuntedInventoryItemBase* ItemToCombine)
 {
-	if (!ItemToCombine || !IsItemInInventory(ItemToCombine))
+	CompactInvalidInventoryItems();
+
+	if (!IsValid(ItemToCombine) || !IsItemInInventory(ItemToCombine))
 	{
 		return false;
 	}
@@ -320,8 +414,9 @@ bool UPlayerInventoryComponent::BeginCombineSelection(AHuntedInventoryItemBase* 
 
 void UPlayerInventoryComponent::CancelCombineSelection()
 {
-	if (!PendingCombineItem)
+	if (!IsValid(PendingCombineItem))
 	{
+		PendingCombineItem = nullptr;
 		return;
 	}
 
@@ -339,6 +434,8 @@ bool UPlayerInventoryComponent::CanCombineItems(AHuntedInventoryItemBase* FirstI
 
 bool UPlayerInventoryComponent::TryCombineItems(AHuntedInventoryItemBase* FirstItem, AHuntedInventoryItemBase* SecondItem)
 {
+	CompactInvalidInventoryItems();
+
 	FHuntedInventoryCombinationRecipe MatchingRecipe;
 	int32 FirstAmount = 0;
 	int32 SecondAmount = 0;
@@ -363,7 +460,7 @@ bool UPlayerInventoryComponent::TryCombineItems(AHuntedInventoryItemBase* FirstI
 	TArray<FConsumedItemSnapshot> Snapshots;
 	auto CaptureSnapshot = [this, &Snapshots](AHuntedInventoryItemBase* ItemToCapture)
 	{
-		if (!ItemToCapture)
+		if (!IsValid(ItemToCapture))
 		{
 			return;
 		}
@@ -388,7 +485,7 @@ bool UPlayerInventoryComponent::TryCombineItems(AHuntedInventoryItemBase* FirstI
 
 	auto ConsumeSpecificItem = [this](AHuntedInventoryItemBase* ItemToConsume, int32 AmountToConsume) -> bool
 	{
-		if (!ItemToConsume || AmountToConsume <= 0)
+		if (!IsValid(ItemToConsume) || AmountToConsume <= 0)
 		{
 			return false;
 		}
@@ -433,7 +530,7 @@ bool UPlayerInventoryComponent::TryCombineItems(AHuntedInventoryItemBase* FirstI
 		{
 			for (const FConsumedItemSnapshot& Snapshot : Snapshots)
 			{
-				if (!Snapshot.Item)
+				if (!IsValid(Snapshot.Item))
 				{
 					continue;
 				}
@@ -455,7 +552,7 @@ bool UPlayerInventoryComponent::TryCombineItems(AHuntedInventoryItemBase* FirstI
 	{
 		for (const FConsumedItemSnapshot& Snapshot : Snapshots)
 		{
-			if (!Snapshot.Item)
+			if (!IsValid(Snapshot.Item))
 			{
 				continue;
 			}
@@ -475,11 +572,14 @@ bool UPlayerInventoryComponent::TryCombineItems(AHuntedInventoryItemBase* FirstI
 
 	if (!TryAddItem(ResultItem))
 	{
-		ResultItem->Destroy();
+		if (IsValid(ResultItem))
+		{
+			ResultItem->Destroy();
+		}
 
 		for (const FConsumedItemSnapshot& Snapshot : Snapshots)
 		{
-			if (!Snapshot.Item)
+			if (!IsValid(Snapshot.Item))
 			{
 				continue;
 			}
@@ -498,13 +598,14 @@ bool UPlayerInventoryComponent::TryCombineItems(AHuntedInventoryItemBase* FirstI
 
 	for (const FConsumedItemSnapshot& Snapshot : Snapshots)
 	{
-		if (!Snapshot.Item)
+		if (!IsValid(Snapshot.Item))
 		{
 			continue;
 		}
 
 		if (!IsItemInInventory(Snapshot.Item) && Snapshot.Item != ResultItem)
 		{
+			// Combination consumes hidden inventory actors; destroy only after all restoration paths are done.
 			Snapshot.Item->Destroy();
 		}
 	}
@@ -516,7 +617,7 @@ bool UPlayerInventoryComponent::TryCombineItems(AHuntedInventoryItemBase* FirstI
 
 bool UPlayerInventoryComponent::CanItemCombineWithPendingSelection(AHuntedInventoryItemBase* CandidateItem) const
 {
-	if (!PendingCombineItem || !CandidateItem)
+	if (!IsValid(PendingCombineItem) || !IsValid(CandidateItem))
 	{
 		return false;
 	}
@@ -526,7 +627,9 @@ bool UPlayerInventoryComponent::CanItemCombineWithPendingSelection(AHuntedInvent
 
 bool UPlayerInventoryComponent::DiscardItem(AHuntedInventoryItemBase* ItemToDiscard)
 {
-	if (!ItemToDiscard || !IsItemInInventory(ItemToDiscard))
+	CompactInvalidInventoryItems();
+
+	if (!IsValid(ItemToDiscard) || !IsItemInInventory(ItemToDiscard))
 	{
 		return false;
 	}
@@ -537,7 +640,10 @@ bool UPlayerInventoryComponent::DiscardItem(AHuntedInventoryItemBase* ItemToDisc
 	}
 
 	RemoveItem(ItemToDiscard);
-	ItemToDiscard->Destroy();
+	if (IsValid(ItemToDiscard))
+	{
+		ItemToDiscard->Destroy();
+	}
 	RefreshInventoryGrid();
 	return true;
 }
@@ -570,7 +676,7 @@ bool UPlayerInventoryComponent::GetResultAtIndex(int8 Index) const
 
 AHuntedInventoryItemBase* UPlayerInventoryComponent::GetItemAtIndex(int8 Index)
 {
-	if (Items.IsValidIndex(Index))
+	if (Items.IsValidIndex(Index) && IsValid(Items[Index]))
 	{
 		return Items[Index];
 	}
@@ -580,14 +686,14 @@ AHuntedInventoryItemBase* UPlayerInventoryComponent::GetItemAtIndex(int8 Index)
 
 bool UPlayerInventoryComponent::FindItemTopLeftTile(AHuntedInventoryItemBase* ItemToFind, FIntPoint& OutTopLeftTile) const
 {
-	if (!ItemToFind)
+	if (!IsValid(ItemToFind))
 	{
 		return false;
 	}
 
 	for (int32 Index = 0; Index < Items.Num(); Index++)
 	{
-		if (Items[Index] == ItemToFind)
+		if (IsValid(Items[Index]) && Items[Index] == ItemToFind)
 		{
 			OutTopLeftTile = IndexToTile(static_cast<int8>(Index));
 			return true;
@@ -599,19 +705,41 @@ bool UPlayerInventoryComponent::FindItemTopLeftTile(AHuntedInventoryItemBase* It
 
 void UPlayerInventoryComponent::AddItemAtIndex(AHuntedInventoryItemBase* ItemToAdd, int8 TopLeftIndex)
 {
-	if (!ItemToAdd)
+	if (!IsValid(ItemToAdd))
 	{
 		return;
 	}
 
-	FIntPoint Dimensions = ItemToAdd->GetItemInventorySize();
-	FIntPoint Tile = IndexToTile(TopLeftIndex);
+	const FIntPoint Dimensions = ItemToAdd->GetItemInventorySize();
+	const FIntPoint Tile = IndexToTile(TopLeftIndex);
+
+	if (Dimensions.X <= 0 || Dimensions.Y <= 0 || !GetResultAtIndex(TopLeftIndex))
+	{
+		return;
+	}
+
+	for (int16 i = Tile.X; i <= (Tile.X + Dimensions.X -1); i++)
+	{
+		for (int16 j = Tile.Y; j <= (Tile.Y + Dimensions.Y -1); j++)
+		{
+			if (!IsTileValid(FIntPoint(i, j)))
+			{
+				return;
+			}
+		}
+	}
+
+	PrepareItemForInventory(ItemToAdd);
 	
 	for (int16 i = Tile.X; i <= (Tile.X + Dimensions.X -1); i++)
 	{
 		for (int16 j = Tile.Y; j <= (Tile.Y + Dimensions.Y -1); j++)
 		{
-			Items[TileToIndex(FIntPoint(i, j))] = ItemToAdd;
+			const int8 ItemIndex = TileToIndex(FIntPoint(i, j));
+			if (Items.IsValidIndex(ItemIndex))
+			{
+				Items[ItemIndex] = ItemToAdd;
+			}
 		}
 	}
 	
@@ -639,7 +767,7 @@ void UPlayerInventoryComponent::RemoveItem(AHuntedInventoryItemBase* ItemToRemov
 bool UPlayerInventoryComponent::CanItemsStackTogether(const AHuntedInventoryItemBase* SourceItem,
 	const AHuntedInventoryItemBase* TargetItem) const
 {
-	if (!SourceItem || !TargetItem || SourceItem == TargetItem)
+	if (!IsValid(SourceItem) || !IsValid(TargetItem) || SourceItem == TargetItem)
 	{
 		return false;
 	}
@@ -662,13 +790,13 @@ bool UPlayerInventoryComponent::CanItemsStackTogether(const AHuntedInventoryItem
 
 bool UPlayerInventoryComponent::CanStackItemAtIndex(const AHuntedInventoryItemBase* SourceItem, int8 TopLeftIndex) const
 {
-	if (!SourceItem || !GetResultAtIndex(TopLeftIndex))
+	if (!IsValid(SourceItem) || !GetResultAtIndex(TopLeftIndex))
 	{
 		return false;
 	}
 
 	AHuntedInventoryItemBase* TargetItem = Items[TopLeftIndex];
-	if (!CanItemsStackTogether(SourceItem, TargetItem))
+	if (!IsValid(TargetItem) || !CanItemsStackTogether(SourceItem, TargetItem))
 	{
 		return false;
 	}
@@ -681,7 +809,7 @@ bool UPlayerInventoryComponent::CanStackItemAtIndex(const AHuntedInventoryItemBa
 
 AHuntedInventoryItemBase* UPlayerInventoryComponent::SpawnStackCloneFromItem(const AHuntedInventoryItemBase* SourceItem) const
 {
-	if (!SourceItem || !GetWorld())
+	if (!IsValid(SourceItem) || !GetWorld())
 	{
 		return nullptr;
 	}
@@ -706,8 +834,7 @@ AHuntedInventoryItemBase* UPlayerInventoryComponent::SpawnStackCloneFromItem(con
 	NewStackItem->SetItemInventorySize(SourceItem->GetItemInventorySize());
 	NewStackItem->SetIcon(SourceItem->GetIcon());
 	NewStackItem->SetItemData(SourceItem->GetItemData());
-	NewStackItem->SetActorHiddenInGame(true);
-	NewStackItem->SetActorEnableCollision(false);
+	PrepareItemForInventory(NewStackItem);
 
 	return NewStackItem;
 }
@@ -733,8 +860,7 @@ AHuntedInventoryItemBase* UPlayerInventoryComponent::SpawnInventoryItemInstance(
 
 	if (SpawnedItem)
 	{
-		SpawnedItem->SetActorHiddenInGame(true);
-		SpawnedItem->SetActorEnableCollision(false);
+		PrepareItemForInventory(SpawnedItem);
 	}
 
 	return SpawnedItem;
@@ -742,7 +868,7 @@ AHuntedInventoryItemBase* UPlayerInventoryComponent::SpawnInventoryItemInstance(
 
 void UPlayerInventoryComponent::RefreshInventoryGrid() const
 {
-	if (InventoryGridWidgetReference)
+	if (IsValid(InventoryGridWidgetReference))
 	{
 		InventoryGridWidgetReference->RefreshItemWidgets();
 	}
@@ -750,14 +876,14 @@ void UPlayerInventoryComponent::RefreshInventoryGrid() const
 
 bool UPlayerInventoryComponent::IsItemInInventory(const AHuntedInventoryItemBase* Item) const
 {
-	if (!Item)
+	if (!IsValid(Item))
 	{
 		return false;
 	}
 
 	for (AHuntedInventoryItemBase* InventoryItem : Items)
 	{
-		if (InventoryItem == Item)
+		if (IsValid(InventoryItem) && InventoryItem == Item)
 		{
 			return true;
 		}
@@ -768,7 +894,7 @@ bool UPlayerInventoryComponent::IsItemInInventory(const AHuntedInventoryItemBase
 
 bool UPlayerInventoryComponent::CanItemSatisfyAmount(const AHuntedInventoryItemBase* Item, int32 RequiredAmount) const
 {
-	if (!Item || RequiredAmount <= 0)
+	if (!IsValid(Item) || RequiredAmount <= 0)
 	{
 		return false;
 	}
@@ -788,7 +914,7 @@ bool UPlayerInventoryComponent::TryMatchCombinationRecipe(const AHuntedInventory
 	OutFirstAmount = 0;
 	OutSecondAmount = 0;
 
-	if (!FirstItem || !SecondItem || !IsItemInInventory(FirstItem) || !IsItemInInventory(SecondItem))
+	if (!IsValid(FirstItem) || !IsValid(SecondItem) || !IsItemInInventory(FirstItem) || !IsItemInInventory(SecondItem))
 	{
 		return false;
 	}
@@ -853,7 +979,7 @@ bool UPlayerInventoryComponent::TryMatchCombinationRecipe(const AHuntedInventory
 
 bool UPlayerInventoryComponent::CanPlaceOrStackItemAtIndex(AHuntedInventoryItemBase* ItemToAdd, int8 TopLeftIndex) const
 {
-	if (!ItemToAdd)
+	if (!IsValid(ItemToAdd))
 	{
 		return false;
 	}
@@ -868,7 +994,7 @@ bool UPlayerInventoryComponent::CanPlaceOrStackItemAtIndex(AHuntedInventoryItemB
 
 bool UPlayerInventoryComponent::CanMoveItemToIndex(AHuntedInventoryItemBase* ItemToMove, int8 TargetIndex) const
 {
-	if (!ItemToMove || !GetResultAtIndex(TargetIndex))
+	if (!IsValid(ItemToMove) || !GetResultAtIndex(TargetIndex))
 	{
 		return false;
 	}
@@ -892,7 +1018,7 @@ bool UPlayerInventoryComponent::TryStackItemAtIndex(AHuntedInventoryItemBase* It
 	}
 
 	AHuntedInventoryItemBase* TargetItem = Items[TopLeftIndex];
-	if (!TargetItem)
+	if (!IsValid(TargetItem))
 	{
 		return false;
 	}
@@ -921,7 +1047,7 @@ bool UPlayerInventoryComponent::TryMoveItemToIndex(AHuntedInventoryItemBase* Ite
 {
 	bOutSourceConsumed = false;
 
-	if (!ItemToMove || !GetResultAtIndex(TargetIndex))
+	if (!IsValid(ItemToMove) || !GetResultAtIndex(TargetIndex))
 	{
 		return false;
 	}

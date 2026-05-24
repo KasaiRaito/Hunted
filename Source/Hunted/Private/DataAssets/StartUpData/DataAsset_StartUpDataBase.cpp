@@ -8,7 +8,11 @@
 void UDataAsset_StartUpDataBase::GivenToAbilitySystemComponent(UHuntedAbilitySystemComponent* InASCToGive,
 	int32 ApplyLevel)
 {
-	check(InASCToGive);
+	if (!IsValid(InASCToGive))
+	{
+		// Startup data can be reused by Blueprint tests; skip invalid ASCs instead of asserting.
+		return;
+	}
 
 	GranAbilities(ActivateOnGivenAbilities,InASCToGive,ApplyLevel);
 	GranAbilities(ReactiveAbilities,InASCToGive,ApplyLevel);

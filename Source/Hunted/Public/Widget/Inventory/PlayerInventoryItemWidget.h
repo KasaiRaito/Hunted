@@ -94,7 +94,8 @@ protected:
 	UPROPERTY(VisibleDefaultsOnly, Category= "UI")
 	AHuntedPlayerCharacter* CharacterReference;
 	
-	AHuntedInventoryItemBase* Item;
+	UPROPERTY(Transient)
+	AHuntedInventoryItemBase* Item = nullptr;
 	
 	UPROPERTY(VisibleDefaultsOnly, meta = (BindWidget), Category= "UI")
 	FVector2D Size;	

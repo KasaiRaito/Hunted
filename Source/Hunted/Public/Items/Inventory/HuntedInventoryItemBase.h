@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "HuntedInteractable.h"
 #include "GameFramework/Actor.h"
 #include "HuntedTypes/HuntedStructTypes.h"
 #include "HuntedInventoryItemBase.generated.h"
@@ -11,7 +12,7 @@ class USphereComponent;
 class UWidgetComponent;
 
 UCLASS()
-class HUNTED_API AHuntedInventoryItemBase : public AActor
+class HUNTED_API AHuntedInventoryItemBase : public AHuntedInteractable
 {
 	GENERATED_BODY()
 	
