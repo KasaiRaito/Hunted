@@ -10,12 +10,35 @@
 void UPawnCombatComponent::RegisterSpawnedWeapon(FGameplayTag InWeaponTagToRegister,
                                                  AHuntedWeaponBase* InWeaponToRegister, bool bRegisterAsEquippedWeapon)
 {
-	checkf(!CharacterCarriedWeaponMap.Contains(InWeaponTagToRegister),
-		TEXT("A TAG named %s has already been added as carried weapon"), *InWeaponTagToRegister.ToString());
+	if (!InWeaponTagToRegister.IsValid() || !IsValid(InWeaponToRegister))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Skipped weapon registration because the tag or weapon pointer was invalid."));
+		return;
+	}
 
-	check(InWeaponToRegister);
+	if (AHuntedWeaponBase** ExistingWeapon = CharacterCarriedWeaponMap.Find(InWeaponTagToRegister))
+	{
+		if (*ExistingWeapon == InWeaponToRegister)
+		{
+			if (bRegisterAsEquippedWeapon)
+			{
+				CurrentEquippedWeaponTag = InWeaponTagToRegister;
+			}
+			return;
+		}
 
-	CharacterCarriedWeaponMap.Emplace(InWeaponTagToRegister, InWeaponToRegister);
+		// Prevents repeated spawn abilities from crashing PIE when they reuse the same gameplay tag.
+		if (IsValid(*ExistingWeapon))
+		{
+			(*ExistingWeapon)->OnWeaponHitTarget.Unbind();
+			(*ExistingWeapon)->OnWeaponPulledFromTarget.Unbind();
+		}
+		*ExistingWeapon = InWeaponToRegister;
+	}
+	else
+	{
+		CharacterCarriedWeaponMap.Emplace(InWeaponTagToRegister, InWeaponToRegister);
+	}
 
 	InWeaponToRegister->OnWeaponHitTarget.BindUObject(this, &ThisClass::OnWeaponHitTarget);
 	InWeaponToRegister->OnWeaponPulledFromTarget.BindUObject(this, &ThisClass::OnWeaponPulledFromTargetActor);
@@ -35,7 +58,7 @@ AHuntedWeaponBase* UPawnCombatComponent::GetCharacterCarriedWeaponByTag(FGamepla
 	{
 		if (AHuntedWeaponBase* const* FoundWeapon = CharacterCarriedWeaponMap.Find(InWeaponTagToGet))
 		{
-			return *FoundWeapon;
+			return IsValid(*FoundWeapon) ? *FoundWeapon : nullptr;
 		}
 	}
 	return nullptr;
@@ -57,7 +80,11 @@ void UPawnCombatComponent::ToggleWeaponCollision(bool bShouldEnable, EToggleDama
 	{
 		AHuntedWeaponBase* WeaponToToggle = GetCharacterCurrentEquippedWeapon();
 		
-		check(WeaponToToggle);
+		// Animation notifies can fire after an ability ends or a weapon is replaced; skip instead of crashing.
+		if (!IsValid(WeaponToToggle) || !WeaponToToggle->GetWeaponCollisionBox())
+		{
+			return;
+		}
 		
 		if (bShouldEnable)
 		{

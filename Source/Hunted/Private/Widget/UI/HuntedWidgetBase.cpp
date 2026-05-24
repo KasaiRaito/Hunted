@@ -26,11 +26,20 @@ void UHuntedWidgetBase::NativeOnInitialized()
 void UHuntedWidgetBase::InitEnemyCreateWidget(AActor* OwningEnemyActor)
 {
 #if WITH_EDITOR 
+	if (!IsValid(OwningEnemyActor))
+	{
+		return;
+	}
+
 	if (IPawnUIInterface* PawnUIInterface = Cast<IPawnUIInterface>(OwningEnemyActor))
 	{
 		UEnemyUIComponent* EnemyUIComponent = PawnUIInterface->GetEnemyUIComponent();
 		
-		checkf(EnemyUIComponent, TEXT("Failed to extract an EnemyUIComponent from %s"), *OwningEnemyActor->GetActorNameOrLabel());
+		if (!IsValid(EnemyUIComponent))
+		{
+			// Editor preview widgets can be initialized before enemy components are ready.
+			return;
+		}
 		
 		BP_OnOwningEnemyUIComponentInitialized(EnemyUIComponent);
 	}
@@ -39,11 +48,20 @@ void UHuntedWidgetBase::InitEnemyCreateWidget(AActor* OwningEnemyActor)
 
 void UHuntedWidgetBase::InitInteractCreateWidget(AActor* OwningObjectActor)
 {
+	if (!IsValid(OwningObjectActor))
+	{
+		return;
+	}
+
 	if (IItemUIInterface* ItemUIInterface = Cast<IItemUIInterface>(OwningObjectActor))
 	{
 		UObjectUIComponent* ObjectUIComponent = ItemUIInterface->GetObjectUIComponent();
 		
-		checkf(ObjectUIComponent, TEXT("Failed to extract an ObjectUIComponent from %s"), *OwningObjectActor->GetActorNameOrLabel());
+		if (!IsValid(ObjectUIComponent))
+		{
+			// Interactable widgets may outlive the actor component during teardown.
+			return;
+		}
 		
 		BP_OnOwningObjectUIComponentInitialized(ObjectUIComponent);
 	}

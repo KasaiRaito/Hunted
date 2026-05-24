@@ -84,17 +84,39 @@ void AHuntedPlayerCharacter::PossessedBy(AController* NewController)
 
 void AHuntedPlayerCharacter::SetupPlayerInputComponent(UInputComponent* InPlayerInputComponent)
 {
-	checkf(InputConfigDataAsset, TEXT("InputConfigDataAsset is not ASSIGNED"))
+	if (!InputConfigDataAsset)
+	{
+		// Missing input assets should disable binding, not crash after level start.
+		Debug::Print(TEXT("InputConfigDataAsset is not assigned"), FColor::Red);
+		return;
+	}
 	
-	ULocalPlayer* LocalPlayer = GetController<APlayerController>()->GetLocalPlayer();
+	APlayerController* PlayerController = GetController<APlayerController>();
+	if (!PlayerController)
+	{
+		return;
+	}
+
+	ULocalPlayer* LocalPlayer = PlayerController->GetLocalPlayer();
+	if (!LocalPlayer)
+	{
+		return;
+	}
 
 	UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(LocalPlayer);
 
-	check(Subsystem);
+	if (!Subsystem)
+	{
+		return;
+	}
 
 	Subsystem->AddMappingContext(InputConfigDataAsset->DefaultMappingContext, 0);
 
-	UPlayerInputComponent* PlayerInputComponent = CastChecked<UPlayerInputComponent>(InPlayerInputComponent);
+	UPlayerInputComponent* PlayerInputComponent = Cast<UPlayerInputComponent>(InPlayerInputComponent);
+	if (!PlayerInputComponent)
+	{
+		return;
+	}
 
 	PlayerInputComponent->BindNativeInputAction(InputConfigDataAsset, HuntedGameplayTags::InputTag_Move,
 		ETriggerEvent::Triggered, this, &ThisClass::Input_Move);

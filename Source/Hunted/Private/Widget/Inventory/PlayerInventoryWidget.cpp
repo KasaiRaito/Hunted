@@ -25,13 +25,13 @@ FReply UPlayerInventoryWidget::NativeOnMouseButtonDown(const FGeometry& InGeomet
 bool UPlayerInventoryWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent,
 	UDragDropOperation* InOperation)
 {
-	if (!InOperation || !InOperation->Payload)
+	if (!InOperation || !IsValid(InOperation->Payload) || !IsValid(CharacterReference))
 	{
 		return false;
 	}
 
 	AHuntedInventoryItemBase* PayloadItem = Cast<AHuntedInventoryItemBase>(InOperation->Payload);
-	if (!PayloadItem)
+	if (!IsValid(PayloadItem))
 	{
 		return false;
 	}
@@ -39,7 +39,7 @@ bool UPlayerInventoryWidget::NativeOnDrop(const FGeometry& InGeometry, const FDr
 	UPlayerInventoryComponent* InventoryComponent = CharacterReference
 		? CharacterReference->GetPlayerInventoryComponent()
 		: nullptr;
-	if (!InventoryComponent)
+	if (!IsValid(InventoryComponent))
 	{
 		return false;
 	}
@@ -53,7 +53,14 @@ bool UPlayerInventoryWidget::NativeOnDrop(const FGeometry& InGeometry, const FDr
 		{
 			InventoryGrid->RefreshItemWidgets();
 		}
+
+		// The drag payload points at the hidden inventory actor; clear and destroy it after removal.
 		InOperation->Tag = TEXT("RemovedFromInventory");
+		InOperation->Payload = nullptr;
+		if (IsValid(PayloadItem))
+		{
+			PayloadItem->Destroy();
+		}
 		return true;
 	}
 	
@@ -69,9 +76,15 @@ bool UPlayerInventoryWidget::NativeOnDrop(const FGeometry& InGeometry, const FDr
 	
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		return false;
+	}
 	
-	SpawnedItem = GetWorld()->SpawnActor<AHuntedInventoryItemBase>(PayloadItem->GetClass(), SpawnLocation, SpawnRotation, SpawnParams);
-	if (!SpawnedItem)
+	SpawnedItem = World->SpawnActor<AHuntedInventoryItemBase>(PayloadItem->GetClass(), SpawnLocation, SpawnRotation, SpawnParams);
+	if (!IsValid(SpawnedItem))
 	{
 		return false;
 	}
@@ -89,7 +102,13 @@ bool UPlayerInventoryWidget::NativeOnDrop(const FGeometry& InGeometry, const FDr
 		InventoryGrid->RefreshItemWidgets();
 	}
 	
+	// The world actor now owns the dropped item state; the inventory copy must not remain as a stale payload.
 	InOperation->Tag = TEXT("DroppedToWorld");
+	InOperation->Payload = nullptr;
+	if (IsValid(PayloadItem))
+	{
+		PayloadItem->Destroy();
+	}
 	
 	return true;
 }
@@ -98,17 +117,31 @@ FHitResult UPlayerInventoryWidget::GetLocationBelow(FVector Start) const
 {
 	FHitResult HitResult;
 	FVector End = Start - FVector(0, 0, 1000.0f); // Trace 1000 units down
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		HitResult.ImpactPoint = End;
+		HitResult.ImpactNormal = FVector::UpVector;
+		return HitResult;
+	}
 
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(CharacterReference); // Don't hit yourself
 
-	bool bHit = GetWorld()->LineTraceSingleByChannel(
+	bool bHit = World->LineTraceSingleByChannel(
 		HitResult, 
 		Start, 
 		End, 
 		ECC_Visibility, 
 		Params
 	);
+
+	if (!bHit)
+	{
+		// Avoid spawning dropped items at the world origin when the ground trace misses.
+		HitResult.ImpactPoint = End;
+		HitResult.ImpactNormal = FVector::UpVector;
+	}
 	
 	return HitResult; 
 }

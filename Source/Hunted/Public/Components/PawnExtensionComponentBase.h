@@ -18,7 +18,8 @@ protected:
 	{
 		static_assert(TPointerIsConvertibleFromTo<T, APawn>::Value,
 			"'T' Template Parameter get GetPawn must be derived from APawn");
-		return CastChecked<T>(GetOwner());
+		// Components can receive late callbacks during teardown; return nullptr instead of asserting on owner state.
+		return Cast<T>(GetOwner());
 	}
 
 	APawn* GetOwningPawn() const
@@ -31,6 +32,7 @@ protected:
 	{
 		static_assert(TPointerIsConvertibleFromTo<T, AController>::Value,
 				"'T' Template Parameter get GetController must be derived from AController");
-		return GetOwningPawn<APawn>()->GetController<T>();
+		APawn* OwningPawn = GetOwningPawn<APawn>();
+		return IsValid(OwningPawn) ? OwningPawn->GetController<T>() : nullptr;
 	}
 };

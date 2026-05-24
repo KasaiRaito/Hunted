@@ -25,36 +25,51 @@ UHuntedAttributeSet::UHuntedAttributeSet()
 
 void UHuntedAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data)
 {
+	AActor* AvatarActor = Data.Target.GetAvatarActor();
+	if (!IsValid(AvatarActor))
+	{
+		return;
+	}
+
 	if (!CachedPawnUIInterface.IsValid())
 	{
-		CachedPawnUIInterface = TWeakInterfacePtr<IPawnUIInterface>(Data.Target.GetAvatarActor());
+		CachedPawnUIInterface = TWeakInterfacePtr<IPawnUIInterface>(AvatarActor);
 		//CachedPawnUIInterface = Cast<IPawnUIInterface>(Data.Target.GetAvatarActor());
 	}
 	
-	checkf(CachedPawnUIInterface.IsValid(), TEXT("%s didn't implement IPawnUIInterface"), *Data.Target.GetAvatarActor()->GetActorNameOrLabel());
+	if (!CachedPawnUIInterface.IsValid())
+	{
+		// Gameplay effects can hit non-UI actors; skip UI updates instead of asserting in combat.
+		return;
+	}
 	
 	UPawnUIComponent* PawnUIComponent = CachedPawnUIInterface->GetPawnUIComponent();
 	
-	checkf(PawnUIComponent, TEXT("Could not Extract a PawnUIComponent from %s"), *Data.Target.GetAvatarActor()->GetActorNameOrLabel());
+	if (!IsValid(PawnUIComponent))
+	{
+		return;
+	}
 		
 	if (Data.EvaluatedData.Attribute == GetCurrentHealthAttribute())
 	{
-		const float NewCurrentHealth = FMath::Clamp(GetCurrentHealth(), 0.f, GetMaxHealth());
+		const float SafeMaxHealth = FMath::Max(GetMaxHealth(), KINDA_SMALL_NUMBER);
+		const float NewCurrentHealth = FMath::Clamp(GetCurrentHealth(), 0.f, SafeMaxHealth);
 		
 		SetCurrentHealth(NewCurrentHealth);
 		
-		PawnUIComponent->OnCurrentHealthChanged.Broadcast(GetCurrentHealth()/GetMaxHealth());
+		PawnUIComponent->OnCurrentHealthChanged.Broadcast(GetCurrentHealth()/SafeMaxHealth);
 	}
 	
 	if (Data.EvaluatedData.Attribute == GetCurrentSanityAttribute())
 	{
-		const float NewCurrentSanity = FMath::Clamp(GetCurrentSanity(), 0.f, GetMaxSanity());
+		const float SafeMaxSanity = FMath::Max(GetMaxSanity(), KINDA_SMALL_NUMBER);
+		const float NewCurrentSanity = FMath::Clamp(GetCurrentSanity(), 0.f, SafeMaxSanity);
 		
 		SetCurrentSanity(NewCurrentSanity);
 		
 		if (UPlayerUIComponent* PlayerUIComponent = CachedPawnUIInterface->GetPlayerUIComponent())
 		{
-			PlayerUIComponent->OnCurrentSanityChange.Broadcast(GetCurrentSanity()/GetMaxSanity());
+			PlayerUIComponent->OnCurrentSanityChange.Broadcast(GetCurrentSanity()/SafeMaxSanity);
 		}
 	}
 	
@@ -63,7 +78,8 @@ void UHuntedAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffect
 		const float OldHealth = GetCurrentHealth();
 		const float DamageDone = GetDamageTaken();
 		
-		const float NewCurrentHealth = FMath::Clamp(OldHealth - DamageDone, 0.0f, GetMaxHealth());
+		const float SafeMaxHealth = FMath::Max(GetMaxHealth(), KINDA_SMALL_NUMBER);
+		const float NewCurrentHealth = FMath::Clamp(OldHealth - DamageDone, 0.0f, SafeMaxHealth);
 		
 		SetCurrentHealth(NewCurrentHealth);
 		
@@ -74,11 +90,11 @@ void UHuntedAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffect
 		Debug::Print(DebugString, FColor::Green);
 		**/
 		
-		PawnUIComponent->OnCurrentHealthChanged.Broadcast(GetCurrentHealth()/GetMaxHealth());
+		PawnUIComponent->OnCurrentHealthChanged.Broadcast(GetCurrentHealth()/SafeMaxHealth);
 		
 		if (GetCurrentHealth() == 0.0f)
 		{
-			UHuntedFunctionLibrary::AddGameplayTagToActorIfNone(Data.Target.GetAvatarActor(), HuntedGameplayTags::Shared_Status_Death);
+			UHuntedFunctionLibrary::AddGameplayTagToActorIfNone(AvatarActor, HuntedGameplayTags::Shared_Status_Death);
 		}
 	}
 }

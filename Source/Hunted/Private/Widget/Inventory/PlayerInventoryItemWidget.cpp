@@ -38,12 +38,12 @@ void UPlayerInventoryItemWidget::NativeConstruct()
 	Super::NativeConstruct();
 	
 	CharacterReference = Cast<AHuntedPlayerCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
-	if (!CharacterReference)
+	if (!IsValid(CharacterReference))
 	{
 		Debug::Print("Plater Inventory Widget Couldn't Get: Player Character Reference");
 		return;
 	}
-	if (Item)
+	if (IsValid(Item))
 	{
 		AddItemWidget(Item);
 		return;
@@ -63,13 +63,13 @@ void UPlayerInventoryItemWidget::NativeDestruct()
 
 void UPlayerInventoryItemWidget::AddItemWidget(AHuntedInventoryItemBase* ItemToAdd)
 {
-	if (!ItemToAdd)
+	if (!IsValid(ItemToAdd))
 	{
 		Debug::Print("Plater Inventory Widget: No Item To Add");
 		return;
 	}
 
-	if (!CharacterReference || !CharacterReference->GetPlayerInventoryComponent() || !ItemImage || !BackgroundSizeBox)
+	if (!IsValid(CharacterReference) || !IsValid(CharacterReference->GetPlayerInventoryComponent()) || !ItemImage || !BackgroundSizeBox)
 	{
 		return;
 	}
@@ -104,7 +104,7 @@ void UPlayerInventoryItemWidget::NativeOnMouseEnter(const FGeometry& InGeometry,
 		return;
 	}
 
-	if (CharacterReference && CharacterReference->GetPlayerInventoryComponent()
+	if (IsValid(CharacterReference) && IsValid(CharacterReference->GetPlayerInventoryComponent())
 		&& CharacterReference->GetPlayerInventoryComponent()->IsCombineModeActive())
 	{
 		RefreshCombineVisualState();
@@ -123,7 +123,7 @@ void UPlayerInventoryItemWidget::NativeOnMouseLeave(const FPointerEvent& InMouse
 		return;
 	}
 
-	if (CharacterReference && CharacterReference->GetPlayerInventoryComponent()
+	if (IsValid(CharacterReference) && IsValid(CharacterReference->GetPlayerInventoryComponent())
 		&& CharacterReference->GetPlayerInventoryComponent()->IsCombineModeActive())
 	{
 		RefreshCombineVisualState();
@@ -140,20 +140,30 @@ void UPlayerInventoryItemWidget::NativeOnDragDetected(const FGeometry& InGeometr
 	//Debug::Print("Plater Inventory Widget: Drag Detected", FColor::Red);
 
 	HideContextMenu();
+
+	if (!IsValid(Item) || !IsValid(CharacterReference) || !IsValid(CharacterReference->GetPlayerInventoryComponent()))
+	{
+		// Drag events can outlive a refreshed inventory widget; ignore stale item actors.
+		OutOperation = nullptr;
+		return;
+	}
 	
 	bIsDragging = true;
 	SetDragVisualState(EInventoryDragVisualState::InvalidPlacement);
 	
 	//Set Variables for the Drag Ability
 	UPlayerInventoryDragDropOperation* DragOperation = NewObject<UPlayerInventoryDragDropOperation>();
+	if (!DragOperation)
+	{
+		OutOperation = nullptr;
+		return;
+	}
+
 	DragOperation->DefaultDragVisual = this;
 	DragOperation->Payload = Item;
 
-	if (DragOperation)
-	{
-		DragOperation->OnDrop.AddDynamic(this, &UPlayerInventoryItemWidget::HandleDragOperationFinished);
-		DragOperation->OnDragCancelled.AddDynamic(this, &UPlayerInventoryItemWidget::HandleDragOperationFinished);
-	}
+	DragOperation->OnDrop.AddDynamic(this, &UPlayerInventoryItemWidget::HandleDragOperationFinished);
+	DragOperation->OnDragCancelled.AddDynamic(this, &UPlayerInventoryItemWidget::HandleDragOperationFinished);
 	
 	// Remove the widget from the grid while keeping the inventory data intact until drop resolution.
 	if (UPlayerInventoryComponent* InventoryComponent = CharacterReference->GetPlayerInventoryComponent())
@@ -195,7 +205,7 @@ void UPlayerInventoryItemWidget::NativeOnDragDetected(const FGeometry& InGeometr
 FReply UPlayerInventoryItemWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry,
 	const FPointerEvent& InMouseEvent)
 {
-	if (!CharacterReference || !CharacterReference->GetPlayerInventoryComponent() || !Item)
+	if (!IsValid(CharacterReference) || !IsValid(CharacterReference->GetPlayerInventoryComponent()) || !IsValid(Item))
 	{
 		return FReply::Unhandled();
 	}
@@ -231,7 +241,7 @@ FReply UPlayerInventoryItemWidget::NativeOnMouseButtonDown(const FGeometry& InGe
 
 void UPlayerInventoryItemWidget::HandleDragOperationFinished(UDragDropOperation* Operation)
 {
-	if (!CharacterReference)
+	if (!IsValid(CharacterReference))
 	{
 		return;
 	}
@@ -320,7 +330,7 @@ void UPlayerInventoryItemWidget::UpdateStackCounterVisual()
 		return;
 	}
 
-	if (!Item)
+	if (!IsValid(Item))
 	{
 		StackCounterText->SetVisibility(ESlateVisibility::Collapsed);
 		return;
@@ -504,7 +514,7 @@ bool UPlayerInventoryItemWidget::IsAnyContextMenuOpen()
 
 void UPlayerInventoryItemWidget::RaiseContextMenuLayer()
 {
-	if (CharacterReference && CharacterReference->GetPlayerInventoryComponent())
+	if (IsValid(CharacterReference) && IsValid(CharacterReference->GetPlayerInventoryComponent()))
 	{
 		if (UPlayerInventoryGridWidget* InventoryGrid = CharacterReference->GetPlayerInventoryComponent()->GetPlayerInventoryGridWidget())
 		{
@@ -543,7 +553,7 @@ void UPlayerInventoryItemWidget::RaiseContextMenuLayer()
 
 void UPlayerInventoryItemWidget::RestoreContextMenuLayer()
 {
-	if (bHasCachedInventoryGridSlotZOrder && CharacterReference && CharacterReference->GetPlayerInventoryComponent())
+	if (bHasCachedInventoryGridSlotZOrder && IsValid(CharacterReference) && IsValid(CharacterReference->GetPlayerInventoryComponent()))
 	{
 		if (UPlayerInventoryGridWidget* InventoryGrid = CharacterReference->GetPlayerInventoryComponent()->GetPlayerInventoryGridWidget())
 		{
@@ -571,7 +581,7 @@ void UPlayerInventoryItemWidget::RestoreContextMenuLayer()
 
 void UPlayerInventoryItemWidget::RefreshCombineVisualState()
 {
-	if (!CharacterReference || !CharacterReference->GetPlayerInventoryComponent() || !Item)
+	if (!IsValid(CharacterReference) || !IsValid(CharacterReference->GetPlayerInventoryComponent()) || !IsValid(Item))
 	{
 		SetDragVisualState(EInventoryDragVisualState::Idle);
 		return;
@@ -619,6 +629,12 @@ FHuntedInventoryContextActionEntry UPlayerInventoryItemWidget::MakeContextAction
 void UPlayerInventoryItemWidget::HandleInspectClicked()
 {
 	HideContextMenu();
+
+	if (!IsValid(Item))
+	{
+		return;
+	}
+
 	BP_OnInspectRequested(Item);
 }
 
@@ -626,7 +642,7 @@ void UPlayerInventoryItemWidget::HandleCombineClicked()
 {
 	HideContextMenu();
 
-	if (!CharacterReference || !CharacterReference->GetPlayerInventoryComponent() || !Item)
+	if (!IsValid(CharacterReference) || !IsValid(CharacterReference->GetPlayerInventoryComponent()) || !IsValid(Item))
 	{
 		return;
 	}
@@ -638,7 +654,7 @@ void UPlayerInventoryItemWidget::HandleDiscardClicked()
 {
 	HideContextMenu();
 
-	if (!CharacterReference || !CharacterReference->GetPlayerInventoryComponent() || !Item)
+	if (!IsValid(CharacterReference) || !IsValid(CharacterReference->GetPlayerInventoryComponent()) || !IsValid(Item))
 	{
 		return;
 	}
@@ -650,7 +666,7 @@ void UPlayerInventoryItemWidget::InitializeInventoryItem(AHuntedInventoryItemBas
 {
 	Item = ItemToAdd;
 
-	if (CharacterReference && Item)
+	if (IsValid(CharacterReference) && IsValid(Item))
 	{
 		AddItemWidget(Item);
 	}
@@ -658,7 +674,7 @@ void UPlayerInventoryItemWidget::InitializeInventoryItem(AHuntedInventoryItemBas
 
 void UPlayerInventoryItemWidget::RefreshItemVisualLayout()
 {
-	if (Item)
+	if (IsValid(Item))
 	{
 		AddItemWidget(Item);
 	}
@@ -692,14 +708,14 @@ void UPlayerInventoryDragDropOperation::InitializeInventoryDrag(AHuntedInventory
 	DraggedItem = InDraggedItem;
 	bHasDragStartTile = bInHasDragStartTile;
 	DragStartTopLeftTile = InDragStartTopLeftTile;
-	OriginalItemSize = DraggedItem ? DraggedItem->GetItemInventorySize() : FIntPoint::ZeroValue;
+	OriginalItemSize = IsValid(DraggedItem) ? DraggedItem->GetItemInventorySize() : FIntPoint::ZeroValue;
 	bWasRightMouseButtonDown = false;
 	bIsRotated = false;
 }
 
 bool UPlayerInventoryDragDropOperation::ToggleDraggedItemRotation()
 {
-	if (!DraggedItem)
+	if (!IsValid(DraggedItem))
 	{
 		return false;
 	}
@@ -726,7 +742,7 @@ bool UPlayerInventoryDragDropOperation::ToggleDraggedItemRotation()
 
 void UPlayerInventoryDragDropOperation::RestoreOriginalItemSize()
 {
-	if (!DraggedItem || OriginalItemSize.X <= 0 || OriginalItemSize.Y <= 0)
+	if (!IsValid(DraggedItem) || OriginalItemSize.X <= 0 || OriginalItemSize.Y <= 0)
 	{
 		return;
 	}

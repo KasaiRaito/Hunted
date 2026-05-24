@@ -29,7 +29,11 @@ void AHuntedWeaponBase::OnCollisionBoxBeginOverlap(UPrimitiveComponent* Overlapp
 {
 	APawn* WeaponOwningPawn = GetInstigator<APawn>();
 	
-	checkf(WeaponOwningPawn, TEXT("Forgot instigator as Owning Pawn for the Weapon: %s "), *GetName());
+	// Some spawned Blueprint weapons had no instigator during PIE; ignore the hit instead of asserting.
+	if (!IsValid(WeaponOwningPawn))
+	{
+		return;
+	}
 	
 	if (APawn* HitPawn= Cast<APawn>(OtherActor))
 	{
@@ -45,7 +49,11 @@ void AHuntedWeaponBase::OnCollisionBoxEndOverlap(UPrimitiveComponent* Overlapped
 {
 	APawn* WeaponOwningPawn = GetInstigator<APawn>();
 	
-	checkf(WeaponOwningPawn, TEXT("Forgot instigator as Owning Pawn for the Weapon: %s "), *GetName());
+	// End-overlap can also arrive after the owning pawn has been removed.
+	if (!IsValid(WeaponOwningPawn))
+	{
+		return;
+	}
 	
 	if (APawn* HitPawn= Cast<APawn>(OtherActor))
 	{

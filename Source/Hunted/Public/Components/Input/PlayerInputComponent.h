@@ -31,7 +31,11 @@ template <class UserObject, typename CallBackFunc>
 void UPlayerInputComponent::BindNativeInputAction(const UDataAsset_InputConfig* InInputConfig,
 	const FGameplayTag& InInputTag, ETriggerEvent TriggerEvent, UserObject* ContextObject, CallBackFunc Func)
 {
-	checkf(InInputConfig,TEXT("Input config data asset is null, can not proceed with binding"));
+	if (!InInputConfig)
+	{
+		// Blueprint/player setup can be incomplete in PIE; skip binding instead of crashing.
+		return;
+	}
 
 	if (UInputAction* FoundAction = InInputConfig->FindNativeInputActionByTag(InInputTag))
 	{
@@ -43,7 +47,10 @@ template <class UserObject, typename CallbackFunc>
 void UPlayerInputComponent::BindAbilityInputAction(const UDataAsset_InputConfig* InInputConfig,
 	UserObject* ContextObject, CallbackFunc InputPressedFunc, CallbackFunc InputReleasedFunc)
 {
-	checkf(InInputConfig,TEXT("Input config data asset is null, can not proceed with binding"));
+	if (!InInputConfig)
+	{
+		return;
+	}
 
 	for (const FPlayerInputActionConfig& AbilityInputActionConfig : InInputConfig->AbilityInputActions)
 	{

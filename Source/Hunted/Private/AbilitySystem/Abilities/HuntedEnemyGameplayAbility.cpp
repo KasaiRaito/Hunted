@@ -11,31 +11,50 @@ AHuntedEnemyCharacter* UHuntedEnemyGameplayAbility::GetEnemyCharacterFromActorIn
 {
 	if (!CachedHuntedEnemyCharacter.IsValid())
 	{
-		CachedHuntedEnemyCharacter = Cast<AHuntedEnemyCharacter>(CurrentActorInfo->AvatarActor);
+		CachedHuntedEnemyCharacter = CurrentActorInfo
+			? Cast<AHuntedEnemyCharacter>(CurrentActorInfo->AvatarActor.Get())
+			: nullptr;
 	}
 	return CachedHuntedEnemyCharacter.IsValid()? CachedHuntedEnemyCharacter.Get(): nullptr;
 }
 
 UEnemyCombatComponent* UHuntedEnemyGameplayAbility::GetEnemyCombatComponentFromActorInfo()
 {
-	return GetEnemyCharacterFromActorInfo()->GetEnemyCombatComponent();
+	AHuntedEnemyCharacter* EnemyCharacter = GetEnemyCharacterFromActorInfo();
+	return IsValid(EnemyCharacter) ? EnemyCharacter->GetEnemyCombatComponent() : nullptr;
 }
 
 FGameplayEffectSpecHandle UHuntedEnemyGameplayAbility::MakeEnemyDamageEffectSpecHandle(
 	TSubclassOf<UGameplayEffect> EffectClass, const FScalableFloat& InDamageScalableFloat)
 {
-	check(EffectClass);
+	if (!EffectClass)
+	{
+		return FGameplayEffectSpecHandle();
+	}
+
+	UHuntedAbilitySystemComponent* ASC = GetHuntedAbilitySystemComponentFromActorInfo();
+	AActor* AvatarActor = CurrentActorInfo ? CurrentActorInfo->AvatarActor.Get() : nullptr;
+	if (!ASC || !IsValid(AvatarActor))
+	{
+		// Enemy effects can be queued while the enemy is being destroyed.
+		return FGameplayEffectSpecHandle();
+	}
 	
-	FGameplayEffectContextHandle ContextHandle = GetHuntedAbilitySystemComponentFromActorInfo()->MakeEffectContext();
+	FGameplayEffectContextHandle ContextHandle = ASC->MakeEffectContext();
 	ContextHandle.SetAbility(this);
-	ContextHandle.AddSourceObject(GetAvatarActorFromActorInfo());
-	ContextHandle.AddInstigator(GetAvatarActorFromActorInfo(),GetAvatarActorFromActorInfo());
+	ContextHandle.AddSourceObject(AvatarActor);
+	ContextHandle.AddInstigator(AvatarActor, AvatarActor);
 	
-	FGameplayEffectSpecHandle EffectSpecHandle = GetHuntedAbilitySystemComponentFromActorInfo()->MakeOutgoingSpec(
+	FGameplayEffectSpecHandle EffectSpecHandle = ASC->MakeOutgoingSpec(
 		EffectClass,
 		GetAbilityLevel(),
 		ContextHandle
 	);
+
+	if (!EffectSpecHandle.Data.IsValid())
+	{
+		return FGameplayEffectSpecHandle();
+	}
 	
 	EffectSpecHandle.Data->SetSetByCallerMagnitude(
 	HuntedGameplayTags::Shared_SetByCaller_BaseDamage,

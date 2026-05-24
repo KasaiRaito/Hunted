@@ -19,6 +19,7 @@ class HUNTED_API UPlayerInventoryComponent : public UPawnExtensionComponentBase
 	GENERATED_BODY()
 	
 protected:
+	UPROPERTY(Transient)
 	TMap<AHuntedInventoryItemBase*, FIntPoint> AllItems;
 	
 	UPlayerInventoryComponent();
@@ -31,6 +32,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category= "InventoryComponent Info | Inventory Size")
 	float TileSize;
 	
+	UPROPERTY(Transient)
 	TArray<AHuntedInventoryItemBase*> Items;
 	
 	UPROPERTY(EditAnywhere, Category= "InventoryComponent Info | Item Counters")
@@ -44,11 +46,15 @@ protected:
 	UPROPERTY(Transient)
 	AHuntedInventoryItemBase* PendingCombineItem = nullptr;
 	
-	UPlayerInventoryGridWidget* InventoryGridWidgetReference;
+	UPROPERTY(Transient)
+	UPlayerInventoryGridWidget* InventoryGridWidgetReference = nullptr;
 	
 	bool IsTileValid(FIntPoint Tile) const;
 	bool RoomForItemInInventoryIgnoringItem(const AHuntedInventoryItemBase* ItemToAdd, int8 TopLeftIndex,
 		const AHuntedInventoryItemBase* IgnoredItem) const;
+	void CompactInvalidInventoryItems();
+	void PrepareItemForInventory(AHuntedInventoryItemBase* ItemToPrepare) const;
+	AHuntedInventoryItemBase* ResolveInventoryStorageItem(AHuntedInventoryItemBase* SourceItem);
 	bool CanItemsStackTogether(const AHuntedInventoryItemBase* SourceItem, const AHuntedInventoryItemBase* TargetItem) const;
 	bool CanStackItemAtIndex(const AHuntedInventoryItemBase* SourceItem, int8 TopLeftIndex) const;
 	AHuntedInventoryItemBase* SpawnStackCloneFromItem(const AHuntedInventoryItemBase* SourceItem) const;

@@ -31,14 +31,14 @@ void UPlayerInventoryGridWidget::SetUpInventoryGrid()
 {
 	PlayerReference = Cast<AHuntedPlayerCharacter>(GetOwningPlayerPawn());
 	
-	if (!PlayerReference)
+	if (!IsValid(PlayerReference))
 	{
 		Debug::Print("[PlayerInventoryGrid] Can't construct player inventory component");
 		return;
 	}
 
 	InventoryComponent = PlayerReference->GetPlayerInventoryComponent();
-	if (!InventoryComponent)
+	if (!IsValid(InventoryComponent))
 	{
 		Debug::Print("[PlayerInventoryGrid] Can't construct player inventory component");
 		return;
@@ -192,14 +192,15 @@ int32 UPlayerInventoryGridWidget::NativePaint(const FPaintArgs& Args, const FGeo
 bool UPlayerInventoryGridWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent,
 	UDragDropOperation* InOperation)
 {
-	if (!InOperation || !InOperation->Payload || !InventoryComponent)
+	if (!InOperation || !IsValid(InOperation->Payload) || !IsValid(InventoryComponent))
 	{
+		// Inventory widgets can refresh while a drag is active; reject stale payloads instead of moving them.
 		return false;
 	}
 	
 	AHuntedInventoryItemBase* DropedItem = Cast<AHuntedInventoryItemBase>(InOperation->Payload);
 	
-	if (!DropedItem)
+	if (!IsValid(DropedItem))
 	{
 		return false;
 	}
@@ -230,13 +231,13 @@ bool UPlayerInventoryGridWidget::NativeOnDrop(const FGeometry& InGeometry, const
 
 bool UPlayerInventoryGridWidget::NativeOnDragOver(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation)
 {
-	if (!InOperation || !InOperation->Payload || !InventoryComponent || !GridBorder || TileSize <= KINDA_SMALL_NUMBER)
+	if (!InOperation || !IsValid(InOperation->Payload) || !IsValid(InventoryComponent) || !GridBorder || TileSize <= KINDA_SMALL_NUMBER)
 	{
 		return false;
 	}
 	
 	AHuntedInventoryItemBase* DraggedItem = Cast<AHuntedInventoryItemBase>(InOperation->Payload);
-	if (!DraggedItem)
+	if (!IsValid(DraggedItem))
 	{
 		return false;
 	}
@@ -299,7 +300,7 @@ void UPlayerInventoryGridWidget::NativeOnDragLeave(const FDragDropEvent& InDragD
 
 bool UPlayerInventoryGridWidget::IsRoomAvailableFroPayload(AHuntedInventoryItemBase* Item) const
 {
-	if (!Item)
+	if (!IsValid(Item) || !IsValid(InventoryComponent))
 	{
 		return false;
 	}
@@ -309,7 +310,7 @@ bool UPlayerInventoryGridWidget::IsRoomAvailableFroPayload(AHuntedInventoryItemB
 
 FMousePositionInTile UPlayerInventoryGridWidget::MousePositionInTileResult(FVector2D MousePosition)
 {
-	if (!InventoryComponent)
+	if (!IsValid(InventoryComponent))
 	{
 		CachedMousePositionInTile.Horizontal = false;
 		CachedMousePositionInTile.Vertical = false;
@@ -364,7 +365,7 @@ void UPlayerInventoryGridWidget::ClearDraggedSourceTiles()
 
 void UPlayerInventoryGridWidget::UpdateDraggedTargetTiles(AHuntedInventoryItemBase* DraggedItem, bool bIsValidPlacement)
 {
-	if (!DraggedItem)
+	if (!IsValid(DraggedItem))
 	{
 		ClearDraggedTargetTiles();
 		return;
@@ -419,7 +420,7 @@ void UPlayerInventoryGridWidget::AddItemWidget()
 
 void UPlayerInventoryGridWidget::RefreshItemWidgets()
 {
-	if (!InventoryComponent || !GridCanvasPanel || !PlayerReference)
+	if (!IsValid(InventoryComponent) || !GridCanvasPanel || !IsValid(PlayerReference))
 	{
 		return;
 	}
@@ -438,7 +439,7 @@ void UPlayerInventoryGridWidget::RefreshItemWidgets()
 
 	for (AHuntedInventoryItemBase* AddedItem : ItemsInInventory)
 	{
-		if (!AddedItem)
+		if (!IsValid(AddedItem))
 		{
 			continue;
 		}
