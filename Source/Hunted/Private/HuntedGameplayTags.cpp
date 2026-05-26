@@ -29,6 +29,9 @@ namespace  HuntedGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(InputTag_Inventory_Open, "InputTag.Inventory.Open");
 	UE_DEFINE_GAMEPLAY_TAG(InputTag_Inventory_Close, "InputTag.Inventory.Close");
 	
+	UE_DEFINE_GAMEPLAY_TAG(InputTag_Pause_Open, "InputTag.Pause.Open");
+	UE_DEFINE_GAMEPLAY_TAG(InputTag_Pause_Close, "InputTag.Pause.Close");
+	
 	UE_DEFINE_GAMEPLAY_TAG(InputTag_Interact, "InputTag.Interact");
 	
 	/** Player **/
@@ -59,6 +62,9 @@ namespace  HuntedGameplayTags
 	
 	UE_DEFINE_GAMEPLAY_TAG(Player_Ability_Inventory_Open, "Player.Ability.Inventory.Open");
 	UE_DEFINE_GAMEPLAY_TAG(Player_Ability_Inventory_Close, "Player.Ability.Inventory.Close");
+	
+	UE_DEFINE_GAMEPLAY_TAG(Player_Ability_Pause_Open, "Player.Ability.Pause.Open");
+	UE_DEFINE_GAMEPLAY_TAG(Player_Ability_Pause_Close, "Player.Ability.Pause.Close");
 	
 	UE_DEFINE_GAMEPLAY_TAG(Player_Ability_Interact, "Player.Ability.Interact");
 	
