@@ -10,6 +10,7 @@
 #include "Camera/CameraComponent.h"
 #include "HuntedPlayerCharacter.generated.h"
 
+class UHuntedWidgetBase;
 class AHuntedInteractable;
 struct FInputActionValue;
 class USpringArmComponent;
@@ -114,8 +115,14 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UUserWidget> InventoryWidgetClass;
 	
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<UUserWidget> PauseWidgetClass;
+	
 	UPROPERTY(EditDefaultsOnly ,Category = "UI")
 	UUserWidget* InventoryWidget;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	UUserWidget* PauseWidget;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UUserWidget> ItemWidgetClass;
@@ -235,6 +242,9 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category = "Invewntory")
 	FORCEINLINE UUserWidget* GetInventoryWidget() { return InventoryWidget; }
+	
+	UFUNCTION(BlueprintCallable, Category = "Pause")
+	FORCEINLINE UUserWidget* GetPauseWidget() { return PauseWidget; }
 	
 	UFUNCTION()
 	void OnBeginOverlap(class UPrimitiveComponent* HitComp, class AActor* OtherActor,

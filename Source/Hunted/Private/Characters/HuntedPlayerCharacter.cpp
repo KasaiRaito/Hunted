@@ -158,6 +158,12 @@ void AHuntedPlayerCharacter::BeginPlay()
 	InventoryWidget->AddToViewport();
 	InventoryWidget->SetVisibility(ESlateVisibility::Collapsed);
 	
+	PauseWidget = CreateWidget(GetWorld(), PauseWidgetClass);
+	PauseWidget->SetOwningPlayer(PlayerControllerComponent);
+	PauseWidget->AddToViewport();
+	PauseWidget->SetVisibility(ESlateVisibility::Collapsed);
+	
+	
 	PlayerInventoryComponent->SetItemsNum(PlayerInventoryComponent->GetColumns() * PlayerInventoryComponent->GetRows());
 }
 

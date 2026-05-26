@@ -29,6 +29,9 @@ namespace  HuntedGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(InputTag_Inventory_Open, "InputTag.Inventory.Open");
 	UE_DEFINE_GAMEPLAY_TAG(InputTag_Inventory_Close, "InputTag.Inventory.Close");
 	
+	UE_DEFINE_GAMEPLAY_TAG(InputTag_Pause_Open, "InputTag.Pause.Open");
+	UE_DEFINE_GAMEPLAY_TAG(InputTag_Pause_Close, "InputTag.Pause.Close");
+	
 	UE_DEFINE_GAMEPLAY_TAG(InputTag_Interact, "InputTag.Interact");
 	
 	/** Player **/
@@ -60,6 +63,9 @@ namespace  HuntedGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Player_Ability_Inventory_Open, "Player.Ability.Inventory.Open");
 	UE_DEFINE_GAMEPLAY_TAG(Player_Ability_Inventory_Close, "Player.Ability.Inventory.Close");
 	
+	UE_DEFINE_GAMEPLAY_TAG(Player_Ability_Pause_Open, "Player.Ability.Pause.Open");
+	UE_DEFINE_GAMEPLAY_TAG(Player_Ability_Pause_Close, "Player.Ability.Pause.Close");
+	
 	UE_DEFINE_GAMEPLAY_TAG(Player_Ability_Interact, "Player.Ability.Interact");
 	
 		/** Events **/
@@ -75,7 +81,20 @@ namespace  HuntedGameplayTags
 	
 	/** Player Item Tags **/
 	UE_DEFINE_GAMEPLAY_TAG(Player_Item_Cure_Small, "Player.Item.Cure.Small");
+	UE_DEFINE_GAMEPLAY_TAG(Player_Item_Cure_Medium, "Player.Item.Cure.Medium");
+	UE_DEFINE_GAMEPLAY_TAG(Player_Item_Cure_Large, "Player.Item.Cure.Large");
+	
+	UE_DEFINE_GAMEPLAY_TAG(Player_Item_Scrap_Small, "Player.Item.Scrap.Small");
+	UE_DEFINE_GAMEPLAY_TAG(Player_Item_Scrap_Medium, "Player.Item.Scrap.Medium");
+	UE_DEFINE_GAMEPLAY_TAG(Player_Item_Scrap_Large, "Player.Item.Scrap.Large");
+	
+	UE_DEFINE_GAMEPLAY_TAG(Player_Item_Chemical_Small, "Player.Item.Chemical.Small");
+	UE_DEFINE_GAMEPLAY_TAG(Player_Item_Chemical_Medium, "Player.Item.Chemical.Medium");
+	UE_DEFINE_GAMEPLAY_TAG(Player_Item_Chemical_Large, "Player.Item.Chemical.Large");
+	
 	UE_DEFINE_GAMEPLAY_TAG(Player_Item_Bullets_BaseGun, "Player.Item.Bullets.BaseGun");
+	
+	UE_DEFINE_GAMEPLAY_TAG(Player_Puzzle_Key, "Player.Item.Puzzle.Key");
 	
 		/** Set By Caller **/
 	UE_DEFINE_GAMEPLAY_TAG(Player_SetByCaller_AttackType_BasicKnife, "Player.SetByCaller.AttackType.BasicKnife");

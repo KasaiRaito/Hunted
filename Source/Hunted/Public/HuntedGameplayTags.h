@@ -34,6 +34,9 @@ namespace HuntedGameplayTags
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Inventory_Open);
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Inventory_Close);
 	
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Pause_Open);
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Pause_Close);
+	
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Interact);
 	
 	/** Player **/
@@ -65,6 +68,9 @@ namespace HuntedGameplayTags
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Ability_Inventory_Open);
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Ability_Inventory_Close);
 	
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Ability_Pause_Open);
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Ability_Pause_Close);
+	
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Ability_Interact);
 
 		/** Events **/
@@ -80,7 +86,20 @@ namespace HuntedGameplayTags
 	
 		/** Player Item Tags **/
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Item_Cure_Small);
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Item_Cure_Medium);
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Item_Cure_Large);
+	
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Item_Scrap_Small);
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Item_Scrap_Medium);
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Item_Scrap_Large);
+	
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Item_Chemical_Small);
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Item_Chemical_Medium);
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Item_Chemical_Large);
+	
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Item_Bullets_BaseGun);
+	
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Puzzle_Key);
 	
 		/** Set By Caller **/
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_SetByCaller_AttackType_BasicKnife);
