@@ -94,7 +94,7 @@ namespace  HuntedGameplayTags
 	
 	UE_DEFINE_GAMEPLAY_TAG(Player_Item_Bullets_BaseGun, "Player.Item.Bullets.BaseGun");
 	
-	UE_DEFINE_GAMEPLAY_TAG(Player_Puzzle_Key, "Player.Item.Puzzle.Key");
+	UE_DEFINE_GAMEPLAY_TAG(Player_Item_Puzzle_Key, "Player.Item.Puzzle.Key");
 	
 		/** Set By Caller **/
 	UE_DEFINE_GAMEPLAY_TAG(Player_SetByCaller_AttackType_BasicKnife, "Player.SetByCaller.AttackType.BasicKnife");
