@@ -95,7 +95,11 @@ namespace  HuntedGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Player_Item_Bullets_BaseGun, "Player.Item.Bullets.BaseGun");
 	
 	UE_DEFINE_GAMEPLAY_TAG(Player_Item_Puzzle_Key, "Player.Item.Puzzle.Key");
-	
+	UE_DEFINE_GAMEPLAY_TAG(Player_Item_Puzzle_Key_MainHall, "Player.Item.Puzzle.Key.MainHall");
+	UE_DEFINE_GAMEPLAY_TAG(Player_Item_Puzzle_Key_MainHallTwo, "Player.Item.Puzzle.Key.MainHallTwo");
+	UE_DEFINE_GAMEPLAY_TAG(Player_Item_Puzzle_Key_DinningRoom, "Player.Item.Puzzle.Key.DinningRoom");
+	UE_DEFINE_GAMEPLAY_TAG(Player_Item_Puzzle_Key_GarageRoom, "Player.Item.Puzzle.Key.GarageRoom");
+	UE_DEFINE_GAMEPLAY_TAG(Player_Item_Puzzle_Key_LaundryRoom, "Player.Item.Puzzle.Key.LaundryRoom");
 		/** Set By Caller **/
 	UE_DEFINE_GAMEPLAY_TAG(Player_SetByCaller_AttackType_BasicKnife, "Player.SetByCaller.AttackType.BasicKnife");
 	UE_DEFINE_GAMEPLAY_TAG(Player_SetByCaller_AttackType_Head, "Player.SetByCaller.AttackType.Head");

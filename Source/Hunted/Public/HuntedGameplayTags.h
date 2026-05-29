@@ -100,7 +100,11 @@ namespace HuntedGameplayTags
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Item_Bullets_BaseGun);
 	
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Item_Puzzle_Key);
-	
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Item_Puzzle_Key_MainHall);
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Item_Puzzle_Key_MainHallTwo);
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Item_Puzzle_Key_DinningRoom);
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Item_Puzzle_Key_GarageRoom);
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Item_Puzzle_Key_LaundryRoom);
 		/** Set By Caller **/
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_SetByCaller_AttackType_BasicKnife);
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_SetByCaller_AttackType_Head);
