@@ -99,7 +99,7 @@ namespace HuntedGameplayTags
 	
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Item_Bullets_BaseGun);
 	
-	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Puzzle_Key);
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Item_Puzzle_Key);
 	
 		/** Set By Caller **/
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_SetByCaller_AttackType_BasicKnife);
