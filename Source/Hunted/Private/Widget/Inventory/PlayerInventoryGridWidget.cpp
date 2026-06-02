@@ -17,6 +17,7 @@
 #include "Components/TextBlock.h"
 #include "Components/VerticalBox.h"
 #include "Components/VerticalBoxSlot.h"
+#include "Components/Image.h"
 
 void UPlayerInventoryGridWidget::NativeConstruct()
 {
@@ -374,7 +375,8 @@ void UPlayerInventoryGridWidget::EnsureItemInfoPanel()
 	ItemInfoBox = WidgetTree->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass(), TEXT("InventoryItemInfoBox_Auto"));
 	ItemInfoTitleText = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass(), TEXT("InventoryItemInfoTitleText_Auto"));
 	ItemInfoDescriptionText = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass(), TEXT("InventoryItemInfoDescriptionText_Auto"));
-	if (!ItemInfoBorder || !ItemInfoBox || !ItemInfoTitleText || !ItemInfoDescriptionText)
+	ItemInfoResultImage = WidgetTree->ConstructWidget<UImage>(UImage::StaticClass(), TEXT("InventoryItemInfoResultImage_Auto"));
+	if (!ItemInfoBorder || !ItemInfoBox || !ItemInfoTitleText || !ItemInfoDescriptionText || !ItemInfoResultImage)
 	{
 		return;
 	}
@@ -411,6 +413,16 @@ void UPlayerInventoryGridWidget::EnsureItemInfoPanel()
 		DescriptionSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
 	}
 
+	ItemInfoResultImage->SetDesiredSizeOverride(ItemInfoResultImageSize);
+	ItemInfoResultImage->SetVisibility(ESlateVisibility::Collapsed);
+	ItemInfoBox->AddChildToVerticalBox(ItemInfoResultImage);
+	if (UVerticalBoxSlot* ResultImageSlot = Cast<UVerticalBoxSlot>(ItemInfoResultImage->Slot))
+	{
+		ResultImageSlot->SetHorizontalAlignment(HAlign_Center);
+		ResultImageSlot->SetSize(FSlateChildSize(ESlateSizeRule::Automatic));
+		ResultImageSlot->SetPadding(FMargin(0.0f, 8.0f, 0.0f, 0.0f));
+	}
+
 	CanvasPanel->AddChild(ItemInfoBorder);
 }
 
@@ -429,13 +441,19 @@ void UPlayerInventoryGridWidget::UpdateItemInfoPanelLayout()
 
 	FVector2D GridPosition = FVector2D::ZeroVector;
 	FVector2D GridSize = FVector2D(Columns * TileSize, Rows * TileSize);
+	FVector2D GridAlignment = FVector2D::ZeroVector;
 	if (UCanvasPanelSlot* GridSlot = UWidgetLayoutLibrary::SlotAsCanvasSlot(GridBorder))
 	{
 		GridPosition = GridSlot->GetPosition();
+		GridAlignment = GridSlot->GetAlignment();
 		const FVector2D SlotSize = GridSlot->GetSize();
 		if (SlotSize.X > KINDA_SMALL_NUMBER)
 		{
 			GridSize.X = SlotSize.X;
+		}
+		if (SlotSize.Y > KINDA_SMALL_NUMBER)
+		{
+			GridSize.Y = SlotSize.Y;
 		}
 	}
 
@@ -446,9 +464,14 @@ void UPlayerInventoryGridWidget::UpdateItemInfoPanelLayout()
 		: CurrentInfoSize.Y;
 	InfoSlot->SetSize(FVector2D(GridSize.X, InfoHeight));
 
+	const FVector2D InfoSize(GridSize.X, InfoHeight);
+	const FVector2D InfoAlignment = InfoSlot->GetAlignment();
+	const FVector2D GridTopLeft = GridPosition - (GridAlignment * GridSize);
+	const FVector2D InfoTopLeft(GridTopLeft.X, GridTopLeft.Y + GridSize.Y);
+	InfoSlot->SetPosition(InfoTopLeft + (InfoAlignment * InfoSize));
+
 	if (bUsesGeneratedItemInfoPanel)
 	{
-		InfoSlot->SetPosition(GridPosition + FVector2D(0.0f, Rows * TileSize + ItemInfoTopPadding));
 		InfoSlot->SetZOrder(1);
 	}
 
@@ -457,8 +480,8 @@ void UPlayerInventoryGridWidget::UpdateItemInfoPanelLayout()
 		if (UCanvasPanelSlot* OwnCanvasSlot = UWidgetLayoutLibrary::SlotAsCanvasSlot(this))
 		{
 			OwnCanvasSlot->SetSize(FVector2D(
-				GridPosition.X + GridSize.X,
-				GridPosition.Y + Rows * TileSize + ItemInfoTopPadding + ItemInfoHeight
+				GridTopLeft.X + GridSize.X,
+				GridTopLeft.Y + GridSize.Y + InfoHeight
 			));
 		}
 	}
@@ -475,25 +498,27 @@ void UPlayerInventoryGridWidget::RefreshItemInfoPanel()
 
 	FText Title;
 	FText Description;
-	if (ResolveItemInfoText(Title, Description))
+	UMaterialInterface* ResultIcon = nullptr;
+	if (ResolveItemInfoContent(Title, Description, ResultIcon))
 	{
 		LastValidItemInfoTitle = Title;
 		LastValidItemInfoDescription = Description;
 		bHasLastValidItemInfo = true;
-		ApplyItemInfoText(Title, Description);
+		ApplyItemInfoContent(Title, Description, ResultIcon);
 		return;
 	}
 
 	if (bHasLastValidItemInfo)
 	{
-		ApplyItemInfoText(LastValidItemInfoTitle, LastValidItemInfoDescription);
+		ApplyItemInfoContent(LastValidItemInfoTitle, LastValidItemInfoDescription, nullptr);
 		return;
 	}
 
-	ApplyItemInfoText(FText::GetEmpty(), FText::GetEmpty());
+	ApplyItemInfoContent(FText::GetEmpty(), FText::GetEmpty(), nullptr);
 }
 
-void UPlayerInventoryGridWidget::ApplyItemInfoText(const FText& Title, const FText& Description)
+void UPlayerInventoryGridWidget::ApplyItemInfoContent(const FText& Title, const FText& Description,
+	UMaterialInterface* ResultIcon)
 {
 	if (!ItemInfoBorder || !ItemInfoTitleText || !ItemInfoDescriptionText)
 	{
@@ -503,10 +528,27 @@ void UPlayerInventoryGridWidget::ApplyItemInfoText(const FText& Title, const FTe
 	ItemInfoTitleText->SetText(Title);
 	ItemInfoDescriptionText->SetText(Description);
 	ItemInfoBorder->SetVisibility(ESlateVisibility::HitTestInvisible);
+
+	if (!ItemInfoResultImage)
+	{
+		return;
+	}
+
+	if (ResultIcon)
+	{
+		ItemInfoResultImage->SetBrushFromMaterial(ResultIcon);
+		ItemInfoResultImage->SetVisibility(ESlateVisibility::HitTestInvisible);
+		return;
+	}
+
+	ItemInfoResultImage->SetVisibility(ESlateVisibility::Collapsed);
 }
 
-bool UPlayerInventoryGridWidget::ResolveItemInfoText(FText& OutTitle, FText& OutDescription) const
+bool UPlayerInventoryGridWidget::ResolveItemInfoContent(FText& OutTitle, FText& OutDescription,
+	UMaterialInterface*& OutResultIcon) const
 {
+	OutResultIcon = nullptr;
+
 	if (IsValid(InventoryComponent) && InventoryComponent->IsCombineModeActive())
 	{
 		if (AHuntedInventoryItemBase* PendingCombineItem = InventoryComponent->GetPendingCombineItem())
@@ -514,7 +556,8 @@ bool UPlayerInventoryGridWidget::ResolveItemInfoText(FText& OutTitle, FText& Out
 			if (IsValid(HoveredInfoItem))
 			{
 				FHuntedPlayerItemData ResultItemData;
-				if (InventoryComponent->TryGetCombinationResultItemData(PendingCombineItem, HoveredInfoItem, ResultItemData))
+				if (InventoryComponent->TryGetCombinationResultItemDisplayData(PendingCombineItem, HoveredInfoItem,
+					ResultItemData, OutResultIcon))
 				{
 					return BuildItemInfoText(ResultItemData, OutTitle, OutDescription);
 				}
@@ -695,7 +738,7 @@ void UPlayerInventoryGridWidget::ResetItemInfoPanel()
 
 	EnsureItemInfoPanel();
 	UpdateItemInfoPanelLayout();
-	ApplyItemInfoText(FText::GetEmpty(), FText::GetEmpty());
+	ApplyItemInfoContent(FText::GetEmpty(), FText::GetEmpty(), nullptr);
 }
 
 void UPlayerInventoryGridWidget::ClearDraggedTargetTiles()

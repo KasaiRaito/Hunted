@@ -658,9 +658,18 @@ bool UPlayerInventoryComponent::CanItemCombineWithPendingSelection(AHuntedInvent
 bool UPlayerInventoryComponent::TryGetCombinationResultItemData(AHuntedInventoryItemBase* FirstItem,
 	AHuntedInventoryItemBase* SecondItem, FHuntedPlayerItemData& OutResultItemData) const
 {
+	UMaterialInterface* ResultIcon = nullptr;
+	return TryGetCombinationResultItemDisplayData(FirstItem, SecondItem, OutResultItemData, ResultIcon);
+}
+
+bool UPlayerInventoryComponent::TryGetCombinationResultItemDisplayData(AHuntedInventoryItemBase* FirstItem,
+	AHuntedInventoryItemBase* SecondItem, FHuntedPlayerItemData& OutResultItemData,
+	UMaterialInterface*& OutResultIcon) const
+{
 	FHuntedInventoryCombinationRecipe MatchingRecipe;
 	int32 FirstAmount = 0;
 	int32 SecondAmount = 0;
+	OutResultIcon = nullptr;
 	if (!TryMatchCombinationRecipe(FirstItem, SecondItem, MatchingRecipe, FirstAmount, SecondAmount)
 		|| !MatchingRecipe.Result)
 	{
@@ -674,6 +683,7 @@ bool UPlayerInventoryComponent::TryGetCombinationResultItemData(AHuntedInventory
 	}
 
 	OutResultItemData = ResultDefaultItem->GetItemData();
+	OutResultIcon = ResultDefaultItem->GetIcon();
 	return true;
 }
 

@@ -12,6 +12,7 @@
 
 class UPlayerInventoryGridWidget;
 class AHuntedInventoryItemBase;
+class UMaterialInterface;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class HUNTED_API UPlayerInventoryComponent : public UPawnExtensionComponentBase
@@ -159,6 +160,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Inventory|Combination")
 	bool TryGetCombinationResultItemData(AHuntedInventoryItemBase* FirstItem, AHuntedInventoryItemBase* SecondItem,
 		FHuntedPlayerItemData& OutResultItemData) const;
+
+	UFUNCTION(BlueprintCallable, Category = "Inventory|Combination")
+	bool TryGetCombinationResultItemDisplayData(AHuntedInventoryItemBase* FirstItem, AHuntedInventoryItemBase* SecondItem,
+		FHuntedPlayerItemData& OutResultItemData, UMaterialInterface*& OutResultIcon) const;
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	bool DiscardItem(AHuntedInventoryItemBase* ItemToDiscard);

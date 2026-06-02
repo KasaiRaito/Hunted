@@ -15,12 +15,14 @@
 
 class UBorder;
 class UCanvasPanel;
+class UImage;
 class UTextBlock;
 class UVerticalBox;
 class AHuntedPlayerCharacter;
 class UPlayerInventoryComponent;
 class AHuntedInventoryItemBase;
 class UDragDropOperation;
+class UMaterialInterface;
 enum class EInventoryDragVisualState : uint8;
 
 /**
@@ -52,6 +54,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BindWidgetOptional), Category = "UI|Item Info")
 	UTextBlock* ItemInfoDescriptionText = nullptr;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BindWidgetOptional), Category = "UI|Item Info")
+	UImage* ItemInfoResultImage = nullptr;
 
 	UPROPERTY()
 	AHuntedPlayerCharacter* PlayerReference;
@@ -121,6 +126,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "UI|Item Info", meta = (ClampMin = "1.0", UIMin = "1.0"))
 	float ItemInfoDescriptionFontSize = 12.0f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI|Item Info")
+	FVector2D ItemInfoResultImageSize = FVector2D(64.0f, 64.0f);
 	
 	FLines LineStructData;
 
@@ -198,8 +206,8 @@ protected:
 	void EnsureItemInfoPanel();
 	void UpdateItemInfoPanelLayout();
 	void RefreshItemInfoPanel();
-	void ApplyItemInfoText(const FText& Title, const FText& Description);
-	bool ResolveItemInfoText(FText& OutTitle, FText& OutDescription) const;
+	void ApplyItemInfoContent(const FText& Title, const FText& Description, UMaterialInterface* ResultIcon);
+	bool ResolveItemInfoContent(FText& OutTitle, FText& OutDescription, UMaterialInterface*& OutResultIcon) const;
 	bool BuildItemInfoText(const FHuntedPlayerItemData& ItemData, FText& OutTitle, FText& OutDescription) const;
 	void UpdateDraggedTargetTiles(AHuntedInventoryItemBase* DraggedItem, bool bIsValidPlacement);
 	void SetDraggedTargetTiles(const TArray<FIntPoint>& InTiles, const FLinearColor& InColor);
