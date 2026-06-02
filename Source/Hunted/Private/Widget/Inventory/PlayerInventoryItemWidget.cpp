@@ -104,8 +104,18 @@ void UPlayerInventoryItemWidget::NativeOnMouseEnter(const FGeometry& InGeometry,
 		return;
 	}
 
-	if (IsValid(CharacterReference) && IsValid(CharacterReference->GetPlayerInventoryComponent())
-		&& CharacterReference->GetPlayerInventoryComponent()->IsCombineModeActive())
+	UPlayerInventoryComponent* InventoryComponent = IsValid(CharacterReference)
+		? CharacterReference->GetPlayerInventoryComponent()
+		: nullptr;
+	if (IsValid(InventoryComponent))
+	{
+		if (UPlayerInventoryGridWidget* InventoryGrid = InventoryComponent->GetPlayerInventoryGridWidget())
+		{
+			InventoryGrid->SetHoveredInventoryItem(Item);
+		}
+	}
+
+	if (IsValid(InventoryComponent) && InventoryComponent->IsCombineModeActive())
 	{
 		RefreshCombineVisualState();
 		return;
@@ -123,8 +133,18 @@ void UPlayerInventoryItemWidget::NativeOnMouseLeave(const FPointerEvent& InMouse
 		return;
 	}
 
-	if (IsValid(CharacterReference) && IsValid(CharacterReference->GetPlayerInventoryComponent())
-		&& CharacterReference->GetPlayerInventoryComponent()->IsCombineModeActive())
+	UPlayerInventoryComponent* InventoryComponent = IsValid(CharacterReference)
+		? CharacterReference->GetPlayerInventoryComponent()
+		: nullptr;
+	if (IsValid(InventoryComponent))
+	{
+		if (UPlayerInventoryGridWidget* InventoryGrid = InventoryComponent->GetPlayerInventoryGridWidget())
+		{
+			InventoryGrid->ClearHoveredInventoryItem(Item);
+		}
+	}
+
+	if (IsValid(InventoryComponent) && InventoryComponent->IsCombineModeActive())
 	{
 		RefreshCombineVisualState();
 		return;
@@ -172,6 +192,9 @@ void UPlayerInventoryItemWidget::NativeOnDragDetected(const FGeometry& InGeometr
 		
 		if (UPlayerInventoryGridWidget* InventoryGrid = InventoryComponent->GetPlayerInventoryGridWidget())
 		{
+			InventoryGrid->SetDraggedInventoryItem(Item);
+			InventoryGrid->ClearHoveredInventoryItem(Item);
+
 			if (bHasDragStartTile)
 			{
 				const FIntPoint ItemSize = Item->GetItemInventorySize();
@@ -269,6 +292,8 @@ void UPlayerInventoryItemWidget::HandleDragOperationFinished(UDragDropOperation*
 	{
 		if (UPlayerInventoryGridWidget* InventoryGrid = InventoryComponent->GetPlayerInventoryGridWidget())
 		{
+			InventoryGrid->ClearDraggedInventoryItem(Item);
+			InventoryGrid->ClearHoveredInventoryItem(Item);
 			InventoryGrid->ClearDraggedSourceTiles();
 			InventoryGrid->ClearDraggedTargetTiles();
 			InventoryGrid->RefreshItemWidgets();

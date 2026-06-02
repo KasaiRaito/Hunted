@@ -6,12 +6,12 @@
 #include "GameplayTagContainer.h"
 #include "Components/ActorComponent.h"
 #include "Components/PawnExtensionComponentBase.h"
+#include "HuntedTypes/HuntedStructTypes.h"
 #include "PlayerInventoryComponent.generated.h"
 
 
 class UPlayerInventoryGridWidget;
 class AHuntedInventoryItemBase;
-struct FHuntedInventoryCombinationRecipe;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class HUNTED_API UPlayerInventoryComponent : public UPawnExtensionComponentBase
@@ -155,6 +155,10 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory|Combination")
 	bool CanItemCombineWithPendingSelection(AHuntedInventoryItemBase* CandidateItem) const;
+
+	UFUNCTION(BlueprintCallable, Category = "Inventory|Combination")
+	bool TryGetCombinationResultItemData(AHuntedInventoryItemBase* FirstItem, AHuntedInventoryItemBase* SecondItem,
+		FHuntedPlayerItemData& OutResultItemData) const;
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	bool DiscardItem(AHuntedInventoryItemBase* ItemToDiscard);

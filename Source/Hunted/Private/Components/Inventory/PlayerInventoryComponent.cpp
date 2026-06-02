@@ -655,6 +655,28 @@ bool UPlayerInventoryComponent::CanItemCombineWithPendingSelection(AHuntedInvent
 	return CanCombineItems(PendingCombineItem, CandidateItem);
 }
 
+bool UPlayerInventoryComponent::TryGetCombinationResultItemData(AHuntedInventoryItemBase* FirstItem,
+	AHuntedInventoryItemBase* SecondItem, FHuntedPlayerItemData& OutResultItemData) const
+{
+	FHuntedInventoryCombinationRecipe MatchingRecipe;
+	int32 FirstAmount = 0;
+	int32 SecondAmount = 0;
+	if (!TryMatchCombinationRecipe(FirstItem, SecondItem, MatchingRecipe, FirstAmount, SecondAmount)
+		|| !MatchingRecipe.Result)
+	{
+		return false;
+	}
+
+	const AHuntedInventoryItemBase* ResultDefaultItem = MatchingRecipe.Result->GetDefaultObject<AHuntedInventoryItemBase>();
+	if (!ResultDefaultItem)
+	{
+		return false;
+	}
+
+	OutResultItemData = ResultDefaultItem->GetItemData();
+	return true;
+}
+
 bool UPlayerInventoryComponent::DiscardItem(AHuntedInventoryItemBase* ItemToDiscard)
 {
 	CompactInvalidInventoryItems();
