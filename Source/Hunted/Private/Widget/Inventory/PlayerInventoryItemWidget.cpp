@@ -104,8 +104,18 @@ void UPlayerInventoryItemWidget::NativeOnMouseEnter(const FGeometry& InGeometry,
 		return;
 	}
 
-	if (IsValid(CharacterReference) && IsValid(CharacterReference->GetPlayerInventoryComponent())
-		&& CharacterReference->GetPlayerInventoryComponent()->IsCombineModeActive())
+	UPlayerInventoryComponent* InventoryComponent = IsValid(CharacterReference)
+		? CharacterReference->GetPlayerInventoryComponent()
+		: nullptr;
+	if (IsValid(InventoryComponent))
+	{
+		if (UPlayerInventoryGridWidget* InventoryGrid = InventoryComponent->GetPlayerInventoryGridWidget())
+		{
+			InventoryGrid->SetHoveredInventoryItem(Item);
+		}
+	}
+
+	if (IsValid(InventoryComponent) && InventoryComponent->IsCombineModeActive())
 	{
 		RefreshCombineVisualState();
 		return;
@@ -123,8 +133,18 @@ void UPlayerInventoryItemWidget::NativeOnMouseLeave(const FPointerEvent& InMouse
 		return;
 	}
 
-	if (IsValid(CharacterReference) && IsValid(CharacterReference->GetPlayerInventoryComponent())
-		&& CharacterReference->GetPlayerInventoryComponent()->IsCombineModeActive())
+	UPlayerInventoryComponent* InventoryComponent = IsValid(CharacterReference)
+		? CharacterReference->GetPlayerInventoryComponent()
+		: nullptr;
+	if (IsValid(InventoryComponent))
+	{
+		if (UPlayerInventoryGridWidget* InventoryGrid = InventoryComponent->GetPlayerInventoryGridWidget())
+		{
+			InventoryGrid->ClearHoveredInventoryItem(Item);
+		}
+	}
+
+	if (IsValid(InventoryComponent) && InventoryComponent->IsCombineModeActive())
 	{
 		RefreshCombineVisualState();
 		return;
@@ -172,6 +192,9 @@ void UPlayerInventoryItemWidget::NativeOnDragDetected(const FGeometry& InGeometr
 		
 		if (UPlayerInventoryGridWidget* InventoryGrid = InventoryComponent->GetPlayerInventoryGridWidget())
 		{
+			InventoryGrid->SetDraggedInventoryItem(Item);
+			InventoryGrid->ClearHoveredInventoryItem(Item);
+
 			if (bHasDragStartTile)
 			{
 				const FIntPoint ItemSize = Item->GetItemInventorySize();
@@ -254,9 +277,7 @@ void UPlayerInventoryItemWidget::HandleDragOperationFinished(UDragDropOperation*
 		return;
 	}
 
-	const bool bDropResolved = Operation->Tag == TEXT("DroppedToGrid")
-		|| Operation->Tag == TEXT("DroppedToWorld")
-		|| Operation->Tag == TEXT("RemovedFromInventory");
+	const bool bDropResolved = Operation->Tag == TEXT("DroppedToGrid");
 	if (!bDropResolved)
 	{
 		if (UPlayerInventoryDragDropOperation* InventoryDragOperation = Cast<UPlayerInventoryDragDropOperation>(Operation))
@@ -269,6 +290,8 @@ void UPlayerInventoryItemWidget::HandleDragOperationFinished(UDragDropOperation*
 	{
 		if (UPlayerInventoryGridWidget* InventoryGrid = InventoryComponent->GetPlayerInventoryGridWidget())
 		{
+			InventoryGrid->ClearDraggedInventoryItem(Item);
+			InventoryGrid->ClearHoveredInventoryItem(Item);
 			InventoryGrid->ClearDraggedSourceTiles();
 			InventoryGrid->ClearDraggedTargetTiles();
 			InventoryGrid->RefreshItemWidgets();
@@ -389,7 +412,7 @@ void UPlayerInventoryItemWidget::RebuildContextMenuEntries()
 	ContextMenuActions.Reset();
 	ContextMenuActions.Add(MakeContextActionEntry(EInventoryContextAction::Inspect, FText::FromString(TEXT("Inspect")), InspectActionIcon));
 	ContextMenuActions.Add(MakeContextActionEntry(EInventoryContextAction::Combine, FText::FromString(TEXT("Combine")), CombineActionIcon));
-	ContextMenuActions.Add(MakeContextActionEntry(EInventoryContextAction::Discard, FText::FromString(TEXT("Discard")), DiscardActionIcon));
+	ContextMenuActions.Add(MakeContextActionEntry(EInventoryContextAction::Discard, FText::FromString(TEXT("Drop")), DiscardActionIcon));
 
 	ContextMenuBox->ClearChildren();
 
@@ -659,7 +682,7 @@ void UPlayerInventoryItemWidget::HandleDiscardClicked()
 		return;
 	}
 
-	CharacterReference->GetPlayerInventoryComponent()->DiscardItem(Item);
+	CharacterReference->GetPlayerInventoryComponent()->RequestDropItem(Item);
 }
 
 void UPlayerInventoryItemWidget::InitializeInventoryItem(AHuntedInventoryItemBase* ItemToAdd)

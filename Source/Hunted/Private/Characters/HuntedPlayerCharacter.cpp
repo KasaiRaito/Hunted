@@ -264,7 +264,7 @@ void AHuntedPlayerCharacter::ProcessMovementInput(const FInputActionValue& Input
 		AddMovementInput(RightDirection, MovementVector.X);
 	}
 }
-
+ 
 void AHuntedPlayerCharacter::Input_Look(const FInputActionValue& InputActionValue)
 {
 	const FVector2D LookInput = InputActionValue.Get<FVector2D>();
