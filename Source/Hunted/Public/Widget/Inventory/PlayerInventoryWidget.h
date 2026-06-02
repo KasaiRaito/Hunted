@@ -35,10 +35,14 @@ protected:
 	AHuntedPlayerCharacter* CharacterReference = nullptr;
 	
 	virtual void NativeConstruct() override;
+
+	virtual void NativeDestruct() override;
 	
 	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
 	
 	virtual bool NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation) override;
+
+	void HandleInventoryVisibilityChanged(ESlateVisibility InVisibility);
 	
 	FHitResult GetLocationBelow(FVector Start) const;
 };

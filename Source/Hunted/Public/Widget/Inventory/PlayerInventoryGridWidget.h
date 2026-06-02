@@ -213,6 +213,9 @@ public:
 	void RefreshItemWidgets();
 
 	UFUNCTION(BlueprintCallable)
+	void ResetItemInfoPanel();
+
+	UFUNCTION(BlueprintCallable)
 	void SetDraggedSourceTiles(const TArray<FIntPoint>& InTiles);
 
 	UFUNCTION(BlueprintCallable)

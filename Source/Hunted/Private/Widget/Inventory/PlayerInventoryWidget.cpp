@@ -15,6 +15,16 @@ void UPlayerInventoryWidget::NativeConstruct()
 	Super::NativeConstruct();
 	
 	CharacterReference = Cast<AHuntedPlayerCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
+
+	OnNativeVisibilityChanged.RemoveAll(this);
+	OnNativeVisibilityChanged.AddUObject(this, &UPlayerInventoryWidget::HandleInventoryVisibilityChanged);
+	HandleInventoryVisibilityChanged(GetVisibility());
+}
+
+void UPlayerInventoryWidget::NativeDestruct()
+{
+	OnNativeVisibilityChanged.RemoveAll(this);
+	Super::NativeDestruct();
 }
 
 FReply UPlayerInventoryWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
@@ -111,6 +121,22 @@ bool UPlayerInventoryWidget::NativeOnDrop(const FGeometry& InGeometry, const FDr
 	}
 	
 	return true;
+}
+
+void UPlayerInventoryWidget::HandleInventoryVisibilityChanged(ESlateVisibility /*InVisibility*/)
+{
+	UPlayerInventoryComponent* InventoryComponent = IsValid(CharacterReference)
+		? CharacterReference->GetPlayerInventoryComponent()
+		: nullptr;
+	if (!IsValid(InventoryComponent))
+	{
+		return;
+	}
+
+	if (UPlayerInventoryGridWidget* InventoryGrid = InventoryComponent->GetPlayerInventoryGridWidget())
+	{
+		InventoryGrid->ResetItemInfoPanel();
+	}
 }
 
 FHitResult UPlayerInventoryWidget::GetLocationBelow(FVector Start) const
