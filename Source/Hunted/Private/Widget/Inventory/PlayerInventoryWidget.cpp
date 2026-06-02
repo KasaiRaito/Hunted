@@ -9,12 +9,22 @@
 #include "Kismet/GameplayStatics.h"
 #include "Items/Inventory/HuntedInventoryItemBase.h"
 #include "Widget/Inventory/PlayerInventoryGridWidget.h"
+#include "Widget/Inventory/PlayerInventoryDropPopupWidget.h"
+#include "HuntedDebugHelper.h"
 
 void UPlayerInventoryWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 	
 	CharacterReference = Cast<AHuntedPlayerCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
+
+	if (UPlayerInventoryComponent* InventoryComponent = IsValid(CharacterReference)
+		? CharacterReference->GetPlayerInventoryComponent()
+		: nullptr)
+	{
+		InventoryComponent->OnItemDropRequested.RemoveAll(this);
+		InventoryComponent->OnItemDropRequested.AddDynamic(this, &UPlayerInventoryWidget::HandleDropRequested);
+	}
 
 	OnNativeVisibilityChanged.RemoveAll(this);
 	OnNativeVisibilityChanged.AddUObject(this, &UPlayerInventoryWidget::HandleInventoryVisibilityChanged);
@@ -24,6 +34,15 @@ void UPlayerInventoryWidget::NativeConstruct()
 void UPlayerInventoryWidget::NativeDestruct()
 {
 	OnNativeVisibilityChanged.RemoveAll(this);
+
+	if (UPlayerInventoryComponent* InventoryComponent = IsValid(CharacterReference)
+		? CharacterReference->GetPlayerInventoryComponent()
+		: nullptr)
+	{
+		InventoryComponent->OnItemDropRequested.RemoveAll(this);
+	}
+
+	ClearActiveDropPopup();
 	Super::NativeDestruct();
 }
 
@@ -54,71 +73,9 @@ bool UPlayerInventoryWidget::NativeOnDrop(const FGeometry& InGeometry, const FDr
 		return false;
 	}
 
-	// Remove state: item is discarded from the inventory without spawning in the world.
-	if (!PayloadItem->IsItemDroppable())
-	{
-		InventoryComponent->RemoveItem(PayloadItem);
-		CharacterReference->ClearCachedItem();
-		if (UPlayerInventoryGridWidget* InventoryGrid = InventoryComponent->GetPlayerInventoryGridWidget())
-		{
-			InventoryGrid->RefreshItemWidgets();
-		}
-
-		// The drag payload points at the hidden inventory actor; clear and destroy it after removal.
-		InOperation->Tag = TEXT("RemovedFromInventory");
-		InOperation->Payload = nullptr;
-		if (IsValid(PayloadItem))
-		{
-			PayloadItem->Destroy();
-		}
-		return true;
-	}
-	
-	//Set the object offset to the ground with a ray cast
-	FHitResult GroundPoint = GetLocationBelow(CharacterReference->GetActorLocation() + FVector(0,0,100.0f) + (CharacterReference->GetActorForwardVector() * 150.0f));
-	
-	FVector SpawnLocation = GroundPoint.ImpactPoint;
-	
-	FVector SurfaceNormal = GroundPoint.ImpactNormal;
-	FRotator SpawnRotation = FRotationMatrix::MakeFromZ(SurfaceNormal).Rotator();
-	
-	//FRotator SpawnRotation = CharacterReference->GetActorRotation();
-	
-	FActorSpawnParameters SpawnParams;
-	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
-
-	UWorld* World = GetWorld();
-	if (!World)
-	{
-		return false;
-	}
-	
-	SpawnedItem = World->SpawnActor<AHuntedInventoryItemBase>(PayloadItem->GetClass(), SpawnLocation, SpawnRotation, SpawnParams);
-	if (!IsValid(SpawnedItem))
-	{
-		return false;
-	}
-
-	SpawnedItem->SetItemInventorySize(PayloadItem->GetItemInventorySize());
-	SpawnedItem->SetIcon(PayloadItem->GetIcon());
-	SpawnedItem->SetItemData(PayloadItem->GetItemData());
-	SpawnedItem->SetActorHiddenInGame(false);
-	SpawnedItem->SetActorEnableCollision(true);
-
-	InventoryComponent->RemoveItem(PayloadItem);
-	CharacterReference->ClearCachedItem();
-	if (UPlayerInventoryGridWidget* InventoryGrid = InventoryComponent->GetPlayerInventoryGridWidget())
-	{
-		InventoryGrid->RefreshItemWidgets();
-	}
-	
-	// The world actor now owns the dropped item state; the inventory copy must not remain as a stale payload.
-	InOperation->Tag = TEXT("DroppedToWorld");
-	InOperation->Payload = nullptr;
-	if (IsValid(PayloadItem))
-	{
-		PayloadItem->Destroy();
-	}
+	SpawnedItem = nullptr;
+	InOperation->Tag = TEXT("DropRequested");
+	InventoryComponent->RequestDropItem(PayloadItem);
 	
 	return true;
 }
@@ -139,35 +96,81 @@ void UPlayerInventoryWidget::HandleInventoryVisibilityChanged(ESlateVisibility /
 	}
 }
 
-FHitResult UPlayerInventoryWidget::GetLocationBelow(FVector Start) const
+void UPlayerInventoryWidget::ShowDropPopupForItem(AHuntedInventoryItemBase* Item)
 {
-	FHitResult HitResult;
-	FVector End = Start - FVector(0, 0, 1000.0f); // Trace 1000 units down
-	UWorld* World = GetWorld();
-	if (!World)
+	if (!IsValid(Item))
 	{
-		HitResult.ImpactPoint = End;
-		HitResult.ImpactNormal = FVector::UpVector;
-		return HitResult;
+		return;
 	}
 
-	FCollisionQueryParams Params;
-	Params.AddIgnoredActor(CharacterReference); // Don't hit yourself
+	ClearActiveDropPopup();
 
-	bool bHit = World->LineTraceSingleByChannel(
-		HitResult, 
-		Start, 
-		End, 
-		ECC_Visibility, 
-		Params
-	);
-
-	if (!bHit)
+	if (!DropPopupWidgetClass)
 	{
-		// Avoid spawning dropped items at the world origin when the ground trace misses.
-		HitResult.ImpactPoint = End;
-		HitResult.ImpactNormal = FVector::UpVector;
+		Debug::Print(TEXT("Player Inventory Widget: DropPopupWidgetClass is not assigned"), FColor::Red);
+		return;
 	}
-	
-	return HitResult; 
+
+	ActiveDropPopup = CreateWidget<UPlayerInventoryDropPopupWidget>(GetWorld(), DropPopupWidgetClass);
+	if (!ActiveDropPopup)
+	{
+		return;
+	}
+
+	ActiveDropPopup->SetOwningPlayer(GetOwningPlayer());
+	ActiveDropPopup->OnDropConfirmed.AddDynamic(this, &UPlayerInventoryWidget::HandleDropConfirmed);
+	ActiveDropPopup->OnPopupClosed.AddDynamic(this, &UPlayerInventoryWidget::HandleDropPopupClosed);
+	ActiveDropPopup->AddToViewport(DropPopupZOrder);
+	ActiveDropPopup->ConfigureForItem(Item, Item->IsItemDroppable());
+}
+
+void UPlayerInventoryWidget::ClearActiveDropPopup()
+{
+	if (!ActiveDropPopup)
+	{
+		return;
+	}
+
+	UPlayerInventoryDropPopupWidget* PopupToClear = ActiveDropPopup;
+	ActiveDropPopup = nullptr;
+
+	PopupToClear->OnDropConfirmed.RemoveAll(this);
+	PopupToClear->OnPopupClosed.RemoveAll(this);
+	PopupToClear->RemoveFromParent();
+}
+
+void UPlayerInventoryWidget::HandleDropRequested(AHuntedInventoryItemBase* Item)
+{
+	ShowDropPopupForItem(Item);
+}
+
+void UPlayerInventoryWidget::HandleDropConfirmed(AHuntedInventoryItemBase* Item)
+{
+	if (!IsValid(CharacterReference))
+	{
+		return;
+	}
+
+	UPlayerInventoryComponent* InventoryComponent = CharacterReference->GetPlayerInventoryComponent();
+	if (!IsValid(InventoryComponent))
+	{
+		return;
+	}
+
+	if (InventoryComponent->DiscardItem(Item))
+	{
+		CharacterReference->ClearCachedItem();
+	}
+}
+
+void UPlayerInventoryWidget::HandleDropPopupClosed()
+{
+	if (!ActiveDropPopup)
+	{
+		return;
+	}
+
+	ActiveDropPopup->OnDropConfirmed.RemoveAll(this);
+	ActiveDropPopup->OnPopupClosed.RemoveAll(this);
+	ActiveDropPopup = nullptr;
 }

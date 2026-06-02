@@ -277,9 +277,7 @@ void UPlayerInventoryItemWidget::HandleDragOperationFinished(UDragDropOperation*
 		return;
 	}
 
-	const bool bDropResolved = Operation->Tag == TEXT("DroppedToGrid")
-		|| Operation->Tag == TEXT("DroppedToWorld")
-		|| Operation->Tag == TEXT("RemovedFromInventory");
+	const bool bDropResolved = Operation->Tag == TEXT("DroppedToGrid");
 	if (!bDropResolved)
 	{
 		if (UPlayerInventoryDragDropOperation* InventoryDragOperation = Cast<UPlayerInventoryDragDropOperation>(Operation))
@@ -414,7 +412,7 @@ void UPlayerInventoryItemWidget::RebuildContextMenuEntries()
 	ContextMenuActions.Reset();
 	ContextMenuActions.Add(MakeContextActionEntry(EInventoryContextAction::Inspect, FText::FromString(TEXT("Inspect")), InspectActionIcon));
 	ContextMenuActions.Add(MakeContextActionEntry(EInventoryContextAction::Combine, FText::FromString(TEXT("Combine")), CombineActionIcon));
-	ContextMenuActions.Add(MakeContextActionEntry(EInventoryContextAction::Discard, FText::FromString(TEXT("Discard")), DiscardActionIcon));
+	ContextMenuActions.Add(MakeContextActionEntry(EInventoryContextAction::Discard, FText::FromString(TEXT("Drop")), DiscardActionIcon));
 
 	ContextMenuBox->ClearChildren();
 
@@ -684,7 +682,7 @@ void UPlayerInventoryItemWidget::HandleDiscardClicked()
 		return;
 	}
 
-	CharacterReference->GetPlayerInventoryComponent()->DiscardItem(Item);
+	CharacterReference->GetPlayerInventoryComponent()->RequestDropItem(Item);
 }
 
 void UPlayerInventoryItemWidget::InitializeInventoryItem(AHuntedInventoryItemBase* ItemToAdd)

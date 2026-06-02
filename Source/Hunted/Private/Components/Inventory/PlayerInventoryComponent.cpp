@@ -687,11 +687,28 @@ bool UPlayerInventoryComponent::TryGetCombinationResultItemDisplayData(AHuntedIn
 	return true;
 }
 
+void UPlayerInventoryComponent::RequestDropItem(AHuntedInventoryItemBase* ItemToDrop)
+{
+	CompactInvalidInventoryItems();
+
+	if (!IsValid(ItemToDrop) || !IsItemInInventory(ItemToDrop))
+	{
+		return;
+	}
+
+	OnItemDropRequested.Broadcast(ItemToDrop);
+}
+
 bool UPlayerInventoryComponent::DiscardItem(AHuntedInventoryItemBase* ItemToDiscard)
 {
 	CompactInvalidInventoryItems();
 
 	if (!IsValid(ItemToDiscard) || !IsItemInInventory(ItemToDiscard))
+	{
+		return false;
+	}
+
+	if (!ItemToDiscard->IsItemDroppable())
 	{
 		return false;
 	}
