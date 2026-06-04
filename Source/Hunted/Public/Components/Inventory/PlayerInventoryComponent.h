@@ -6,12 +6,15 @@
 #include "GameplayTagContainer.h"
 #include "Components/ActorComponent.h"
 #include "Components/PawnExtensionComponentBase.h"
+#include "HuntedTypes/HuntedStructTypes.h"
 #include "PlayerInventoryComponent.generated.h"
 
 
 class UPlayerInventoryGridWidget;
 class AHuntedInventoryItemBase;
-struct FHuntedInventoryCombinationRecipe;
+class UMaterialInterface;
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInventoryItemDropRequestDelegate, AHuntedInventoryItemBase*, Item);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class HUNTED_API UPlayerInventoryComponent : public UPawnExtensionComponentBase
@@ -115,6 +118,9 @@ protected:
 public:	
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+	UPROPERTY(BlueprintAssignable, Category = "Inventory|Drop")
+	FInventoryItemDropRequestDelegate OnItemDropRequested;
+
 	TMap<AHuntedInventoryItemBase*, FIntPoint> GetAllItems();
 	
 	UFUNCTION(BlueprintCallable)
@@ -155,6 +161,17 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory|Combination")
 	bool CanItemCombineWithPendingSelection(AHuntedInventoryItemBase* CandidateItem) const;
+
+	UFUNCTION(BlueprintCallable, Category = "Inventory|Combination")
+	bool TryGetCombinationResultItemData(AHuntedInventoryItemBase* FirstItem, AHuntedInventoryItemBase* SecondItem,
+		FHuntedPlayerItemData& OutResultItemData) const;
+
+	UFUNCTION(BlueprintCallable, Category = "Inventory|Combination")
+	bool TryGetCombinationResultItemDisplayData(AHuntedInventoryItemBase* FirstItem, AHuntedInventoryItemBase* SecondItem,
+		FHuntedPlayerItemData& OutResultItemData, UMaterialInterface*& OutResultIcon) const;
+
+	UFUNCTION(BlueprintCallable, Category = "Inventory|Drop")
+	void RequestDropItem(AHuntedInventoryItemBase* ItemToDrop);
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	bool DiscardItem(AHuntedInventoryItemBase* ItemToDiscard);
