@@ -103,6 +103,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Echo")
 	UMaterialInterface* MyEchoMaterial;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, BlueprintSetter = SetControlRotationEnabled, Category = "Camera")
+	bool ControlRotation = true;
+
+	UFUNCTION(BlueprintSetter, Category = "Camera")
+	void SetControlRotationEnabled(bool bShouldControlRotation);
+
 protected:
 	//~ Begin APawn Interface
 	virtual void PossessedBy(AController* NewController) override;

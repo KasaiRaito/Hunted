@@ -167,6 +167,33 @@ void AHuntedPlayerCharacter::BeginPlay()
 	PlayerInventoryComponent->SetItemsNum(PlayerInventoryComponent->GetColumns() * PlayerInventoryComponent->GetRows());
 }
 
+void AHuntedPlayerCharacter::SetControlRotationEnabled(bool bShouldControlRotation)
+{
+	ControlRotation = bShouldControlRotation;
+	CurrentYaw = 0.f;
+	CurrentPitch = 0.f;
+	
+	FString string = ControlRotation ? TEXT("True") : TEXT("False");
+	Debug::Print(TEXT("ControlRotation Value: ") + string);
+
+	if (ControlRotation)
+	{
+		if (Controller)
+		{
+			FRotator NewControlRotation = Controller->GetControlRotation();
+			NewControlRotation.Yaw = GetActorRotation().Yaw;
+			NewControlRotation.Roll = 0.f;
+			Controller->SetControlRotation(NewControlRotation);
+		}
+
+		bUseControllerRotationYaw = true;
+		return;
+	}
+
+	bUseControllerRotationYaw = false;
+	GetCharacterMovement()->bOrientRotationToMovement = false;
+}
+
 void AHuntedPlayerCharacter::Input_Move(const FInputActionValue& InputActionValue)
 {
 	// Process movement input
@@ -267,12 +294,14 @@ void AHuntedPlayerCharacter::ProcessMovementInput(const FInputActionValue& Input
  
 void AHuntedPlayerCharacter::Input_Look(const FInputActionValue& InputActionValue)
 {
-	const FVector2D LookInput = InputActionValue.Get<FVector2D>();
-
-	if (!Controller)
+	if (!Controller || !ControlRotation)
 	{
+		CurrentYaw = 0.f;
+		CurrentPitch = 0.f;
 		return;
 	}
+
+	const FVector2D LookInput = InputActionValue.Get<FVector2D>();
 
 	if (!LookAcceleration || !CameraAcceleration)
 	{
