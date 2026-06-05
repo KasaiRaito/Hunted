@@ -20,6 +20,7 @@ class UPlayerCombatComponent;
 class UPlayerInventoryComponent;
 class UPlayerUIComponent;
 class AHuntedInventoryItemBase;
+class UContextualAnimSceneActorComponent;
 
 /**
  * 
@@ -114,6 +115,8 @@ protected:
 	virtual void PossessedBy(AController* NewController) override;
 	//~ End APawn Interface
 	
+	virtual void Tick(float DeltaSeconds) override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	virtual void BeginPlay() override;
 	
@@ -143,13 +146,13 @@ protected:
 private:
 #pragma region Components
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
-	UCameraComponent* FollowCamera;
+	UCameraComponent* FirstPersonCamera;
 	
 	UFUNCTION(BlueprintCallable, Category = "Camera")
-	FVector GetFollowCameraLocation() const { return FollowCamera->GetComponentLocation(); }
+	FVector GetFollowCameraLocation() const { return FirstPersonCamera->GetComponentLocation(); }
 	
 	UFUNCTION(BlueprintCallable, Category = "Camera")
-	FVector GetFollowCameraForward() const { return FollowCamera->GetForwardVector(); }
+	FVector GetFollowCameraForward() const { return FirstPersonCamera->GetForwardVector(); }
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
 	UPlayerCombatComponent* PlayerCombatComponent;
@@ -162,6 +165,9 @@ private:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
 	UPlayerInventoryComponent* PlayerInventoryComponent;
+
+	UPROPERTY(Transient)
+	UContextualAnimSceneActorComponent* ContextualAnimSceneActorComponent;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
 	AHuntedInteractable*  CachedItem;
@@ -210,6 +216,15 @@ private:
 	void Input_AbilityInputPressed(FGameplayTag InInputTag);
 	void Input_AbilityInputReleased(FGameplayTag InInputTag);
 	
+	void ApplyControlRotationState(bool bShouldControlRotation);
+	bool IsContextualAnimSceneActive() const;
+	void SyncControlRotationToActorYaw();
+
+	UFUNCTION()
+	void HandleContextualAnimSceneJoined(UContextualAnimSceneActorComponent* SceneActorComponent);
+
+	UFUNCTION()
+	void HandleContextualAnimSceneLeft(UContextualAnimSceneActorComponent* SceneActorComponent);
 
 	bool IsSneak = false;
 	bool IsSprint = false;
@@ -217,6 +232,8 @@ private:
 	bool IsEcho = false;
 	bool IsAiming = false;
 	bool HaveGun = false;
+	bool bPendingEnableControlRotation = false;
+	float PendingControlRotationSyncTime = 0.f;
 	
 #pragma endregion
 
