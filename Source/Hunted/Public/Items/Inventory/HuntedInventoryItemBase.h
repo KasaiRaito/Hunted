@@ -8,6 +8,7 @@
 #include "HuntedTypes/HuntedStructTypes.h"
 #include "HuntedInventoryItemBase.generated.h"
 
+class UHuntedAbilitySystemComponent;
 class USphereComponent;
 class UWidgetComponent;
 class AHuntedPlayerCharacter;
@@ -81,8 +82,14 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Item-Inventory")
 	void UseItem(AHuntedPlayerCharacter* UserCharacter);
+	
 	virtual void UseItem_Implementation(AHuntedPlayerCharacter* UserCharacter);
 
+	//~ ConsumeImplementation
+	UFUNCTION(BlueprintCallable, Category = "Item-Inventory")
+	void ApplyUseEffect(UHuntedAbilitySystemComponent* AbilitySystemComponent, int32 ApplyLevel);
+	//~ End
+	
 	UFUNCTION(BlueprintCallable, Category = "Item-Inventory")
 	FORCEINLINE int32 GetItemAmount() const { return ItemData.ItemAmount; }
 

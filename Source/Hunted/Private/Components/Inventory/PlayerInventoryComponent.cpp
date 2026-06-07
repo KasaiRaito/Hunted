@@ -353,6 +353,35 @@ bool UPlayerInventoryComponent::CheckHaveItemByTag(FGameplayTag ItemTag) const
 	return false;
 }
 
+AHuntedInventoryItemBase* UPlayerInventoryComponent::GetItemByTag(FGameplayTag ItemTag) const
+{
+	if (!ItemTag.IsValid())
+	{
+		return nullptr;
+	}
+	
+	TSet<const AHuntedInventoryItemBase*> CountedItems;
+
+	for (AHuntedInventoryItemBase* Item : Items)
+	{
+		if (!IsValid(Item) || CountedItems.Contains(Item))
+		{
+			continue;
+		}
+
+		CountedItems.Add(Item);
+
+		const FHuntedPlayerItemData ItemData = Item->GetItemData();
+		if (ItemData.ItemTag == ItemTag)
+		{
+			return Item;
+		}
+
+	}
+
+	return nullptr;
+}
+
 
 bool UPlayerInventoryComponent::HasItemAmountByTag(FGameplayTag ItemTag, int32 RequiredAmount) const
 {

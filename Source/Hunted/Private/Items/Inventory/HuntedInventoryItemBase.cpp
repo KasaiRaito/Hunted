@@ -8,6 +8,8 @@
 #include "GameFramework/GameSession.h"
 #include "Widget/Items/ItemInteractuableWidget.h"
 
+#include "HuntedDebugHelper.h"
+
 AHuntedInventoryItemBase::AHuntedInventoryItemBase()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -26,6 +28,18 @@ AHuntedInventoryItemBase::AHuntedInventoryItemBase()
 
 void AHuntedInventoryItemBase::UseItem_Implementation(AHuntedPlayerCharacter* UserCharacter)
 {
+	
+}
+
+void AHuntedInventoryItemBase::ApplyUseEffect(UHuntedAbilitySystemComponent* AbilitySystemComponent, int32 ApplyLevel)
+{
+	if (!AbilitySystemComponent && ApplyLevel)
+	{
+		Debug::Print("No data");
+		return;
+	}
+	
+	Debug::Print("C ++ Implementation");
 }
 
 void AHuntedInventoryItemBase::SetItemIsInVew(bool val)
