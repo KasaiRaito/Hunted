@@ -8,7 +8,6 @@ namespace  HuntedGameplayTags
 	/** Input Tags **/
 		/** Movement **/
 	UE_DEFINE_GAMEPLAY_TAG(InputTag_Move, "InputTag.Move");
-	UE_DEFINE_GAMEPLAY_TAG(InputTag_Sneak, "InputTag.Sneak");
 	UE_DEFINE_GAMEPLAY_TAG(InputTag_Sprint, "InputTag.Sprint");
 	UE_DEFINE_GAMEPLAY_TAG(InputTag_Crouch, "InputTag.Crouch");
 	UE_DEFINE_GAMEPLAY_TAG(InputTag_Look, "InputTag.Look");
@@ -33,6 +32,7 @@ namespace  HuntedGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(InputTag_Pause_Close, "InputTag.Pause.Close");
 	
 	UE_DEFINE_GAMEPLAY_TAG(InputTag_Interact, "InputTag.Interact");
+	
 	
 	/** Player **/
 		/** Abilities **/
@@ -67,6 +67,10 @@ namespace  HuntedGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Player_Ability_Pause_Close, "Player.Ability.Pause.Close");
 	
 	UE_DEFINE_GAMEPLAY_TAG(Player_Ability_Interact, "Player.Ability.Interact");
+	
+			/** Heal **/
+	UE_DEFINE_GAMEPLAY_TAG(InputTag_Heal, "InputTag.Heal");
+	UE_DEFINE_GAMEPLAY_TAG(Player_Ability_Heal, "Player.Ability.Heal");
 	
 		/** Events **/
 	UE_DEFINE_GAMEPLAY_TAG(Player_Event_Equip_Gun, "Player.Event.Equip.Gun");

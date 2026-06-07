@@ -24,6 +24,10 @@ AHuntedInventoryItemBase::AHuntedInventoryItemBase()
 	InteractWidgetComponent->SetupAttachment(MeshComponent);
 }
 
+void AHuntedInventoryItemBase::UseItem_Implementation(AHuntedPlayerCharacter* UserCharacter)
+{
+}
+
 void AHuntedInventoryItemBase::SetItemIsInVew(bool val)
 {
 	ItemIsInVew = val; 

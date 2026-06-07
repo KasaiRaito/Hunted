@@ -10,6 +10,7 @@
 
 class USphereComponent;
 class UWidgetComponent;
+class AHuntedPlayerCharacter;
 
 UCLASS()
 class HUNTED_API AHuntedInventoryItemBase : public AHuntedInteractable
@@ -74,6 +75,13 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Item-Inventory")
 	FORCEINLINE void SetItemData(const FHuntedPlayerItemData& NewItemData) { ItemData = NewItemData; }
+
+	UFUNCTION(BlueprintPure, Category = "Item-Inventory")
+	FORCEINLINE bool IsItemUsable() const { return ItemData.ItemUsable; }
+
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Item-Inventory")
+	void UseItem(AHuntedPlayerCharacter* UserCharacter);
+	virtual void UseItem_Implementation(AHuntedPlayerCharacter* UserCharacter);
 
 	UFUNCTION(BlueprintCallable, Category = "Item-Inventory")
 	FORCEINLINE int32 GetItemAmount() const { return ItemData.ItemAmount; }

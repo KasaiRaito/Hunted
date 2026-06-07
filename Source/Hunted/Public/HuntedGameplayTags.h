@@ -13,7 +13,6 @@ namespace HuntedGameplayTags
 	/** Input Tags **/
 		/** Movement **/
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Move);
-	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Sneak);
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Sprint);
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Crouch);
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Look);
@@ -38,6 +37,7 @@ namespace HuntedGameplayTags
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Pause_Close);
 	
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Interact);
+	
 	
 	/** Player **/
 		/** Abilities **/
@@ -72,6 +72,11 @@ namespace HuntedGameplayTags
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Ability_Pause_Close);
 	
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Ability_Interact);
+	
+			/** Heal **/
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Heal);
+	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Ability_Heal);
+	
 
 		/** Events **/
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Event_Equip_Gun);
@@ -107,6 +112,7 @@ namespace HuntedGameplayTags
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Item_Puzzle_Key_LaundryRoom);
 	
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Item_Puzzle_Pice);
+	
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Item_Puzzle_Pice_Test1);
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Item_Puzzle_Pice_Test2);
 	HUNTED_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_Item_Puzzle_Pice_Test3);

@@ -129,9 +129,6 @@ void AHuntedPlayerCharacter::SetupPlayerInputComponent(UInputComponent* InPlayer
 
 	PlayerInputComponent->BindNativeInputAction(InputConfigDataAsset, HuntedGameplayTags::InputTag_Move,
 		ETriggerEvent::Triggered, this, &ThisClass::Input_Move);
-	
-	PlayerInputComponent->BindNativeInputAction(InputConfigDataAsset, HuntedGameplayTags::InputTag_Sneak,
-		ETriggerEvent::Triggered, this, &ThisClass::Input_Sneak);
 
 	PlayerInputComponent->BindNativeInputAction(InputConfigDataAsset, HuntedGameplayTags::InputTag_Sprint,
 		ETriggerEvent::Triggered, this, &ThisClass::Input_Sprint);
@@ -480,6 +477,9 @@ void AHuntedPlayerCharacter::Input_AbilityInputReleased(FGameplayTag InInputTag)
 
 void AHuntedPlayerCharacter::EnterEcho()
 {
+	/**
+	 *Legacy Solution 
+	 *Overided in BP
 	for (AActor* StaticMeshActor : StaticMeshActors)
 	{
 		if (!StaticMeshActor) continue;
@@ -498,10 +498,14 @@ void AHuntedPlayerCharacter::EnterEcho()
 			}
 		}
 	}
+	**/
 }
 
 void AHuntedPlayerCharacter::ExitEcho()
 {
+	/**
+	 *Legacy Solution
+	 *Overided in BP
 	for (const FActorMaterialBackup& Backup : OriginalActorMaterials)
 	{
 		if (!Backup.Actor) continue;
@@ -519,6 +523,7 @@ void AHuntedPlayerCharacter::ExitEcho()
 			}
 		}
 	}
+	**/
 }
 
 void AHuntedPlayerCharacter::UpdateStaticMeshList()

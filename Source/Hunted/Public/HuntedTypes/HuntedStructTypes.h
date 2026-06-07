@@ -93,7 +93,7 @@ struct  FHuntedPlayerItemData
 	FGameplayTag ItemTag;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	bool ItemUsable;
+	bool ItemUsable = false;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	bool IsStackable = false;
@@ -127,7 +127,8 @@ enum class EInventoryContextAction : uint8
 {
 	Inspect,
 	Combine,
-	Discard
+	Discard,
+	Use
 };
 
 USTRUCT(BlueprintType)
