@@ -7,8 +7,10 @@
 #include "Components/WidgetComponent.h"
 #include "GameFramework/GameSession.h"
 #include "Widget/Items/ItemInteractuableWidget.h"
+#include "GameplayEffect.h"
 
 #include "HuntedDebugHelper.h"
+#include "AbilitySystem/HuntedAbilitySystemComponent.h"
 
 AHuntedInventoryItemBase::AHuntedInventoryItemBase()
 {
@@ -39,7 +41,24 @@ void AHuntedInventoryItemBase::ApplyUseEffect(UHuntedAbilitySystemComponent* Abi
 		return;
 	}
 	
-	Debug::Print("C ++ Implementation");
+	if (TSubclassOf<UGameplayEffect> GameplayEffectClass = ItemData.GetItemGameplayEffectClass())
+	{
+		check( GameplayEffectClass);
+		
+		UGameplayEffect* EffectCDO = GameplayEffectClass->GetDefaultObject<UGameplayEffect>();
+		
+		AbilitySystemComponent->ApplyGameplayEffectToSelf(
+			EffectCDO, 
+			ApplyLevel, 
+			AbilitySystemComponent->MakeEffectContext()
+		);
+		
+		Debug::Print("C ++ Implementation");
+	}
+	else
+	{
+		Debug::Print("GameplayEffectClass-NotValid");
+	}
 }
 
 void AHuntedInventoryItemBase::SetItemIsInVew(bool val)
