@@ -322,6 +322,82 @@ void AHuntedPlayerCharacter::HandleContextualAnimSceneLeft(UContextualAnimSceneA
 	SetActorTickEnabled(true);
 }
 
+void AHuntedPlayerCharacter::ApplyUseEffect(UHuntedAbilitySystemComponent* AbilitySystemComponent, int32 ApplyLevel)
+{
+	if (!IsValid(AbilitySystemComponent) || !EchoUseGameplayEffectClass)
+	{
+		Debug::Print(TEXT("Cannot apply Echo sanity drain"), FColor::Red);
+		return;
+	}
+
+	if (EchoRegenEffectHandle.IsValid())
+	{
+		AbilitySystemComponent->RemoveActiveGameplayEffect(EchoRegenEffectHandle);
+		EchoRegenEffectHandle.Invalidate();
+	}
+
+	if (EchoUseEffectHandle.IsValid())
+	{
+		if (AbilitySystemComponent->GetActiveGameplayEffect(EchoUseEffectHandle))
+		{
+			return;
+		}
+
+		EchoUseEffectHandle.Invalidate();
+	}
+
+	FGameplayEffectContextHandle EffectContext =
+		AbilitySystemComponent->MakeEffectContext();
+
+	EffectContext.AddSourceObject(this);
+
+	const UGameplayEffect* Effect =
+		EchoUseGameplayEffectClass->GetDefaultObject<UGameplayEffect>();
+
+	EchoUseEffectHandle = AbilitySystemComponent->ApplyGameplayEffectToSelf(
+		Effect,
+		FMath::Max(1, ApplyLevel),
+		EffectContext);
+}
+
+void AHuntedPlayerCharacter::ApplyRegenEffect(UHuntedAbilitySystemComponent* AbilitySystemComponent, int32 ApplyLevel)
+{
+	if (!IsValid(AbilitySystemComponent) || !EchoRegenGameplayEffectClass)
+	{
+		Debug::Print(TEXT("Cannot apply Echo sanity regeneration"), FColor::Red);
+		return;
+	}
+
+	if (EchoUseEffectHandle.IsValid())
+	{
+		AbilitySystemComponent->RemoveActiveGameplayEffect(EchoUseEffectHandle);
+		EchoUseEffectHandle.Invalidate();
+	}
+
+	if (EchoRegenEffectHandle.IsValid())
+	{
+		if (AbilitySystemComponent->GetActiveGameplayEffect(EchoRegenEffectHandle))
+		{
+			return;
+		}
+
+		EchoRegenEffectHandle.Invalidate();
+	}
+
+	FGameplayEffectContextHandle EffectContext =
+		AbilitySystemComponent->MakeEffectContext();
+
+	EffectContext.AddSourceObject(this);
+
+	const UGameplayEffect* Effect =
+		EchoRegenGameplayEffectClass->GetDefaultObject<UGameplayEffect>();
+
+	EchoRegenEffectHandle = AbilitySystemComponent->ApplyGameplayEffectToSelf(
+		Effect,
+		FMath::Max(1, ApplyLevel),
+		EffectContext);
+}
+
 void AHuntedPlayerCharacter::Input_Move(const FInputActionValue& InputActionValue)
 {
 	// Process movement input

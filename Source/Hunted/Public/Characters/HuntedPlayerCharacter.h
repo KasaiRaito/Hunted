@@ -7,9 +7,11 @@
 #include "Kismet/GameplayStatics.h"
 #include "Engine/StaticMeshActor.h"
 #include "GameplayTagContainer.h"
+#include "ActiveGameplayEffectHandle.h"
 #include "Camera/CameraComponent.h"
 #include "HuntedPlayerCharacter.generated.h"
 
+class UGameplayEffect;
 class UHuntedWidgetBase;
 class AHuntedInteractable;
 struct FInputActionValue;
@@ -194,7 +196,21 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	void SetHaveGun(bool bHaveGun) { HaveGun = bHaveGun; };
 	
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	void ApplyUseEffect(UHuntedAbilitySystemComponent* AbilitySystemComponent, int32 ApplyLevel);
+	
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	void ApplyRegenEffect(UHuntedAbilitySystemComponent* AbilitySystemComponent, int32 ApplyLevel);
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TSubclassOf<UGameplayEffect> EchoUseGameplayEffectClass;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TSubclassOf<UGameplayEffect> EchoRegenGameplayEffectClass;
+	
 private:
+	FActiveGameplayEffectHandle EchoUseEffectHandle;
+	FActiveGameplayEffectHandle EchoRegenEffectHandle;
 	
 #pragma endregion
 
