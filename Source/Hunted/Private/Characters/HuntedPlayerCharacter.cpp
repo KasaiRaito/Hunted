@@ -13,6 +13,7 @@
 
 #include "HuntedDebugHelper.h"
 #include "AbilitySystem/HuntedAbilitySystemComponent.h"
+#include "AbilitySystem/HuntedAttributeSet.h"
 #include "AbilitySystem/Abilities/HuntedPlayerGameplayAbility.h"
 #include "Blueprint/UserWidget.h"
 
@@ -89,6 +90,8 @@ void AHuntedPlayerCharacter::PossessedBy(AController* NewController)
 			LoadedData->GivenToAbilitySystemComponent(HuntedAbilitySystemComponent);
 		}
 	}
+
+	BindSanityChangedDelegate();
 }
 
 void AHuntedPlayerCharacter::SetupPlayerInputComponent(UInputComponent* InPlayerInputComponent)
@@ -185,6 +188,14 @@ void AHuntedPlayerCharacter::BeginPlay()
 
 void AHuntedPlayerCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+	if (HuntedAbilitySystemComponent && SanityChangedDelegateHandle.IsValid())
+	{
+		HuntedAbilitySystemComponent
+			->GetGameplayAttributeValueChangeDelegate(UHuntedAttributeSet::GetCurrentSanityAttribute())
+			.Remove(SanityChangedDelegateHandle);
+		SanityChangedDelegateHandle.Reset();
+	}
+
 	if (ContextualAnimSceneActorComponent)
 	{
 		ContextualAnimSceneActorComponent->OnJoinedSceneDelegate.RemoveDynamic(
@@ -396,6 +407,36 @@ void AHuntedPlayerCharacter::ApplyRegenEffect(UHuntedAbilitySystemComponent* Abi
 		Effect,
 		FMath::Max(1, ApplyLevel),
 		EffectContext);
+}
+
+void AHuntedPlayerCharacter::BindSanityChangedDelegate()
+{
+	if (!HuntedAbilitySystemComponent || SanityChangedDelegateHandle.IsValid())
+	{
+		return;
+	}
+
+	SanityChangedDelegateHandle = HuntedAbilitySystemComponent
+		->GetGameplayAttributeValueChangeDelegate(UHuntedAttributeSet::GetCurrentSanityAttribute())
+		.AddUObject(this, &ThisClass::HandleCurrentSanityChanged);
+}
+
+void AHuntedPlayerCharacter::HandleCurrentSanityChanged(const FOnAttributeChangeData& ChangeData)
+{
+	if (ChangeData.OldValue > 0.f && ChangeData.NewValue <= 0.f)
+	{
+		ActivateZeroSanityAbility();
+	}
+}
+
+bool AHuntedPlayerCharacter::ActivateZeroSanityAbility()
+{
+	if (!HuntedAbilitySystemComponent || !ZeroSanityGameplayAbilityClass)
+	{
+		return false;
+	}
+
+	return HuntedAbilitySystemComponent->TryActivateAbilityByClass(ZeroSanityGameplayAbilityClass);
 }
 
 void AHuntedPlayerCharacter::Input_Move(const FInputActionValue& InputActionValue)
