@@ -8,6 +8,7 @@
 
 #include "HuntedStructTypes.generated.h"
 
+class UGameplayEffect;
 class UHuntedPlayerLinkedAnimLayer;
 class UHuntedGameplayAbility;
 class UInputMappingContext;
@@ -93,22 +94,25 @@ struct  FHuntedPlayerItemData
 	FGameplayTag ItemTag;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	bool ItemUsable;
-	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	bool IsStackable = false;
-	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	bool IsDroppable = false;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = "1", UIMin = "1"))
-	int32 MaxStackPerCell = 1;
-	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	FString ItemName;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	FString ItemDescription;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	bool ItemUsable = false;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (EditCondition = "ItemUsable", EditConditionHides))
+	TSubclassOf<UGameplayEffect> ItemGameplayEffectClass;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	bool IsStackable = false;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = "1", UIMin = "1"), meta = (EditCondition = "IsStackable", EditConditionHides))
+	int32 MaxStackPerCell = 1;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	bool IsDroppable = false;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	FScalableFloat ItemMinAmount;
@@ -120,6 +124,8 @@ struct  FHuntedPlayerItemData
 	int ItemAmount;
 	
 	void SetItemAmount();
+	
+	TSubclassOf<UGameplayEffect> GetItemGameplayEffectClass() const { return ItemGameplayEffectClass; }
 };
 
 UENUM(BlueprintType)
@@ -127,7 +133,8 @@ enum class EInventoryContextAction : uint8
 {
 	Inspect,
 	Combine,
-	Discard
+	Discard,
+	Use
 };
 
 USTRUCT(BlueprintType)
