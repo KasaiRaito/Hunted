@@ -7,12 +7,16 @@
 #include "Kismet/GameplayStatics.h"
 #include "Engine/StaticMeshActor.h"
 #include "GameplayTagContainer.h"
+#include "ActiveGameplayEffectHandle.h"
 #include "Camera/CameraComponent.h"
 #include "HuntedPlayerCharacter.generated.h"
 
+class UGameplayEffect;
+class UHuntedPlayerGameplayAbility;
 class UHuntedWidgetBase;
 class AHuntedInteractable;
 struct FInputActionValue;
+struct FOnAttributeChangeData;
 class USpringArmComponent;
 class UCameraComponent;
 class UDataAsset_InputConfig;
@@ -194,7 +198,31 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	void SetHaveGun(bool bHaveGun) { HaveGun = bHaveGun; };
 	
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	void ApplyUseEffect(UHuntedAbilitySystemComponent* AbilitySystemComponent, int32 ApplyLevel);
+	
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	void ApplyRegenEffect(UHuntedAbilitySystemComponent* AbilitySystemComponent, int32 ApplyLevel);
+
+	UFUNCTION(BlueprintCallable, Category = "Sanity")
+	bool ActivateZeroSanityAbility();
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TSubclassOf<UGameplayEffect> EchoUseGameplayEffectClass;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TSubclassOf<UGameplayEffect> EchoRegenGameplayEffectClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Sanity")
+	TSubclassOf<UHuntedPlayerGameplayAbility> ZeroSanityGameplayAbilityClass;
+	
 private:
+	void BindSanityChangedDelegate();
+	void HandleCurrentSanityChanged(const FOnAttributeChangeData& ChangeData);
+
+	FActiveGameplayEffectHandle EchoUseEffectHandle;
+	FActiveGameplayEffectHandle EchoRegenEffectHandle;
+	FDelegateHandle SanityChangedDelegateHandle;
 	
 #pragma endregion
 

@@ -35,7 +35,7 @@ void AHuntedInventoryItemBase::UseItem_Implementation(AHuntedPlayerCharacter* Us
 
 void AHuntedInventoryItemBase::ApplyUseEffect(UHuntedAbilitySystemComponent* AbilitySystemComponent, int32 ApplyLevel)
 {
-	if (!AbilitySystemComponent && ApplyLevel)
+	if (!AbilitySystemComponent && !ApplyLevel)
 	{
 		Debug::Print("No data");
 		return;
