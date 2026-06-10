@@ -353,6 +353,35 @@ bool UPlayerInventoryComponent::CheckHaveItemByTag(FGameplayTag ItemTag) const
 	return false;
 }
 
+AHuntedInventoryItemBase* UPlayerInventoryComponent::GetItemByTag(FGameplayTag ItemTag) const
+{
+	if (!ItemTag.IsValid())
+	{
+		return nullptr;
+	}
+	
+	TSet<const AHuntedInventoryItemBase*> CountedItems;
+
+	for (AHuntedInventoryItemBase* Item : Items)
+	{
+		if (!IsValid(Item) || CountedItems.Contains(Item))
+		{
+			continue;
+		}
+
+		CountedItems.Add(Item);
+
+		const FHuntedPlayerItemData ItemData = Item->GetItemData();
+		if (ItemData.ItemTag == ItemTag)
+		{
+			return Item;
+		}
+
+	}
+
+	return nullptr;
+}
+
 
 bool UPlayerInventoryComponent::HasItemAmountByTag(FGameplayTag ItemTag, int32 RequiredAmount) const
 {
@@ -655,11 +684,60 @@ bool UPlayerInventoryComponent::CanItemCombineWithPendingSelection(AHuntedInvent
 	return CanCombineItems(PendingCombineItem, CandidateItem);
 }
 
+bool UPlayerInventoryComponent::TryGetCombinationResultItemData(AHuntedInventoryItemBase* FirstItem,
+	AHuntedInventoryItemBase* SecondItem, FHuntedPlayerItemData& OutResultItemData) const
+{
+	UMaterialInterface* ResultIcon = nullptr;
+	return TryGetCombinationResultItemDisplayData(FirstItem, SecondItem, OutResultItemData, ResultIcon);
+}
+
+bool UPlayerInventoryComponent::TryGetCombinationResultItemDisplayData(AHuntedInventoryItemBase* FirstItem,
+	AHuntedInventoryItemBase* SecondItem, FHuntedPlayerItemData& OutResultItemData,
+	UMaterialInterface*& OutResultIcon) const
+{
+	FHuntedInventoryCombinationRecipe MatchingRecipe;
+	int32 FirstAmount = 0;
+	int32 SecondAmount = 0;
+	OutResultIcon = nullptr;
+	if (!TryMatchCombinationRecipe(FirstItem, SecondItem, MatchingRecipe, FirstAmount, SecondAmount)
+		|| !MatchingRecipe.Result)
+	{
+		return false;
+	}
+
+	const AHuntedInventoryItemBase* ResultDefaultItem = MatchingRecipe.Result->GetDefaultObject<AHuntedInventoryItemBase>();
+	if (!ResultDefaultItem)
+	{
+		return false;
+	}
+
+	OutResultItemData = ResultDefaultItem->GetItemData();
+	OutResultIcon = ResultDefaultItem->GetIcon();
+	return true;
+}
+
+void UPlayerInventoryComponent::RequestDropItem(AHuntedInventoryItemBase* ItemToDrop)
+{
+	CompactInvalidInventoryItems();
+
+	if (!IsValid(ItemToDrop) || !IsItemInInventory(ItemToDrop))
+	{
+		return;
+	}
+
+	OnItemDropRequested.Broadcast(ItemToDrop);
+}
+
 bool UPlayerInventoryComponent::DiscardItem(AHuntedInventoryItemBase* ItemToDiscard)
 {
 	CompactInvalidInventoryItems();
 
 	if (!IsValid(ItemToDiscard) || !IsItemInInventory(ItemToDiscard))
+	{
+		return false;
+	}
+
+	if (!ItemToDiscard->IsItemDroppable())
 	{
 		return false;
 	}

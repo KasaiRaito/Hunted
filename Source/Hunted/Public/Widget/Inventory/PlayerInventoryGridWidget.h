@@ -15,10 +15,14 @@
 
 class UBorder;
 class UCanvasPanel;
+class UImage;
+class UTextBlock;
+class UVerticalBox;
 class AHuntedPlayerCharacter;
 class UPlayerInventoryComponent;
 class AHuntedInventoryItemBase;
 class UDragDropOperation;
+class UMaterialInterface;
 enum class EInventoryDragVisualState : uint8;
 
 /**
@@ -38,6 +42,21 @@ protected:
 	
 	UPROPERTY()
 	UCanvasPanel* GridCanvasPanel;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BindWidgetOptional), Category = "UI|Item Info")
+	UBorder* ItemInfoBorder = nullptr;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BindWidgetOptional), Category = "UI|Item Info")
+	UVerticalBox* ItemInfoBox = nullptr;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BindWidgetOptional), Category = "UI|Item Info")
+	UTextBlock* ItemInfoTitleText = nullptr;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BindWidgetOptional), Category = "UI|Item Info")
+	UTextBlock* ItemInfoDescriptionText = nullptr;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BindWidgetOptional), Category = "UI|Item Info")
+	UImage* ItemInfoResultImage = nullptr;
 
 	UPROPERTY()
 	AHuntedPlayerCharacter* PlayerReference;
@@ -83,6 +102,33 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category= "UI")
 	FLinearColor DraggedTargetInvalidCellColor = FLinearColor(1.0f, 0.0f, 0.0f, 0.30f);
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI|Item Info")
+	FLinearColor ItemInfoBackgroundColor = FLinearColor(0.02f, 0.02f, 0.02f, 0.82f);
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI|Item Info")
+	FLinearColor ItemInfoTitleColor = FLinearColor(1.0f, 1.0f, 1.0f, 1.0f);
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI|Item Info")
+	FLinearColor ItemInfoDescriptionColor = FLinearColor(0.78f, 0.78f, 0.78f, 1.0f);
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI|Item Info", meta = (ClampMin = "0.0", UIMin = "0.0"))
+	float ItemInfoTopPadding = 12.0f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI|Item Info", meta = (ClampMin = "16.0", UIMin = "16.0"))
+	float ItemInfoHeight = 96.0f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI|Item Info")
+	FMargin ItemInfoContentPadding = FMargin(12.0f, 8.0f);
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI|Item Info", meta = (ClampMin = "1.0", UIMin = "1.0"))
+	float ItemInfoTitleFontSize = 18.0f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI|Item Info", meta = (ClampMin = "1.0", UIMin = "1.0"))
+	float ItemInfoDescriptionFontSize = 12.0f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI|Item Info")
+	FVector2D ItemInfoResultImageSize = FVector2D(64.0f, 64.0f);
 	
 	FLines LineStructData;
 
@@ -102,6 +148,24 @@ protected:
 
 	UPROPERTY(Transient)
 	FLinearColor DraggedTargetTilesColor = FLinearColor::Transparent;
+
+	UPROPERTY(Transient)
+	AHuntedInventoryItemBase* HoveredInfoItem = nullptr;
+
+	UPROPERTY(Transient)
+	AHuntedInventoryItemBase* DraggedInfoItem = nullptr;
+
+	UPROPERTY(Transient)
+	FText LastValidItemInfoTitle;
+
+	UPROPERTY(Transient)
+	FText LastValidItemInfoDescription;
+
+	UPROPERTY(Transient)
+	bool bHasLastValidItemInfo = false;
+
+	UPROPERTY(Transient)
+	bool bUsesGeneratedItemInfoPanel = false;
 	
 	/** Cached Values **/
 	int8 CachedColumns = 0;
@@ -139,6 +203,12 @@ protected:
 	
 	FMousePositionInTile MousePositionInTileResult(FVector2D MousePosition);
 
+	void EnsureItemInfoPanel();
+	void UpdateItemInfoPanelLayout();
+	void RefreshItemInfoPanel();
+	void ApplyItemInfoContent(const FText& Title, const FText& Description, UMaterialInterface* ResultIcon);
+	bool ResolveItemInfoContent(FText& OutTitle, FText& OutDescription, UMaterialInterface*& OutResultIcon) const;
+	bool BuildItemInfoText(const FHuntedPlayerItemData& ItemData, FText& OutTitle, FText& OutDescription) const;
 	void UpdateDraggedTargetTiles(AHuntedInventoryItemBase* DraggedItem, bool bIsValidPlacement);
 	void SetDraggedTargetTiles(const TArray<FIntPoint>& InTiles, const FLinearColor& InColor);
 	void SetDraggedItemVisualState(UDragDropOperation* InOperation, EInventoryDragVisualState NewState) const;
@@ -151,6 +221,9 @@ public:
 	void RefreshItemWidgets();
 
 	UFUNCTION(BlueprintCallable)
+	void ResetItemInfoPanel();
+
+	UFUNCTION(BlueprintCallable)
 	void SetDraggedSourceTiles(const TArray<FIntPoint>& InTiles);
 
 	UFUNCTION(BlueprintCallable)
@@ -158,4 +231,16 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void ClearDraggedTargetTiles();
+
+	UFUNCTION(BlueprintCallable)
+	void SetHoveredInventoryItem(AHuntedInventoryItemBase* InItem);
+
+	UFUNCTION(BlueprintCallable)
+	void ClearHoveredInventoryItem(AHuntedInventoryItemBase* InItem);
+
+	UFUNCTION(BlueprintCallable)
+	void SetDraggedInventoryItem(AHuntedInventoryItemBase* InItem);
+
+	UFUNCTION(BlueprintCallable)
+	void ClearDraggedInventoryItem(AHuntedInventoryItemBase* InItem);
 };

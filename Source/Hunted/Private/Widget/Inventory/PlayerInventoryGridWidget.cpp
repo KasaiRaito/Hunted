@@ -13,6 +13,11 @@
 #include "Items/Inventory/HuntedInventoryItemBase.h"
 #include "Rendering/DrawElements.h"
 #include "Styling/CoreStyle.h"
+#include "Blueprint/WidgetTree.h"
+#include "Components/TextBlock.h"
+#include "Components/VerticalBox.h"
+#include "Components/VerticalBoxSlot.h"
+#include "Components/Image.h"
 
 void UPlayerInventoryGridWidget::NativeConstruct()
 {
@@ -24,6 +29,9 @@ void UPlayerInventoryGridWidget::NativeConstruct()
 		CreateLineSegments();
 	}
 
+	EnsureItemInfoPanel();
+	UpdateItemInfoPanelLayout();
+	RefreshItemInfoPanel();
 	RefreshItemWidgets();
 }
 
@@ -77,6 +85,9 @@ void UPlayerInventoryGridWidget::SetUpInventoryGrid()
 	{
 		BorderAsCanvasSlot->SetSize(FVector2D(NewWidth, NewHeight));
 	}
+
+	EnsureItemInfoPanel();
+	UpdateItemInfoPanelLayout();
 }
 
 void UPlayerInventoryGridWidget::CreateLineSegments()
@@ -344,6 +355,250 @@ FMousePositionInTile UPlayerInventoryGridWidget::MousePositionInTileResult(FVect
 	return CachedMousePositionInTile;
 }
 
+void UPlayerInventoryGridWidget::EnsureItemInfoPanel()
+{
+	if (ItemInfoBorder && ItemInfoTitleText && ItemInfoDescriptionText)
+	{
+		ItemInfoBorder->SetVisibility(ESlateVisibility::HitTestInvisible);
+		ItemInfoTitleText->SetVisibility(ESlateVisibility::HitTestInvisible);
+		ItemInfoDescriptionText->SetVisibility(ESlateVisibility::HitTestInvisible);
+		return;
+	}
+
+	if (!CanvasPanel || !WidgetTree)
+	{
+		return;
+	}
+
+	bUsesGeneratedItemInfoPanel = true;
+	ItemInfoBorder = WidgetTree->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("InventoryItemInfoBorder_Auto"));
+	ItemInfoBox = WidgetTree->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass(), TEXT("InventoryItemInfoBox_Auto"));
+	ItemInfoTitleText = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass(), TEXT("InventoryItemInfoTitleText_Auto"));
+	ItemInfoDescriptionText = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass(), TEXT("InventoryItemInfoDescriptionText_Auto"));
+	ItemInfoResultImage = WidgetTree->ConstructWidget<UImage>(UImage::StaticClass(), TEXT("InventoryItemInfoResultImage_Auto"));
+	if (!ItemInfoBorder || !ItemInfoBox || !ItemInfoTitleText || !ItemInfoDescriptionText || !ItemInfoResultImage)
+	{
+		return;
+	}
+
+	ItemInfoBorder->SetBrushColor(ItemInfoBackgroundColor);
+	ItemInfoBorder->SetPadding(ItemInfoContentPadding);
+	ItemInfoBorder->SetVisibility(ESlateVisibility::HitTestInvisible);
+	ItemInfoBorder->SetContent(ItemInfoBox);
+
+	ItemInfoTitleText->SetColorAndOpacity(FSlateColor(ItemInfoTitleColor));
+	ItemInfoTitleText->SetAutoWrapText(false);
+	ItemInfoTitleText->SetVisibility(ESlateVisibility::HitTestInvisible);
+	FSlateFontInfo TitleFont = ItemInfoTitleText->GetFont();
+	TitleFont.Size = FMath::RoundToInt(ItemInfoTitleFontSize);
+	ItemInfoTitleText->SetFont(TitleFont);
+
+	ItemInfoDescriptionText->SetColorAndOpacity(FSlateColor(ItemInfoDescriptionColor));
+	ItemInfoDescriptionText->SetAutoWrapText(true);
+	ItemInfoDescriptionText->SetVisibility(ESlateVisibility::HitTestInvisible);
+	FSlateFontInfo DescriptionFont = ItemInfoDescriptionText->GetFont();
+	DescriptionFont.Size = FMath::RoundToInt(ItemInfoDescriptionFontSize);
+	ItemInfoDescriptionText->SetFont(DescriptionFont);
+
+	ItemInfoBox->AddChildToVerticalBox(ItemInfoTitleText);
+	if (UVerticalBoxSlot* TitleSlot = Cast<UVerticalBoxSlot>(ItemInfoTitleText->Slot))
+	{
+		TitleSlot->SetPadding(FMargin(0.0f, 0.0f, 0.0f, 4.0f));
+		TitleSlot->SetSize(FSlateChildSize(ESlateSizeRule::Automatic));
+	}
+
+	ItemInfoBox->AddChildToVerticalBox(ItemInfoDescriptionText);
+	if (UVerticalBoxSlot* DescriptionSlot = Cast<UVerticalBoxSlot>(ItemInfoDescriptionText->Slot))
+	{
+		DescriptionSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+	}
+
+	ItemInfoResultImage->SetDesiredSizeOverride(ItemInfoResultImageSize);
+	ItemInfoResultImage->SetVisibility(ESlateVisibility::Collapsed);
+	ItemInfoBox->AddChildToVerticalBox(ItemInfoResultImage);
+	if (UVerticalBoxSlot* ResultImageSlot = Cast<UVerticalBoxSlot>(ItemInfoResultImage->Slot))
+	{
+		ResultImageSlot->SetHorizontalAlignment(HAlign_Center);
+		ResultImageSlot->SetSize(FSlateChildSize(ESlateSizeRule::Automatic));
+		ResultImageSlot->SetPadding(FMargin(0.0f, 8.0f, 0.0f, 0.0f));
+	}
+
+	CanvasPanel->AddChild(ItemInfoBorder);
+}
+
+void UPlayerInventoryGridWidget::UpdateItemInfoPanelLayout()
+{
+	if (!ItemInfoBorder || !GridBorder)
+	{
+		return;
+	}
+
+	UCanvasPanelSlot* InfoSlot = Cast<UCanvasPanelSlot>(ItemInfoBorder->Slot);
+	if (!InfoSlot)
+	{
+		return;
+	}
+
+	FVector2D GridPosition = FVector2D::ZeroVector;
+	FVector2D GridSize = FVector2D(Columns * TileSize, Rows * TileSize);
+	FVector2D GridAlignment = FVector2D::ZeroVector;
+	if (UCanvasPanelSlot* GridSlot = UWidgetLayoutLibrary::SlotAsCanvasSlot(GridBorder))
+	{
+		GridPosition = GridSlot->GetPosition();
+		GridAlignment = GridSlot->GetAlignment();
+		const FVector2D SlotSize = GridSlot->GetSize();
+		if (SlotSize.X > KINDA_SMALL_NUMBER)
+		{
+			GridSize.X = SlotSize.X;
+		}
+		if (SlotSize.Y > KINDA_SMALL_NUMBER)
+		{
+			GridSize.Y = SlotSize.Y;
+		}
+	}
+
+	InfoSlot->SetAutoSize(false);
+	const FVector2D CurrentInfoSize = InfoSlot->GetSize();
+	const float InfoHeight = bUsesGeneratedItemInfoPanel || CurrentInfoSize.Y <= KINDA_SMALL_NUMBER
+		? ItemInfoHeight
+		: CurrentInfoSize.Y;
+	InfoSlot->SetSize(FVector2D(GridSize.X, InfoHeight));
+
+	const FVector2D InfoSize(GridSize.X, InfoHeight);
+	const FVector2D InfoAlignment = InfoSlot->GetAlignment();
+	const FVector2D GridTopLeft = GridPosition - (GridAlignment * GridSize);
+	const FVector2D InfoTopLeft(GridTopLeft.X, GridTopLeft.Y + GridSize.Y);
+	InfoSlot->SetPosition(InfoTopLeft + (InfoAlignment * InfoSize));
+
+	if (bUsesGeneratedItemInfoPanel)
+	{
+		InfoSlot->SetZOrder(1);
+	}
+
+	if (bUsesGeneratedItemInfoPanel)
+	{
+		if (UCanvasPanelSlot* OwnCanvasSlot = UWidgetLayoutLibrary::SlotAsCanvasSlot(this))
+		{
+			OwnCanvasSlot->SetSize(FVector2D(
+				GridTopLeft.X + GridSize.X,
+				GridTopLeft.Y + GridSize.Y + InfoHeight
+			));
+		}
+	}
+}
+
+void UPlayerInventoryGridWidget::RefreshItemInfoPanel()
+{
+	EnsureItemInfoPanel();
+
+	if (!ItemInfoBorder || !ItemInfoTitleText || !ItemInfoDescriptionText)
+	{
+		return;
+	}
+
+	FText Title;
+	FText Description;
+	UMaterialInterface* ResultIcon = nullptr;
+	if (ResolveItemInfoContent(Title, Description, ResultIcon))
+	{
+		LastValidItemInfoTitle = Title;
+		LastValidItemInfoDescription = Description;
+		bHasLastValidItemInfo = true;
+		ApplyItemInfoContent(Title, Description, ResultIcon);
+		return;
+	}
+
+	if (bHasLastValidItemInfo)
+	{
+		ApplyItemInfoContent(LastValidItemInfoTitle, LastValidItemInfoDescription, nullptr);
+		return;
+	}
+
+	ApplyItemInfoContent(FText::GetEmpty(), FText::GetEmpty(), nullptr);
+}
+
+void UPlayerInventoryGridWidget::ApplyItemInfoContent(const FText& Title, const FText& Description,
+	UMaterialInterface* ResultIcon)
+{
+	if (!ItemInfoBorder || !ItemInfoTitleText || !ItemInfoDescriptionText)
+	{
+		return;
+	}
+
+	ItemInfoTitleText->SetText(Title);
+	ItemInfoDescriptionText->SetText(Description);
+	ItemInfoBorder->SetVisibility(ESlateVisibility::HitTestInvisible);
+
+	if (!ItemInfoResultImage)
+	{
+		return;
+	}
+
+	if (ResultIcon)
+	{
+		ItemInfoResultImage->SetBrushFromMaterial(ResultIcon);
+		ItemInfoResultImage->SetVisibility(ESlateVisibility::HitTestInvisible);
+		return;
+	}
+
+	ItemInfoResultImage->SetVisibility(ESlateVisibility::Collapsed);
+}
+
+bool UPlayerInventoryGridWidget::ResolveItemInfoContent(FText& OutTitle, FText& OutDescription,
+	UMaterialInterface*& OutResultIcon) const
+{
+	OutResultIcon = nullptr;
+
+	if (IsValid(InventoryComponent) && InventoryComponent->IsCombineModeActive())
+	{
+		if (AHuntedInventoryItemBase* PendingCombineItem = InventoryComponent->GetPendingCombineItem())
+		{
+			if (IsValid(HoveredInfoItem))
+			{
+				FHuntedPlayerItemData ResultItemData;
+				if (InventoryComponent->TryGetCombinationResultItemDisplayData(PendingCombineItem, HoveredInfoItem,
+					ResultItemData, OutResultIcon))
+				{
+					return BuildItemInfoText(ResultItemData, OutTitle, OutDescription);
+				}
+			}
+
+			return BuildItemInfoText(PendingCombineItem->GetItemData(), OutTitle, OutDescription);
+		}
+	}
+
+	if (IsValid(DraggedInfoItem))
+	{
+		return BuildItemInfoText(DraggedInfoItem->GetItemData(), OutTitle, OutDescription);
+	}
+
+	if (IsValid(HoveredInfoItem))
+	{
+		return BuildItemInfoText(HoveredInfoItem->GetItemData(), OutTitle, OutDescription);
+	}
+
+	return false;
+}
+
+bool UPlayerInventoryGridWidget::BuildItemInfoText(const FHuntedPlayerItemData& ItemData, FText& OutTitle,
+	FText& OutDescription) const
+{
+	FString TitleString = ItemData.ItemName;
+	TitleString.TrimStartAndEndInline();
+
+	FString DescriptionString = ItemData.ItemDescription;
+	DescriptionString.TrimStartAndEndInline();
+
+	if (TitleString.IsEmpty() && DescriptionString.IsEmpty())
+	{
+		return false;
+	}
+
+	OutTitle = FText::FromString(TitleString);
+	OutDescription = FText::FromString(DescriptionString);
+	return true;
+}
+
 void UPlayerInventoryGridWidget::SetDraggedSourceTiles(const TArray<FIntPoint>& InTiles)
 {
 	DraggedSourceTiles = InTiles;
@@ -434,6 +689,7 @@ void UPlayerInventoryGridWidget::RefreshItemWidgets()
 	TSubclassOf<UUserWidget> ItemWidgetClass = PlayerReference->GetItemWidgetClass();
 	if (!ItemWidgetClass)
 	{
+		RefreshItemInfoPanel();
 		return;
 	}
 
@@ -468,6 +724,21 @@ void UPlayerInventoryGridWidget::RefreshItemWidgets()
 		CanvasPanelSlot->SetAutoSize(true);
 		CanvasPanelSlot->SetPosition(FVector2D(ItemTile.X * TileSize, ItemTile.Y * TileSize));
 	}
+
+	RefreshItemInfoPanel();
+}
+
+void UPlayerInventoryGridWidget::ResetItemInfoPanel()
+{
+	HoveredInfoItem = nullptr;
+	DraggedInfoItem = nullptr;
+	LastValidItemInfoTitle = FText::GetEmpty();
+	LastValidItemInfoDescription = FText::GetEmpty();
+	bHasLastValidItemInfo = false;
+
+	EnsureItemInfoPanel();
+	UpdateItemInfoPanelLayout();
+	ApplyItemInfoContent(FText::GetEmpty(), FText::GetEmpty(), nullptr);
 }
 
 void UPlayerInventoryGridWidget::ClearDraggedTargetTiles()
@@ -481,4 +752,38 @@ void UPlayerInventoryGridWidget::ClearDraggedTargetTiles()
 	DraggedTargetTilesColor = FLinearColor::Transparent;
 	bDrawDraggedTargetTiles = false;
 	Invalidate(EInvalidateWidgetReason::Paint);
+}
+
+void UPlayerInventoryGridWidget::SetHoveredInventoryItem(AHuntedInventoryItemBase* InItem)
+{
+	HoveredInfoItem = IsValid(InItem) ? InItem : nullptr;
+	RefreshItemInfoPanel();
+}
+
+void UPlayerInventoryGridWidget::ClearHoveredInventoryItem(AHuntedInventoryItemBase* InItem)
+{
+	if (HoveredInfoItem != InItem)
+	{
+		return;
+	}
+
+	HoveredInfoItem = nullptr;
+	RefreshItemInfoPanel();
+}
+
+void UPlayerInventoryGridWidget::SetDraggedInventoryItem(AHuntedInventoryItemBase* InItem)
+{
+	DraggedInfoItem = IsValid(InItem) ? InItem : nullptr;
+	RefreshItemInfoPanel();
+}
+
+void UPlayerInventoryGridWidget::ClearDraggedInventoryItem(AHuntedInventoryItemBase* InItem)
+{
+	if (DraggedInfoItem != InItem)
+	{
+		return;
+	}
+
+	DraggedInfoItem = nullptr;
+	RefreshItemInfoPanel();
 }

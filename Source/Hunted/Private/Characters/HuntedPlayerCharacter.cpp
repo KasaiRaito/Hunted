@@ -13,6 +13,7 @@
 
 #include "HuntedDebugHelper.h"
 #include "AbilitySystem/HuntedAbilitySystemComponent.h"
+#include "AbilitySystem/HuntedAttributeSet.h"
 #include "AbilitySystem/Abilities/HuntedPlayerGameplayAbility.h"
 #include "Blueprint/UserWidget.h"
 
@@ -21,12 +22,21 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/UI/PlayerUIComponent.h"
 #include "Components/Inventory/PlayerInventoryComponent.h"
+#include "ContextualAnimSceneActorComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 
 #include "Items/Inventory/HuntedInventoryItemBase.h"
 
+namespace
+{
+	constexpr float PostContextControlRotationSyncTime = 0.25f;
+}
+
 AHuntedPlayerCharacter::AHuntedPlayerCharacter()
 {
+	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bStartWithTickEnabled = false;
+	
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &AHuntedPlayerCharacter::OnBeginOverlap);
 	GetCapsuleComponent()->OnComponentEndOverlap.AddDynamic(this, &AHuntedPlayerCharacter::OnEndOverlap);
@@ -35,9 +45,9 @@ AHuntedPlayerCharacter::AHuntedPlayerCharacter()
 	bUseControllerRotationRoll = false;
 	bUseControllerRotationYaw = true;
 
-	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
-	FollowCamera->SetupAttachment(GetCapsuleComponent());
-	FollowCamera->bUsePawnControlRotation = true;
+	FirstPersonCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FirstPersonCamera"));
+	FirstPersonCamera->SetupAttachment(GetCapsuleComponent());
+	FirstPersonCamera->bUsePawnControlRotation = true;
 
 	GetCharacterMovement()->bOrientRotationToMovement = false;
 	//GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f);
@@ -80,6 +90,8 @@ void AHuntedPlayerCharacter::PossessedBy(AController* NewController)
 			LoadedData->GivenToAbilitySystemComponent(HuntedAbilitySystemComponent);
 		}
 	}
+
+	BindSanityChangedDelegate();
 }
 
 void AHuntedPlayerCharacter::SetupPlayerInputComponent(UInputComponent* InPlayerInputComponent)
@@ -120,9 +132,6 @@ void AHuntedPlayerCharacter::SetupPlayerInputComponent(UInputComponent* InPlayer
 
 	PlayerInputComponent->BindNativeInputAction(InputConfigDataAsset, HuntedGameplayTags::InputTag_Move,
 		ETriggerEvent::Triggered, this, &ThisClass::Input_Move);
-	
-	PlayerInputComponent->BindNativeInputAction(InputConfigDataAsset, HuntedGameplayTags::InputTag_Sneak,
-		ETriggerEvent::Triggered, this, &ThisClass::Input_Sneak);
 
 	PlayerInputComponent->BindNativeInputAction(InputConfigDataAsset, HuntedGameplayTags::InputTag_Sprint,
 		ETriggerEvent::Triggered, this, &ThisClass::Input_Sprint);
@@ -145,6 +154,16 @@ void AHuntedPlayerCharacter::SetupPlayerInputComponent(UInputComponent* InPlayer
 void AHuntedPlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	ContextualAnimSceneActorComponent = FindComponentByClass<UContextualAnimSceneActorComponent>();
+	if (ContextualAnimSceneActorComponent)
+	{
+		ContextualAnimSceneActorComponent->OnJoinedSceneDelegate.AddUniqueDynamic(
+			this, &ThisClass::HandleContextualAnimSceneJoined);
+		ContextualAnimSceneActorComponent->OnLeftSceneDelegate.AddUniqueDynamic(
+			this, &ThisClass::HandleContextualAnimSceneLeft);
+	}
+	
 	if (InventoryWidgetClass == nullptr)
 	{
 		Debug::Print(TEXT("Player InventoryWidgetClass is NULL"));
@@ -165,6 +184,259 @@ void AHuntedPlayerCharacter::BeginPlay()
 	
 	
 	PlayerInventoryComponent->SetItemsNum(PlayerInventoryComponent->GetColumns() * PlayerInventoryComponent->GetRows());
+}
+
+void AHuntedPlayerCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (HuntedAbilitySystemComponent && SanityChangedDelegateHandle.IsValid())
+	{
+		HuntedAbilitySystemComponent
+			->GetGameplayAttributeValueChangeDelegate(UHuntedAttributeSet::GetCurrentSanityAttribute())
+			.Remove(SanityChangedDelegateHandle);
+		SanityChangedDelegateHandle.Reset();
+	}
+
+	if (ContextualAnimSceneActorComponent)
+	{
+		ContextualAnimSceneActorComponent->OnJoinedSceneDelegate.RemoveDynamic(
+			this, &ThisClass::HandleContextualAnimSceneJoined);
+		ContextualAnimSceneActorComponent->OnLeftSceneDelegate.RemoveDynamic(
+			this, &ThisClass::HandleContextualAnimSceneLeft);
+	}
+
+	Super::EndPlay(EndPlayReason);
+}
+
+void AHuntedPlayerCharacter::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	if (IsContextualAnimSceneActive())
+	{
+		if (ControlRotation || bUseControllerRotationYaw)
+		{
+			ApplyControlRotationState(false);
+		}
+
+		SyncControlRotationToActorYaw();
+		return;
+	}
+
+	if (bPendingEnableControlRotation)
+	{
+		bPendingEnableControlRotation = false;
+		ApplyControlRotationState(true);
+		PendingControlRotationSyncTime = PostContextControlRotationSyncTime;
+	}
+
+	if (!ControlRotation)
+	{
+		SyncControlRotationToActorYaw();
+		return;
+	}
+
+	if (PendingControlRotationSyncTime > 0.f)
+	{
+		SyncControlRotationToActorYaw();
+		PendingControlRotationSyncTime -= DeltaSeconds;
+	}
+
+	if (ControlRotation && PendingControlRotationSyncTime <= 0.f)
+	{
+		SetActorTickEnabled(false);
+	}
+}
+
+void AHuntedPlayerCharacter::SetControlRotationEnabled(bool bShouldControlRotation)
+{
+	CurrentYaw = 0.f;
+	CurrentPitch = 0.f;
+	
+	const FString ControlRotationValue = bShouldControlRotation ? TEXT("True") : TEXT("False");
+	Debug::Print(TEXT("ControlRotation Value: ") + ControlRotationValue);
+
+	if (!bShouldControlRotation)
+	{
+		bPendingEnableControlRotation = IsContextualAnimSceneActive() && (ControlRotation || bPendingEnableControlRotation);
+		PendingControlRotationSyncTime = 0.f;
+		ApplyControlRotationState(false);
+		SetActorTickEnabled(true);
+		return;
+	}
+
+	if (IsContextualAnimSceneActive())
+	{
+		bPendingEnableControlRotation = true;
+		ApplyControlRotationState(false);
+		SetActorTickEnabled(true);
+		return;
+	}
+
+	bPendingEnableControlRotation = false;
+	ApplyControlRotationState(true);
+	PendingControlRotationSyncTime = PostContextControlRotationSyncTime;
+	SetActorTickEnabled(true);
+}
+
+void AHuntedPlayerCharacter::ApplyControlRotationState(bool bShouldControlRotation)
+{
+	ControlRotation = bShouldControlRotation;
+	SyncControlRotationToActorYaw();
+
+	bUseControllerRotationYaw = ControlRotation;
+	if (FirstPersonCamera)
+	{
+		FirstPersonCamera->bUsePawnControlRotation = true;
+	}
+
+	GetCharacterMovement()->bUseControllerDesiredRotation = false;
+	GetCharacterMovement()->bOrientRotationToMovement = false;
+}
+
+bool AHuntedPlayerCharacter::IsContextualAnimSceneActive() const
+{
+	return ContextualAnimSceneActorComponent && ContextualAnimSceneActorComponent->IsInActiveScene();
+}
+
+void AHuntedPlayerCharacter::SyncControlRotationToActorYaw()
+{
+	if (!Controller)
+	{
+		return;
+	}
+
+	FRotator NewControlRotation = Controller->GetControlRotation();
+	NewControlRotation.Yaw = GetActorRotation().Yaw;
+	NewControlRotation.Roll = 0.f;
+	Controller->SetControlRotation(NewControlRotation);
+}
+
+void AHuntedPlayerCharacter::HandleContextualAnimSceneJoined(UContextualAnimSceneActorComponent* SceneActorComponent)
+{
+	bPendingEnableControlRotation = bPendingEnableControlRotation || ControlRotation;
+	PendingControlRotationSyncTime = 0.f;
+	ApplyControlRotationState(false);
+	SetActorTickEnabled(true);
+}
+
+void AHuntedPlayerCharacter::HandleContextualAnimSceneLeft(UContextualAnimSceneActorComponent* SceneActorComponent)
+{
+	SyncControlRotationToActorYaw();
+
+	if (bPendingEnableControlRotation)
+	{
+		bPendingEnableControlRotation = false;
+		ApplyControlRotationState(true);
+	}
+
+	PendingControlRotationSyncTime = PostContextControlRotationSyncTime;
+	SetActorTickEnabled(true);
+}
+
+void AHuntedPlayerCharacter::ApplyUseEffect(UHuntedAbilitySystemComponent* AbilitySystemComponent, int32 ApplyLevel)
+{
+	if (!IsValid(AbilitySystemComponent) || !EchoUseGameplayEffectClass)
+	{
+		Debug::Print(TEXT("Cannot apply Echo sanity drain"), FColor::Red);
+		return;
+	}
+
+	if (EchoRegenEffectHandle.IsValid())
+	{
+		AbilitySystemComponent->RemoveActiveGameplayEffect(EchoRegenEffectHandle);
+		EchoRegenEffectHandle.Invalidate();
+	}
+
+	if (EchoUseEffectHandle.IsValid())
+	{
+		if (AbilitySystemComponent->GetActiveGameplayEffect(EchoUseEffectHandle))
+		{
+			return;
+		}
+
+		EchoUseEffectHandle.Invalidate();
+	}
+
+	FGameplayEffectContextHandle EffectContext =
+		AbilitySystemComponent->MakeEffectContext();
+
+	EffectContext.AddSourceObject(this);
+
+	const UGameplayEffect* Effect =
+		EchoUseGameplayEffectClass->GetDefaultObject<UGameplayEffect>();
+
+	EchoUseEffectHandle = AbilitySystemComponent->ApplyGameplayEffectToSelf(
+		Effect,
+		FMath::Max(1, ApplyLevel),
+		EffectContext);
+}
+
+void AHuntedPlayerCharacter::ApplyRegenEffect(UHuntedAbilitySystemComponent* AbilitySystemComponent, int32 ApplyLevel)
+{
+	if (!IsValid(AbilitySystemComponent) || !EchoRegenGameplayEffectClass)
+	{
+		Debug::Print(TEXT("Cannot apply Echo sanity regeneration"), FColor::Red);
+		return;
+	}
+
+	if (EchoUseEffectHandle.IsValid())
+	{
+		AbilitySystemComponent->RemoveActiveGameplayEffect(EchoUseEffectHandle);
+		EchoUseEffectHandle.Invalidate();
+	}
+
+	if (EchoRegenEffectHandle.IsValid())
+	{
+		if (AbilitySystemComponent->GetActiveGameplayEffect(EchoRegenEffectHandle))
+		{
+			return;
+		}
+
+		EchoRegenEffectHandle.Invalidate();
+	}
+
+	FGameplayEffectContextHandle EffectContext =
+		AbilitySystemComponent->MakeEffectContext();
+
+	EffectContext.AddSourceObject(this);
+
+	const UGameplayEffect* Effect =
+		EchoRegenGameplayEffectClass->GetDefaultObject<UGameplayEffect>();
+
+	EchoRegenEffectHandle = AbilitySystemComponent->ApplyGameplayEffectToSelf(
+		Effect,
+		FMath::Max(1, ApplyLevel),
+		EffectContext);
+}
+
+void AHuntedPlayerCharacter::BindSanityChangedDelegate()
+{
+	if (!HuntedAbilitySystemComponent || SanityChangedDelegateHandle.IsValid())
+	{
+		return;
+	}
+
+	SanityChangedDelegateHandle = HuntedAbilitySystemComponent
+		->GetGameplayAttributeValueChangeDelegate(UHuntedAttributeSet::GetCurrentSanityAttribute())
+		.AddUObject(this, &ThisClass::HandleCurrentSanityChanged);
+}
+
+void AHuntedPlayerCharacter::HandleCurrentSanityChanged(const FOnAttributeChangeData& ChangeData)
+{
+	if (ChangeData.OldValue > 0.f && ChangeData.NewValue <= 0.f)
+	{
+		ActivateZeroSanityAbility();
+	}
+}
+
+bool AHuntedPlayerCharacter::ActivateZeroSanityAbility()
+{
+	if (!HuntedAbilitySystemComponent || !ZeroSanityGameplayAbilityClass)
+	{
+		return false;
+	}
+
+	return HuntedAbilitySystemComponent->TryActivateAbilityByClass(ZeroSanityGameplayAbilityClass);
 }
 
 void AHuntedPlayerCharacter::Input_Move(const FInputActionValue& InputActionValue)
@@ -264,15 +536,17 @@ void AHuntedPlayerCharacter::ProcessMovementInput(const FInputActionValue& Input
 		AddMovementInput(RightDirection, MovementVector.X);
 	}
 }
-
+ 
 void AHuntedPlayerCharacter::Input_Look(const FInputActionValue& InputActionValue)
 {
-	const FVector2D LookInput = InputActionValue.Get<FVector2D>();
-
-	if (!Controller)
+	if (!Controller || !ControlRotation)
 	{
+		CurrentYaw = 0.f;
+		CurrentPitch = 0.f;
 		return;
 	}
+
+	const FVector2D LookInput = InputActionValue.Get<FVector2D>();
 
 	if (!LookAcceleration || !CameraAcceleration)
 	{
@@ -320,6 +594,9 @@ void AHuntedPlayerCharacter::Input_AbilityInputReleased(FGameplayTag InInputTag)
 
 void AHuntedPlayerCharacter::EnterEcho()
 {
+	/**
+	 *Legacy Solution 
+	 *Overided in BP
 	for (AActor* StaticMeshActor : StaticMeshActors)
 	{
 		if (!StaticMeshActor) continue;
@@ -338,10 +615,14 @@ void AHuntedPlayerCharacter::EnterEcho()
 			}
 		}
 	}
+	**/
 }
 
 void AHuntedPlayerCharacter::ExitEcho()
 {
+	/**
+	 *Legacy Solution
+	 *Overided in BP
 	for (const FActorMaterialBackup& Backup : OriginalActorMaterials)
 	{
 		if (!Backup.Actor) continue;
@@ -359,6 +640,7 @@ void AHuntedPlayerCharacter::ExitEcho()
 			}
 		}
 	}
+	**/
 }
 
 void AHuntedPlayerCharacter::UpdateStaticMeshList()

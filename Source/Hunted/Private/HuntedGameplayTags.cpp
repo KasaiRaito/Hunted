@@ -8,7 +8,6 @@ namespace  HuntedGameplayTags
 	/** Input Tags **/
 		/** Movement **/
 	UE_DEFINE_GAMEPLAY_TAG(InputTag_Move, "InputTag.Move");
-	UE_DEFINE_GAMEPLAY_TAG(InputTag_Sneak, "InputTag.Sneak");
 	UE_DEFINE_GAMEPLAY_TAG(InputTag_Sprint, "InputTag.Sprint");
 	UE_DEFINE_GAMEPLAY_TAG(InputTag_Crouch, "InputTag.Crouch");
 	UE_DEFINE_GAMEPLAY_TAG(InputTag_Look, "InputTag.Look");
@@ -33,6 +32,7 @@ namespace  HuntedGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(InputTag_Pause_Close, "InputTag.Pause.Close");
 	
 	UE_DEFINE_GAMEPLAY_TAG(InputTag_Interact, "InputTag.Interact");
+	
 	
 	/** Player **/
 		/** Abilities **/
@@ -68,6 +68,10 @@ namespace  HuntedGameplayTags
 	
 	UE_DEFINE_GAMEPLAY_TAG(Player_Ability_Interact, "Player.Ability.Interact");
 	
+			/** Heal **/
+	UE_DEFINE_GAMEPLAY_TAG(InputTag_Heal, "InputTag.Heal");
+	UE_DEFINE_GAMEPLAY_TAG(Player_Ability_Heal, "Player.Ability.Heal");
+	
 		/** Events **/
 	UE_DEFINE_GAMEPLAY_TAG(Player_Event_Equip_Gun, "Player.Event.Equip.Gun");
 	UE_DEFINE_GAMEPLAY_TAG(Player_Event_Unequip_Gun, "Player.Event.Unequip.Gun");
@@ -94,7 +98,17 @@ namespace  HuntedGameplayTags
 	
 	UE_DEFINE_GAMEPLAY_TAG(Player_Item_Bullets_BaseGun, "Player.Item.Bullets.BaseGun");
 	
-	UE_DEFINE_GAMEPLAY_TAG(Player_Puzzle_Key, "Player.Item.Puzzle.Key");
+	UE_DEFINE_GAMEPLAY_TAG(Player_Item_Puzzle_Key, "Player.Item.Puzzle.Key");
+	UE_DEFINE_GAMEPLAY_TAG(Player_Item_Puzzle_Key_MainHall, "Player.Item.Puzzle.Key.MainHall");
+	UE_DEFINE_GAMEPLAY_TAG(Player_Item_Puzzle_Key_MainHallTwo, "Player.Item.Puzzle.Key.MainHallTwo");
+	UE_DEFINE_GAMEPLAY_TAG(Player_Item_Puzzle_Key_DinningRoom, "Player.Item.Puzzle.Key.DinningRoom");
+	UE_DEFINE_GAMEPLAY_TAG(Player_Item_Puzzle_Key_GarageRoom, "Player.Item.Puzzle.Key.GarageRoom");
+	UE_DEFINE_GAMEPLAY_TAG(Player_Item_Puzzle_Key_LaundryRoom, "Player.Item.Puzzle.Key.LaundryRoom");
+	
+	UE_DEFINE_GAMEPLAY_TAG(Player_Item_Puzzle_Pice, "Player.Item.Puzzle.Pice");
+	UE_DEFINE_GAMEPLAY_TAG(Player_Item_Puzzle_Pice_Test1, "Player.Item.Puzzle.Pice.Test1");
+	UE_DEFINE_GAMEPLAY_TAG(Player_Item_Puzzle_Pice_Test2, "Player.Item.Puzzle.Pice.Test2");
+	UE_DEFINE_GAMEPLAY_TAG(Player_Item_Puzzle_Pice_Test3, "Player.Item.Puzzle.Pice.Test3");
 	
 		/** Set By Caller **/
 	UE_DEFINE_GAMEPLAY_TAG(Player_SetByCaller_AttackType_BasicKnife, "Player.SetByCaller.AttackType.BasicKnife");

@@ -149,6 +149,9 @@ protected:
 	UTexture2D* InspectActionIcon = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, Category = "UI|Context Menu")
+	UTexture2D* UseActionIcon = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI|Context Menu")
 	UTexture2D* CombineActionIcon = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, Category = "UI|Context Menu")
@@ -219,6 +222,9 @@ protected:
 
 	UFUNCTION()
 	void HandleInspectClicked();
+
+	UFUNCTION()
+	void HandleUseClicked();
 
 	UFUNCTION()
 	void HandleCombineClicked();
