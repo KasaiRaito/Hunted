@@ -16,6 +16,7 @@
 #include "AbilitySystem/HuntedAttributeSet.h"
 #include "AbilitySystem/Abilities/HuntedPlayerGameplayAbility.h"
 #include "Blueprint/UserWidget.h"
+#include "UObject/ConstructorHelpers.h"
 
 /** Components **/
 #include "Components/Combat/PlayerCombatComponent.h"
@@ -59,6 +60,13 @@ AHuntedPlayerCharacter::AHuntedPlayerCharacter()
 	PlayerUIComponent = CreateDefaultSubobject<UPlayerUIComponent>(TEXT("PlayerUIComponent"));
 	
 	PlayerInventoryComponent = CreateDefaultSubobject<UPlayerInventoryComponent>(TEXT("PlayerInventoryComponent"));
+
+	static ConstructorHelpers::FClassFinder<UUserWidget> DefaultDeathWidgetClass(
+		TEXT("/Game/_Hunted/PlayerCharacter/Widgets/Death/WBP_Player_Death"));
+	if (DefaultDeathWidgetClass.Succeeded())
+	{
+		DeathWidgetClass = DefaultDeathWidgetClass.Class;
+	}
 	
 	UpdateStaticMeshList();
 }
@@ -92,6 +100,7 @@ void AHuntedPlayerCharacter::PossessedBy(AController* NewController)
 	}
 
 	BindSanityChangedDelegate();
+	BindHealthChangedDelegate();
 }
 
 void AHuntedPlayerCharacter::SetupPlayerInputComponent(UInputComponent* InPlayerInputComponent)
@@ -154,6 +163,8 @@ void AHuntedPlayerCharacter::SetupPlayerInputComponent(UInputComponent* InPlayer
 void AHuntedPlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	BindHealthChangedDelegate();
 	
 	ContextualAnimSceneActorComponent = FindComponentByClass<UContextualAnimSceneActorComponent>();
 	if (ContextualAnimSceneActorComponent)
@@ -194,6 +205,14 @@ void AHuntedPlayerCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 			->GetGameplayAttributeValueChangeDelegate(UHuntedAttributeSet::GetCurrentSanityAttribute())
 			.Remove(SanityChangedDelegateHandle);
 		SanityChangedDelegateHandle.Reset();
+	}
+
+	if (HuntedAbilitySystemComponent && HealthChangedDelegateHandle.IsValid())
+	{
+		HuntedAbilitySystemComponent
+			->GetGameplayAttributeValueChangeDelegate(UHuntedAttributeSet::GetCurrentHealthAttribute())
+			.Remove(HealthChangedDelegateHandle);
+		HealthChangedDelegateHandle.Reset();
 	}
 
 	if (ContextualAnimSceneActorComponent)
@@ -429,6 +448,26 @@ void AHuntedPlayerCharacter::HandleCurrentSanityChanged(const FOnAttributeChange
 	}
 }
 
+void AHuntedPlayerCharacter::BindHealthChangedDelegate()
+{
+	if (!HuntedAbilitySystemComponent || HealthChangedDelegateHandle.IsValid())
+	{
+		return;
+	}
+
+	HealthChangedDelegateHandle = HuntedAbilitySystemComponent
+		->GetGameplayAttributeValueChangeDelegate(UHuntedAttributeSet::GetCurrentHealthAttribute())
+		.AddUObject(this, &ThisClass::HandleCurrentHealthChanged);
+}
+
+void AHuntedPlayerCharacter::HandleCurrentHealthChanged(const FOnAttributeChangeData& ChangeData)
+{
+	if (ChangeData.OldValue > 0.f && ChangeData.NewValue <= 0.f)
+	{
+		ShowDeathWidget();
+	}
+}
+
 bool AHuntedPlayerCharacter::ActivateZeroSanityAbility()
 {
 	if (!HuntedAbilitySystemComponent || !ZeroSanityGameplayAbilityClass)
@@ -437,6 +476,70 @@ bool AHuntedPlayerCharacter::ActivateZeroSanityAbility()
 	}
 
 	return HuntedAbilitySystemComponent->TryActivateAbilityByClass(ZeroSanityGameplayAbilityClass);
+}
+
+void AHuntedPlayerCharacter::ShowDeathWidget()
+{
+	if (!IsLocallyControlled() || !DeathWidgetClass)
+	{
+		return;
+	}
+
+	APlayerController* OwningPlayerController = Cast<APlayerController>(GetController());
+	if (!OwningPlayerController)
+	{
+		return;
+	}
+
+	if (!DeathWidget)
+	{
+		DeathWidget = CreateWidget<UUserWidget>(OwningPlayerController, DeathWidgetClass);
+	}
+
+	if (!DeathWidget)
+	{
+		return;
+	}
+
+	if (!DeathWidget->IsInViewport())
+	{
+		DeathWidget->AddToViewport(DeathWidgetZOrder);
+	}
+
+	DeathWidget->SetVisibility(ESlateVisibility::Visible);
+
+	if (bSetUIOnlyInputModeOnDeath)
+	{
+		FInputModeUIOnly InputMode;
+		InputMode.SetWidgetToFocus(DeathWidget->TakeWidget());
+		OwningPlayerController->SetInputMode(InputMode);
+		OwningPlayerController->bShowMouseCursor = true;
+	}
+
+	BP_OnDeathWidgetShown(DeathWidget);
+}
+
+void AHuntedPlayerCharacter::HideDeathWidget()
+{
+	if (!DeathWidget)
+	{
+		return;
+	}
+
+	UUserWidget* HiddenDeathWidget = DeathWidget;
+	DeathWidget->RemoveFromParent();
+
+	if (bSetUIOnlyInputModeOnDeath)
+	{
+		if (APlayerController* OwningPlayerController = Cast<APlayerController>(GetController()))
+		{
+			FInputModeGameOnly InputMode;
+			OwningPlayerController->SetInputMode(InputMode);
+			OwningPlayerController->bShowMouseCursor = false;
+		}
+	}
+
+	BP_OnDeathWidgetHidden(HiddenDeathWidget);
 }
 
 void AHuntedPlayerCharacter::Input_Move(const FInputActionValue& InputActionValue)
