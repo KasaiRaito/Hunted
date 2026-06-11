@@ -14,6 +14,7 @@
 class UGameplayEffect;
 class UHuntedPlayerGameplayAbility;
 class UHuntedWidgetBase;
+class UUserWidget;
 class AHuntedInteractable;
 struct FInputActionValue;
 struct FOnAttributeChangeData;
@@ -130,12 +131,24 @@ protected:
 	
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UUserWidget> PauseWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI|Death")
+	TSubclassOf<UUserWidget> DeathWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI|Death", meta = (ClampMin = "0"))
+	int32 DeathWidgetZOrder = 100;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI|Death")
+	bool bSetUIOnlyInputModeOnDeath = true;
 	
 	UPROPERTY(EditDefaultsOnly ,Category = "UI")
 	UUserWidget* InventoryWidget;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	UUserWidget* PauseWidget;
+
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "UI|Death")
+	UUserWidget* DeathWidget;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UUserWidget> ItemWidgetClass;
@@ -219,10 +232,13 @@ public:
 private:
 	void BindSanityChangedDelegate();
 	void HandleCurrentSanityChanged(const FOnAttributeChangeData& ChangeData);
+	void BindHealthChangedDelegate();
+	void HandleCurrentHealthChanged(const FOnAttributeChangeData& ChangeData);
 
 	FActiveGameplayEffectHandle EchoUseEffectHandle;
 	FActiveGameplayEffectHandle EchoRegenEffectHandle;
 	FDelegateHandle SanityChangedDelegateHandle;
+	FDelegateHandle HealthChangedDelegateHandle;
 	
 #pragma endregion
 
@@ -296,6 +312,21 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category = "Pause")
 	FORCEINLINE UUserWidget* GetPauseWidget() { return PauseWidget; }
+
+	UFUNCTION(BlueprintCallable, Category = "UI|Death")
+	void ShowDeathWidget();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|Death")
+	void HideDeathWidget();
+
+	UFUNCTION(BlueprintPure, Category = "UI|Death")
+	FORCEINLINE UUserWidget* GetDeathWidget() const { return DeathWidget; }
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "UI|Death", meta = (DisplayName = "On Death Widget Shown"))
+	void BP_OnDeathWidgetShown(UUserWidget* ShownDeathWidget);
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "UI|Death", meta = (DisplayName = "On Death Widget Hidden"))
+	void BP_OnDeathWidgetHidden(UUserWidget* HiddenDeathWidget);
 	
 	UFUNCTION()
 	void OnBeginOverlap(class UPrimitiveComponent* HitComp, class AActor* OtherActor,
