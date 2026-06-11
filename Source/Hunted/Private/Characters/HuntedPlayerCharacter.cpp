@@ -16,7 +16,6 @@
 #include "AbilitySystem/HuntedAttributeSet.h"
 #include "AbilitySystem/Abilities/HuntedPlayerGameplayAbility.h"
 #include "Blueprint/UserWidget.h"
-#include "UObject/ConstructorHelpers.h"
 
 /** Components **/
 #include "Components/Combat/PlayerCombatComponent.h"
@@ -61,20 +60,6 @@ AHuntedPlayerCharacter::AHuntedPlayerCharacter()
 	
 	PlayerInventoryComponent = CreateDefaultSubobject<UPlayerInventoryComponent>(TEXT("PlayerInventoryComponent"));
 
-	static ConstructorHelpers::FClassFinder<UUserWidget> DefaultDeathWidgetClass(
-		TEXT("/Game/_Hunted/PlayerCharacter/Widgets/Death/WBP_Player_Death"));
-	if (DefaultDeathWidgetClass.Succeeded())
-	{
-		DeathWidgetClass = DefaultDeathWidgetClass.Class;
-	}
-
-	static ConstructorHelpers::FClassFinder<UUserWidget> DefaultVictoryWidgetClass(
-		TEXT("/Game/_Hunted/PlayerCharacter/Widgets/HUD/WBP_Player_Vicotry"));
-	if (DefaultVictoryWidgetClass.Succeeded())
-	{
-		VictoryWidgetClass = DefaultVictoryWidgetClass.Class;
-	}
-	
 	UpdateStaticMeshList();
 }
 
@@ -487,8 +472,14 @@ bool AHuntedPlayerCharacter::ActivateZeroSanityAbility()
 
 void AHuntedPlayerCharacter::ShowDeathWidget()
 {
-	if (!IsLocallyControlled() || !DeathWidgetClass)
+	if (!IsLocallyControlled())
 	{
+		return;
+	}
+
+	if (!DeathWidgetClass)
+	{
+		Debug::Print(TEXT("DeathWidgetClass is not assigned on HuntedPlayerCharacter"), FColor::Red);
 		return;
 	}
 
@@ -551,8 +542,14 @@ void AHuntedPlayerCharacter::HideDeathWidget()
 
 void AHuntedPlayerCharacter::ShowVictoryWidget()
 {
-	if (!IsLocallyControlled() || !VictoryWidgetClass)
+	if (!IsLocallyControlled())
 	{
+		return;
+	}
+
+	if (!VictoryWidgetClass)
+	{
+		Debug::Print(TEXT("VictoryWidgetClass is not assigned on HuntedPlayerCharacter"), FColor::Red);
 		return;
 	}
 
