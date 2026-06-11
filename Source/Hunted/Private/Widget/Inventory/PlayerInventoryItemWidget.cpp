@@ -410,6 +410,10 @@ void UPlayerInventoryItemWidget::RebuildContextMenuEntries()
 	}
 
 	ContextMenuActions.Reset();
+	if (IsValid(Item) && Item->IsItemUsable())
+	{
+		ContextMenuActions.Add(MakeContextActionEntry(EInventoryContextAction::Use, FText::FromString(TEXT("Use")), UseActionIcon));
+	}
 	ContextMenuActions.Add(MakeContextActionEntry(EInventoryContextAction::Inspect, FText::FromString(TEXT("Inspect")), InspectActionIcon));
 	ContextMenuActions.Add(MakeContextActionEntry(EInventoryContextAction::Combine, FText::FromString(TEXT("Combine")), CombineActionIcon));
 	ContextMenuActions.Add(MakeContextActionEntry(EInventoryContextAction::Discard, FText::FromString(TEXT("Drop")), DiscardActionIcon));
@@ -464,6 +468,9 @@ void UPlayerInventoryItemWidget::RebuildContextMenuEntries()
 		{
 		case EInventoryContextAction::Inspect:
 			ActionButton->OnClicked.AddDynamic(this, &UPlayerInventoryItemWidget::HandleInspectClicked);
+			break;
+		case EInventoryContextAction::Use:
+			ActionButton->OnClicked.AddDynamic(this, &UPlayerInventoryItemWidget::HandleUseClicked);
 			break;
 		case EInventoryContextAction::Combine:
 			ActionButton->OnClicked.AddDynamic(this, &UPlayerInventoryItemWidget::HandleCombineClicked);
@@ -659,6 +666,18 @@ void UPlayerInventoryItemWidget::HandleInspectClicked()
 	}
 
 	BP_OnInspectRequested(Item);
+}
+
+void UPlayerInventoryItemWidget::HandleUseClicked()
+{
+	HideContextMenu();
+
+	if (!IsValid(CharacterReference) || !IsValid(Item) || !Item->IsItemUsable())
+	{
+		return;
+	}
+
+	Item->UseItem(CharacterReference);
 }
 
 void UPlayerInventoryItemWidget::HandleCombineClicked()

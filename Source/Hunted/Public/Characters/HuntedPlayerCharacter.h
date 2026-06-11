@@ -7,12 +7,17 @@
 #include "Kismet/GameplayStatics.h"
 #include "Engine/StaticMeshActor.h"
 #include "GameplayTagContainer.h"
+#include "ActiveGameplayEffectHandle.h"
 #include "Camera/CameraComponent.h"
 #include "HuntedPlayerCharacter.generated.h"
 
+class UGameplayEffect;
+class UHuntedPlayerGameplayAbility;
 class UHuntedWidgetBase;
+class UUserWidget;
 class AHuntedInteractable;
 struct FInputActionValue;
+struct FOnAttributeChangeData;
 class USpringArmComponent;
 class UCameraComponent;
 class UDataAsset_InputConfig;
@@ -20,6 +25,7 @@ class UPlayerCombatComponent;
 class UPlayerInventoryComponent;
 class UPlayerUIComponent;
 class AHuntedInventoryItemBase;
+class UContextualAnimSceneActorComponent;
 
 /**
  * 
@@ -103,11 +109,19 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Echo")
 	UMaterialInterface* MyEchoMaterial;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, BlueprintSetter = SetControlRotationEnabled, Category = "Camera")
+	bool ControlRotation = true;
+
+	UFUNCTION(BlueprintSetter, Category = "Camera")
+	void SetControlRotationEnabled(bool bShouldControlRotation);
+
 protected:
 	//~ Begin APawn Interface
 	virtual void PossessedBy(AController* NewController) override;
 	//~ End APawn Interface
 	
+	virtual void Tick(float DeltaSeconds) override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	virtual void BeginPlay() override;
 	
@@ -117,12 +131,24 @@ protected:
 	
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UUserWidget> PauseWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI|Death")
+	TSubclassOf<UUserWidget> DeathWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI|Death", meta = (ClampMin = "0"))
+	int32 DeathWidgetZOrder = 100;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI|Death")
+	bool bSetUIOnlyInputModeOnDeath = true;
 	
 	UPROPERTY(EditDefaultsOnly ,Category = "UI")
 	UUserWidget* InventoryWidget;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	UUserWidget* PauseWidget;
+
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "UI|Death")
+	UUserWidget* DeathWidget;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UUserWidget> ItemWidgetClass;
@@ -137,13 +163,13 @@ protected:
 private:
 #pragma region Components
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
-	UCameraComponent* FollowCamera;
+	UCameraComponent* FirstPersonCamera;
 	
 	UFUNCTION(BlueprintCallable, Category = "Camera")
-	FVector GetFollowCameraLocation() const { return FollowCamera->GetComponentLocation(); }
+	FVector GetFollowCameraLocation() const { return FirstPersonCamera->GetComponentLocation(); }
 	
 	UFUNCTION(BlueprintCallable, Category = "Camera")
-	FVector GetFollowCameraForward() const { return FollowCamera->GetForwardVector(); }
+	FVector GetFollowCameraForward() const { return FirstPersonCamera->GetForwardVector(); }
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
 	UPlayerCombatComponent* PlayerCombatComponent;
@@ -156,6 +182,9 @@ private:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
 	UPlayerInventoryComponent* PlayerInventoryComponent;
+
+	UPROPERTY(Transient)
+	UContextualAnimSceneActorComponent* ContextualAnimSceneActorComponent;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
 	AHuntedInteractable*  CachedItem;
@@ -182,7 +211,34 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	void SetHaveGun(bool bHaveGun) { HaveGun = bHaveGun; };
 	
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	void ApplyUseEffect(UHuntedAbilitySystemComponent* AbilitySystemComponent, int32 ApplyLevel);
+	
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	void ApplyRegenEffect(UHuntedAbilitySystemComponent* AbilitySystemComponent, int32 ApplyLevel);
+
+	UFUNCTION(BlueprintCallable, Category = "Sanity")
+	bool ActivateZeroSanityAbility();
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TSubclassOf<UGameplayEffect> EchoUseGameplayEffectClass;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TSubclassOf<UGameplayEffect> EchoRegenGameplayEffectClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Sanity")
+	TSubclassOf<UHuntedPlayerGameplayAbility> ZeroSanityGameplayAbilityClass;
+	
 private:
+	void BindSanityChangedDelegate();
+	void HandleCurrentSanityChanged(const FOnAttributeChangeData& ChangeData);
+	void BindHealthChangedDelegate();
+	void HandleCurrentHealthChanged(const FOnAttributeChangeData& ChangeData);
+
+	FActiveGameplayEffectHandle EchoUseEffectHandle;
+	FActiveGameplayEffectHandle EchoRegenEffectHandle;
+	FDelegateHandle SanityChangedDelegateHandle;
+	FDelegateHandle HealthChangedDelegateHandle;
 	
 #pragma endregion
 
@@ -204,6 +260,15 @@ private:
 	void Input_AbilityInputPressed(FGameplayTag InInputTag);
 	void Input_AbilityInputReleased(FGameplayTag InInputTag);
 	
+	void ApplyControlRotationState(bool bShouldControlRotation);
+	bool IsContextualAnimSceneActive() const;
+	void SyncControlRotationToActorYaw();
+
+	UFUNCTION()
+	void HandleContextualAnimSceneJoined(UContextualAnimSceneActorComponent* SceneActorComponent);
+
+	UFUNCTION()
+	void HandleContextualAnimSceneLeft(UContextualAnimSceneActorComponent* SceneActorComponent);
 
 	bool IsSneak = false;
 	bool IsSprint = false;
@@ -211,6 +276,8 @@ private:
 	bool IsEcho = false;
 	bool IsAiming = false;
 	bool HaveGun = false;
+	bool bPendingEnableControlRotation = false;
+	float PendingControlRotationSyncTime = 0.f;
 	
 #pragma endregion
 
@@ -245,6 +312,21 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category = "Pause")
 	FORCEINLINE UUserWidget* GetPauseWidget() { return PauseWidget; }
+
+	UFUNCTION(BlueprintCallable, Category = "UI|Death")
+	void ShowDeathWidget();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|Death")
+	void HideDeathWidget();
+
+	UFUNCTION(BlueprintPure, Category = "UI|Death")
+	FORCEINLINE UUserWidget* GetDeathWidget() const { return DeathWidget; }
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "UI|Death", meta = (DisplayName = "On Death Widget Shown"))
+	void BP_OnDeathWidgetShown(UUserWidget* ShownDeathWidget);
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "UI|Death", meta = (DisplayName = "On Death Widget Hidden"))
+	void BP_OnDeathWidgetHidden(UUserWidget* HiddenDeathWidget);
 	
 	UFUNCTION()
 	void OnBeginOverlap(class UPrimitiveComponent* HitComp, class AActor* OtherActor,
