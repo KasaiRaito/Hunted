@@ -67,6 +67,13 @@ AHuntedPlayerCharacter::AHuntedPlayerCharacter()
 	{
 		DeathWidgetClass = DefaultDeathWidgetClass.Class;
 	}
+
+	static ConstructorHelpers::FClassFinder<UUserWidget> DefaultVictoryWidgetClass(
+		TEXT("/Game/_Hunted/PlayerCharacter/Widgets/HUD/WBP_Player_Vicotry"));
+	if (DefaultVictoryWidgetClass.Succeeded())
+	{
+		VictoryWidgetClass = DefaultVictoryWidgetClass.Class;
+	}
 	
 	UpdateStaticMeshList();
 }
@@ -540,6 +547,70 @@ void AHuntedPlayerCharacter::HideDeathWidget()
 	}
 
 	BP_OnDeathWidgetHidden(HiddenDeathWidget);
+}
+
+void AHuntedPlayerCharacter::ShowVictoryWidget()
+{
+	if (!IsLocallyControlled() || !VictoryWidgetClass)
+	{
+		return;
+	}
+
+	APlayerController* OwningPlayerController = Cast<APlayerController>(GetController());
+	if (!OwningPlayerController)
+	{
+		return;
+	}
+
+	if (!VictoryWidget)
+	{
+		VictoryWidget = CreateWidget<UUserWidget>(OwningPlayerController, VictoryWidgetClass);
+	}
+
+	if (!VictoryWidget)
+	{
+		return;
+	}
+
+	if (!VictoryWidget->IsInViewport())
+	{
+		VictoryWidget->AddToViewport(VictoryWidgetZOrder);
+	}
+
+	VictoryWidget->SetVisibility(ESlateVisibility::Visible);
+
+	if (bSetUIOnlyInputModeOnVictory)
+	{
+		FInputModeUIOnly InputMode;
+		InputMode.SetWidgetToFocus(VictoryWidget->TakeWidget());
+		OwningPlayerController->SetInputMode(InputMode);
+		OwningPlayerController->bShowMouseCursor = true;
+	}
+
+	BP_OnVictoryWidgetShown(VictoryWidget);
+}
+
+void AHuntedPlayerCharacter::HideVictoryWidget()
+{
+	if (!VictoryWidget)
+	{
+		return;
+	}
+
+	UUserWidget* HiddenVictoryWidget = VictoryWidget;
+	VictoryWidget->RemoveFromParent();
+
+	if (bSetUIOnlyInputModeOnVictory)
+	{
+		if (APlayerController* OwningPlayerController = Cast<APlayerController>(GetController()))
+		{
+			FInputModeGameOnly InputMode;
+			OwningPlayerController->SetInputMode(InputMode);
+			OwningPlayerController->bShowMouseCursor = false;
+		}
+	}
+
+	BP_OnVictoryWidgetHidden(HiddenVictoryWidget);
 }
 
 void AHuntedPlayerCharacter::Input_Move(const FInputActionValue& InputActionValue)

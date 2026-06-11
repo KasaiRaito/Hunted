@@ -46,4 +46,7 @@ public:
 	
 	UFUNCTION(BlueprintCallable,Category = "Hunted|FunctionLibrary", meta = (WorldContext = "WorldContextObject"))
 	static void ToggleInputMode(const UObject* WorldContextObject, EHuntedInputMode InInputMode);
+
+	UFUNCTION(BlueprintCallable, Category = "Hunted|UI", meta = (WorldContext = "WorldContextObject"))
+	static void ShowPlayerVictoryWidget(const UObject* WorldContextObject);
 };
