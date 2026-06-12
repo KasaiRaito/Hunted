@@ -14,6 +14,7 @@
 UPlayerInventoryComponent::UPlayerInventoryComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
+	BaseBulletsCount = 0;
 	
 }
 
@@ -68,6 +69,7 @@ bool UPlayerInventoryComponent::RoomForItemInInventoryIgnoringItem(const AHunted
 void UPlayerInventoryComponent::BeginPlay()
 {
 	Super::BeginPlay();
+	BaseBulletsCount = 0;
 	//Debug::Print(TEXT("Player Inventory Component BeginPlay"), FColor::Purple);
 }
 
