@@ -26,6 +26,10 @@ class UPlayerInventoryComponent;
 class UPlayerUIComponent;
 class AHuntedInventoryItemBase;
 class UContextualAnimSceneActorComponent;
+class AHuntedPlayerWeaponBase;
+class UEnhancedInputLocalPlayerSubsystem;
+class UInputAction;
+class UInputMappingContext;
 
 /**
  * 
@@ -41,6 +45,24 @@ struct FActorMaterialBackup
 
 	UPROPERTY()
 	TArray<UMaterialInterface*> Materials;
+};
+
+USTRUCT(BlueprintType)
+struct FHuntedWeaponSwitchEntry
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (Categories = "Player.Weapon"))
+	FGameplayTag WeaponTag;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (Categories = "InputTag.Equip"))
+	FGameplayTag EquipInputTag;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (Categories = "InputTag.Unequip"))
+	FGameplayTag UnequipInputTag;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	FName UnequippedSocketName = NAME_None;
 };
 
 UCLASS()
@@ -257,6 +279,12 @@ private:
 #pragma region Inputs
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "CharacterData", meta = (AllowPrivateAccess = "true"))
 	UDataAsset_InputConfig* InputConfigDataAsset;
+
+	UPROPERTY(VisibleAnywhere, Category = "Weapon|Switching")
+	UInputAction* WeaponCycleInputAction;
+
+	UPROPERTY(VisibleAnywhere, Category = "Weapon|Switching")
+	UInputMappingContext* WeaponCycleMappingContext;
 	
 	void Input_Move(const FInputActionValue& InputActionValue);
 	void Input_Sneak(const FInputActionValue& Sneak);
@@ -271,6 +299,17 @@ private:
 
 	void Input_AbilityInputPressed(FGameplayTag InInputTag);
 	void Input_AbilityInputReleased(FGameplayTag InInputTag);
+
+	void Input_CycleWeapon(const FInputActionValue& InputActionValue);
+	void CycleWeapon(int32 Direction);
+
+	bool RequestEquipWeapon(const FHuntedWeaponSwitchEntry& WeaponEntry);
+	void DeactivateCurrentWeaponForSwitch();
+	void CacheWeaponUnequippedSocket(const FHuntedWeaponSwitchEntry& WeaponEntry);
+	const FHuntedWeaponSwitchEntry* FindWeaponEntryByEquipInput(FGameplayTag InputTag) const;
+	const FHuntedWeaponSwitchEntry* FindWeaponEntryByUnequipInput(FGameplayTag InputTag) const;
+	const FHuntedWeaponSwitchEntry* FindWeaponEntryByWeaponTag(FGameplayTag WeaponTag) const;
+	UEnhancedInputLocalPlayerSubsystem* GetEnhancedInputSubsystem() const;
 	
 	void ApplyControlRotationState(bool bShouldControlRotation);
 	bool IsContextualAnimSceneActive() const;
@@ -290,6 +329,15 @@ private:
 	bool HaveGun = false;
 	bool bPendingEnableControlRotation = false;
 	float PendingControlRotationSyncTime = 0.f;
+
+	// The order controls mouse-wheel cycling and also provides each weapon's holster socket.
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Switching", meta = (AllowPrivateAccess = "true"))
+	TArray<FHuntedWeaponSwitchEntry> WeaponCycleEntries;
+
+	UPROPERTY(Transient)
+	TMap<FGameplayTag, FName> WeaponUnequippedSocketCache;
+
+	FGameplayTag PendingUnequippedWeaponTag;
 	
 #pragma endregion
 

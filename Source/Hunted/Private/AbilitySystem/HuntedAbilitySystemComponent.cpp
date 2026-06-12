@@ -6,7 +6,33 @@
 
 #include "HuntedDebugHelper.h"
 
-void UHuntedAbilitySystemComponent::OnAbilityInputPressed(const FGameplayTag& InInputTag)
+bool UHuntedAbilitySystemComponent::OnAbilityInputPressed(const FGameplayTag& InInputTag)
+{
+	if (!InInputTag.IsValid())
+	{
+		return false;
+	}
+
+	bool bActivatedAbility = false;
+	for (const FGameplayAbilitySpec& AbilitySpec : GetActivatableAbilities())
+	{
+		if (!AbilitySpec.GetDynamicSpecSourceTags().HasTagExact(InInputTag))
+		{
+			continue;
+		}
+
+		bActivatedAbility |= TryActivateAbility(AbilitySpec.Handle);
+	}
+
+	return bActivatedAbility;
+}
+
+void UHuntedAbilitySystemComponent::OnAbilityInputReleased(const FGameplayTag& InInputTag)
+{
+	
+}
+
+void UHuntedAbilitySystemComponent::CancelAbilitiesByInputTag(const FGameplayTag& InInputTag)
 {
 	if (!InInputTag.IsValid())
 	{
@@ -15,18 +41,12 @@ void UHuntedAbilitySystemComponent::OnAbilityInputPressed(const FGameplayTag& In
 
 	for (const FGameplayAbilitySpec& AbilitySpec : GetActivatableAbilities())
 	{
-		if (!AbilitySpec.GetDynamicSpecSourceTags().HasTagExact(InInputTag))
+		if (AbilitySpec.IsActive() &&
+			AbilitySpec.GetDynamicSpecSourceTags().HasTagExact(InInputTag))
 		{
-			continue;
+			CancelAbilityHandle(AbilitySpec.Handle);
 		}
-
-		TryActivateAbility(AbilitySpec.Handle);
 	}
-}
-
-void UHuntedAbilitySystemComponent::OnAbilityInputReleased(const FGameplayTag& InInputTag)
-{
-	
 }
 
 void UHuntedAbilitySystemComponent::GrantPlayerWeaponAbilities(

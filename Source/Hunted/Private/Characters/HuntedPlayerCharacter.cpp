@@ -5,6 +5,9 @@
 #include "Components/CapsuleComponent.h"
 #include "Camera/CameraComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "InputCoreTypes.h"
+#include "InputAction.h"
+#include "InputMappingContext.h"
 #include "DataAssets/Input/DataAsset_InputConfig.h"
 #include "Components/Input/PlayerInputComponent.h"
 #include "HuntedGameplayTags.h"
@@ -15,6 +18,7 @@
 #include "AbilitySystem/HuntedAbilitySystemComponent.h"
 #include "AbilitySystem/HuntedAttributeSet.h"
 #include "AbilitySystem/Abilities/HuntedPlayerGameplayAbility.h"
+#include "AnimInstances/Player/HuntedPlayerLinkedAnimLayer.h"
 #include "Blueprint/UserWidget.h"
 
 /** Components **/
@@ -24,8 +28,10 @@
 #include "Components/Inventory/PlayerInventoryComponent.h"
 #include "ContextualAnimSceneActorComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Components/SkeletalMeshComponent.h"
 
 #include "Items/Inventory/HuntedInventoryItemBase.h"
+#include "Items/Weapons/HuntedPlayerWeaponBase.h"
 
 namespace
 {
@@ -59,6 +65,28 @@ AHuntedPlayerCharacter::AHuntedPlayerCharacter()
 	PlayerUIComponent = CreateDefaultSubobject<UPlayerUIComponent>(TEXT("PlayerUIComponent"));
 	
 	PlayerInventoryComponent = CreateDefaultSubobject<UPlayerInventoryComponent>(TEXT("PlayerInventoryComponent"));
+
+	WeaponCycleInputAction = CreateDefaultSubobject<UInputAction>(TEXT("WeaponCycleInputAction"));
+	WeaponCycleInputAction->ValueType = EInputActionValueType::Axis1D;
+
+	WeaponCycleMappingContext =
+		CreateDefaultSubobject<UInputMappingContext>(TEXT("WeaponCycleMappingContext"));
+	WeaponCycleMappingContext->MapKey(WeaponCycleInputAction, EKeys::MouseWheelAxis);
+
+	// These entries keep the native switch code aligned with the existing Gun and Knife Blueprint abilities.
+	FHuntedWeaponSwitchEntry KnifeEntry;
+	KnifeEntry.WeaponTag = HuntedGameplayTags::Player_Weapon_BasicKnife;
+	KnifeEntry.EquipInputTag = HuntedGameplayTags::InputTag_Equip_Knife;
+	KnifeEntry.UnequipInputTag = HuntedGameplayTags::InputTag_Unequip_Knife;
+	KnifeEntry.UnequippedSocketName = TEXT("Weapon_RightThighSocket");
+	WeaponCycleEntries.Add(KnifeEntry);
+
+	FHuntedWeaponSwitchEntry GunEntry;
+	GunEntry.WeaponTag = HuntedGameplayTags::Player_Weapon_Gun;
+	GunEntry.EquipInputTag = HuntedGameplayTags::InputTag_Equip_Gun;
+	GunEntry.UnequipInputTag = HuntedGameplayTags::InputTag_Unequip_Gun;
+	GunEntry.UnequippedSocketName = TEXT("Weapon_PelvisSocket");
+	WeaponCycleEntries.Add(GunEntry);
 
 	UpdateStaticMeshList();
 }
@@ -124,6 +152,7 @@ void AHuntedPlayerCharacter::SetupPlayerInputComponent(UInputComponent* InPlayer
 	}
 
 	Subsystem->AddMappingContext(InputConfigDataAsset->DefaultMappingContext, 0);
+	Subsystem->AddMappingContext(WeaponCycleMappingContext, 1);
 
 	UPlayerInputComponent* PlayerInputComponent = Cast<UPlayerInputComponent>(InPlayerInputComponent);
 	if (!PlayerInputComponent)
@@ -150,6 +179,10 @@ void AHuntedPlayerCharacter::SetupPlayerInputComponent(UInputComponent* InPlayer
 	
 	PlayerInputComponent->BindAbilityInputAction(InputConfigDataAsset,this,
 		&ThisClass::Input_AbilityInputPressed,&ThisClass::Input_AbilityInputReleased);
+
+	// This native Enhanced Input action avoids requiring another content asset just for the mouse wheel.
+	PlayerInputComponent->BindAction(
+		WeaponCycleInputAction, ETriggerEvent::Triggered, this, &ThisClass::Input_CycleWeapon);
 }
 
 void AHuntedPlayerCharacter::BeginPlay()
@@ -755,12 +788,276 @@ void AHuntedPlayerCharacter::Input_LookStopped(const FInputActionValue& InputAct
 
 void AHuntedPlayerCharacter::Input_AbilityInputPressed(FGameplayTag InInputTag)
 {
+	if (!HuntedAbilitySystemComponent)
+	{
+		return;
+	}
+
+	if (const FHuntedWeaponSwitchEntry* WeaponEntry = FindWeaponEntryByEquipInput(InInputTag))
+	{
+		RequestEquipWeapon(*WeaponEntry);
+		return;
+	}
+
+	if (const FHuntedWeaponSwitchEntry* WeaponEntry = FindWeaponEntryByUnequipInput(InInputTag))
+	{
+		const bool bStartedUnequip = HuntedAbilitySystemComponent->OnAbilityInputPressed(InInputTag);
+		if (bStartedUnequip && PlayerCombatComponent->CurrentEquippedWeaponTag == WeaponEntry->WeaponTag)
+		{
+			// Clear this immediately so the same weapon can be equipped again after its montage finishes.
+			PendingUnequippedWeaponTag = WeaponEntry->WeaponTag;
+			PlayerCombatComponent->CurrentEquippedWeaponTag = FGameplayTag();
+			IsAiming = false;
+		}
+		return;
+	}
+
 	HuntedAbilitySystemComponent->OnAbilityInputPressed(InInputTag);
 }
 
 void AHuntedPlayerCharacter::Input_AbilityInputReleased(FGameplayTag InInputTag)
 {
-	HuntedAbilitySystemComponent->OnAbilityInputReleased(InInputTag);
+	if (HuntedAbilitySystemComponent)
+	{
+		HuntedAbilitySystemComponent->OnAbilityInputReleased(InInputTag);
+	}
+}
+
+void AHuntedPlayerCharacter::Input_CycleWeapon(const FInputActionValue& InputActionValue)
+{
+	const float WheelValue = InputActionValue.Get<float>();
+	if (!FMath::IsNearlyZero(WheelValue))
+	{
+		CycleWeapon(WheelValue > 0.f ? 1 : -1);
+	}
+}
+
+void AHuntedPlayerCharacter::CycleWeapon(int32 Direction)
+{
+	if (!PlayerCombatComponent || Direction == 0)
+	{
+		return;
+	}
+
+	TArray<int32> AvailableEntryIndexes;
+	for (int32 EntryIndex = 0; EntryIndex < WeaponCycleEntries.Num(); ++EntryIndex)
+	{
+		const FHuntedWeaponSwitchEntry& Entry = WeaponCycleEntries[EntryIndex];
+		if (IsValid(PlayerCombatComponent->GetPlayerCarriedWeaponByTag(Entry.WeaponTag)))
+		{
+			AvailableEntryIndexes.Add(EntryIndex);
+		}
+	}
+
+	if (AvailableEntryIndexes.IsEmpty())
+	{
+		return;
+	}
+
+	const FGameplayTag CurrentWeaponTag = PlayerCombatComponent->CurrentEquippedWeaponTag;
+	int32 CurrentAvailableIndex = INDEX_NONE;
+	for (int32 AvailableIndex = 0; AvailableIndex < AvailableEntryIndexes.Num(); ++AvailableIndex)
+	{
+		if (WeaponCycleEntries[AvailableEntryIndexes[AvailableIndex]].WeaponTag == CurrentWeaponTag)
+		{
+			CurrentAvailableIndex = AvailableIndex;
+			break;
+		}
+	}
+
+	int32 NextAvailableIndex;
+	if (CurrentAvailableIndex == INDEX_NONE)
+	{
+		NextAvailableIndex = Direction > 0 ? 0 : AvailableEntryIndexes.Num() - 1;
+	}
+	else
+	{
+		NextAvailableIndex = (CurrentAvailableIndex + FMath::Sign(Direction) + AvailableEntryIndexes.Num())
+			% AvailableEntryIndexes.Num();
+	}
+
+	RequestEquipWeapon(WeaponCycleEntries[AvailableEntryIndexes[NextAvailableIndex]]);
+}
+
+bool AHuntedPlayerCharacter::RequestEquipWeapon(const FHuntedWeaponSwitchEntry& WeaponEntry)
+{
+	if (!PlayerCombatComponent || !HuntedAbilitySystemComponent ||
+		!WeaponEntry.WeaponTag.IsValid() || !WeaponEntry.EquipInputTag.IsValid())
+	{
+		return false;
+	}
+
+	AHuntedPlayerWeaponBase* WeaponToEquip =
+		PlayerCombatComponent->GetPlayerCarriedWeaponByTag(WeaponEntry.WeaponTag);
+	if (!IsValid(WeaponToEquip))
+	{
+		return false;
+	}
+
+	if (PlayerCombatComponent->CurrentEquippedWeaponTag == WeaponEntry.WeaponTag)
+	{
+		return true;
+	}
+
+	// Stop a partially completed equip montage before it can grant inputs after another weapon was selected.
+	for (const FHuntedWeaponSwitchEntry& Entry : WeaponCycleEntries)
+	{
+		HuntedAbilitySystemComponent->CancelAbilitiesByInputTag(Entry.EquipInputTag);
+		HuntedAbilitySystemComponent->CancelAbilitiesByInputTag(Entry.UnequipInputTag);
+	}
+
+	if (!PlayerCombatComponent->CurrentEquippedWeaponTag.IsValid() &&
+		PendingUnequippedWeaponTag.IsValid())
+	{
+		// If scrolling interrupts an unequip montage, finish that weapon's cleanup synchronously.
+		PlayerCombatComponent->CurrentEquippedWeaponTag = PendingUnequippedWeaponTag;
+	}
+	PendingUnequippedWeaponTag = FGameplayTag();
+
+	CacheWeaponUnequippedSocket(WeaponEntry);
+	DeactivateCurrentWeaponForSwitch();
+
+	WeaponToEquip->SetActorHiddenInGame(false);
+	PlayerCombatComponent->CurrentEquippedWeaponTag = WeaponEntry.WeaponTag;
+
+	if (!HuntedAbilitySystemComponent->OnAbilityInputPressed(WeaponEntry.EquipInputTag))
+	{
+		PlayerCombatComponent->CurrentEquippedWeaponTag = FGameplayTag();
+		return false;
+	}
+
+	return true;
+}
+
+void AHuntedPlayerCharacter::DeactivateCurrentWeaponForSwitch()
+{
+	if (!PlayerCombatComponent || !HuntedAbilitySystemComponent)
+	{
+		return;
+	}
+
+	const FGameplayTag PreviousWeaponTag = PlayerCombatComponent->CurrentEquippedWeaponTag;
+	if (!PreviousWeaponTag.IsValid())
+	{
+		return;
+	}
+
+	AHuntedPlayerWeaponBase* PreviousWeapon =
+		PlayerCombatComponent->GetPlayerCarriedWeaponByTag(PreviousWeaponTag);
+	if (!IsValid(PreviousWeapon))
+	{
+		PlayerCombatComponent->CurrentEquippedWeaponTag = FGameplayTag();
+		return;
+	}
+
+	// A weapon loses every runtime-owned resource before another one can acquire combat input.
+	TArray<FGameplayAbilitySpecHandle> GrantedAbilityHandles =
+		PreviousWeapon->GetGrantedAbilitySpecHandle();
+	HuntedAbilitySystemComponent->RemoveGrantedPlayerWeaponAbilities(GrantedAbilityHandles);
+	PreviousWeapon->AssignGratedAbilitySpecHandles(GrantedAbilityHandles);
+
+	if (UEnhancedInputLocalPlayerSubsystem* InputSubsystem = GetEnhancedInputSubsystem())
+	{
+		if (UInputMappingContext* MappingContext =
+			PreviousWeapon->PlayerWeaponData.WeaponInputMappingContext)
+		{
+			InputSubsystem->RemoveMappingContext(MappingContext);
+		}
+	}
+
+	if (PreviousWeapon->PlayerWeaponData.WeaponAnimLayerToLink)
+	{
+		GetMesh()->UnlinkAnimClassLayers(
+			TSubclassOf<UAnimInstance>(PreviousWeapon->PlayerWeaponData.WeaponAnimLayerToLink.Get()));
+	}
+
+	PlayerCombatComponent->ToggleWeaponCollision(false);
+	IsAiming = false;
+
+	const FHuntedWeaponSwitchEntry* PreviousEntry = FindWeaponEntryByWeaponTag(PreviousWeaponTag);
+	const FName* CachedSocket = WeaponUnequippedSocketCache.Find(PreviousWeaponTag);
+	const FName UnequippedSocket = CachedSocket
+		? *CachedSocket
+		: (PreviousEntry ? PreviousEntry->UnequippedSocketName : NAME_None);
+
+	if (!UnequippedSocket.IsNone() && GetMesh()->DoesSocketExist(UnequippedSocket))
+	{
+		PreviousWeapon->AttachToComponent(
+			GetMesh(),
+			FAttachmentTransformRules::SnapToTargetNotIncludingScale,
+			UnequippedSocket);
+		PreviousWeapon->SetActorHiddenInGame(false);
+	}
+	else
+	{
+		// A missing custom socket must not leave the old weapon visible in the equipped hand.
+		PreviousWeapon->SetActorHiddenInGame(true);
+	}
+
+	PlayerCombatComponent->CurrentEquippedWeaponTag = FGameplayTag();
+}
+
+void AHuntedPlayerCharacter::CacheWeaponUnequippedSocket(const FHuntedWeaponSwitchEntry& WeaponEntry)
+{
+	if (WeaponUnequippedSocketCache.Contains(WeaponEntry.WeaponTag) || !PlayerCombatComponent)
+	{
+		return;
+	}
+
+	FName SocketName = WeaponEntry.UnequippedSocketName;
+	if (const AHuntedPlayerWeaponBase* Weapon =
+		PlayerCombatComponent->GetPlayerCarriedWeaponByTag(WeaponEntry.WeaponTag))
+	{
+		if (const USceneComponent* WeaponRootComponent = Weapon->GetRootComponent())
+		{
+			const FName CurrentSocketName = WeaponRootComponent->GetAttachSocketName();
+			if (!CurrentSocketName.IsNone())
+			{
+				SocketName = CurrentSocketName;
+			}
+		}
+	}
+
+	WeaponUnequippedSocketCache.Add(WeaponEntry.WeaponTag, SocketName);
+}
+
+const FHuntedWeaponSwitchEntry* AHuntedPlayerCharacter::FindWeaponEntryByEquipInput(
+	FGameplayTag InputTag) const
+{
+	return WeaponCycleEntries.FindByPredicate(
+		[InputTag](const FHuntedWeaponSwitchEntry& Entry)
+		{
+			return Entry.EquipInputTag == InputTag;
+		});
+}
+
+const FHuntedWeaponSwitchEntry* AHuntedPlayerCharacter::FindWeaponEntryByUnequipInput(
+	FGameplayTag InputTag) const
+{
+	return WeaponCycleEntries.FindByPredicate(
+		[InputTag](const FHuntedWeaponSwitchEntry& Entry)
+		{
+			return Entry.UnequipInputTag == InputTag;
+		});
+}
+
+const FHuntedWeaponSwitchEntry* AHuntedPlayerCharacter::FindWeaponEntryByWeaponTag(
+	FGameplayTag WeaponTag) const
+{
+	return WeaponCycleEntries.FindByPredicate(
+		[WeaponTag](const FHuntedWeaponSwitchEntry& Entry)
+		{
+			return Entry.WeaponTag == WeaponTag;
+		});
+}
+
+UEnhancedInputLocalPlayerSubsystem* AHuntedPlayerCharacter::GetEnhancedInputSubsystem() const
+{
+	const APlayerController* PlayerController = GetController<APlayerController>();
+	const ULocalPlayer* LocalPlayer = PlayerController ? PlayerController->GetLocalPlayer() : nullptr;
+	return LocalPlayer
+		? ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(LocalPlayer)
+		: nullptr;
 }
 
 void AHuntedPlayerCharacter::EnterEcho()
