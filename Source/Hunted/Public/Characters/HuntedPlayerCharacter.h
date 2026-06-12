@@ -289,7 +289,8 @@ private:
 	void Input_Move(const FInputActionValue& InputActionValue);
 	void Input_Sneak(const FInputActionValue& Sneak);
 	void Input_Sprint(const FInputActionValue& Sprint);
-	void Input_Crouch(const FInputActionValue& Crouch);
+	void Input_CrouchStarted(const FInputActionValue& InputActionValue);
+	void Input_CrouchReleased(const FInputActionValue& InputActionValue);
 	void Input_Aim(const FInputActionValue& Aim);
 	
 	void ProcessMovementInput(const FInputActionValue& InputActionValue);
@@ -310,6 +311,9 @@ private:
 	const FHuntedWeaponSwitchEntry* FindWeaponEntryByUnequipInput(FGameplayTag InputTag) const;
 	const FHuntedWeaponSwitchEntry* FindWeaponEntryByWeaponTag(FGameplayTag WeaponTag) const;
 	UEnhancedInputLocalPlayerSubsystem* GetEnhancedInputSubsystem() const;
+
+	UFUNCTION()
+	void HandleInputMappingContextChanged(const UInputMappingContext* MappingContext);
 	
 	void ApplyControlRotationState(bool bShouldControlRotation);
 	bool IsContextualAnimSceneActive() const;

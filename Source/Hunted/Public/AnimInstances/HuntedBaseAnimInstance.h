@@ -8,10 +8,11 @@
 #include "HuntedBaseAnimInstance.generated.h"
 
 class UBlendSpace;
+class FObjectPropertyBase;
 
 struct FHuntedBlendSpacePlayerCache
 {
-	FAnimNode_BlendSpacePlayer* Node = nullptr;
+	FAnimNode_BlendSpacePlayerBase* Node = nullptr;
 	TWeakObjectPtr<UBlendSpace> DefaultBlendSpace;
 };
 
@@ -34,10 +35,17 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AnimData|Crouch")
 	UBlendSpace* CrouchedLocomotionBlendSpace;
 
+	// Linked weapon layers can replace a missing/invalid standing locomotion asset.
+	virtual UBlendSpace* ResolveStandingLocomotionBlendSpace(
+		UBlendSpace* ConfiguredBlendSpace) const;
+
 private:
 	void CacheLocomotionBlendSpacePlayers();
 	void UpdateCrouchedLocomotionBlendSpaces();
 
 	TArray<FHuntedBlendSpacePlayerCache> LocomotionBlendSpacePlayers;
+	FObjectPropertyBase* DefaultLocomotionBlendSpaceProperty = nullptr;
+	TWeakObjectPtr<UBlendSpace> DefaultLocomotionBlendSpace;
+	bool bLocomotionBlendSpacesCached = false;
 	bool bWasUsingCrouchedLocomotion = false;
 };

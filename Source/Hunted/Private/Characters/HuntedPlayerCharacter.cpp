@@ -153,8 +153,20 @@ void AHuntedPlayerCharacter::SetupPlayerInputComponent(UInputComponent* InPlayer
 		return;
 	}
 
+	if (UInputAction* CrouchInputAction =
+		InputConfigDataAsset->FindNativeInputActionByTag(HuntedGameplayTags::InputTag_Crouch))
+	{
+		// IA_Croch was authored with separate Pressed and Released triggers. Treat it as a
+		// normal held Boolean so Started/Completed remain stable when weapon contexts rebuild.
+		CrouchInputAction->Triggers.Reset();
+	}
+
 	Subsystem->AddMappingContext(InputConfigDataAsset->DefaultMappingContext, 0);
 	Subsystem->AddMappingContext(WeaponCycleMappingContext, 1);
+	Subsystem->OnMappingContextAdded.AddUniqueDynamic(
+		this, &ThisClass::HandleInputMappingContextChanged);
+	Subsystem->OnMappingContextRemoved.AddUniqueDynamic(
+		this, &ThisClass::HandleInputMappingContextChanged);
 
 	UPlayerInputComponent* PlayerInputComponent = Cast<UPlayerInputComponent>(InPlayerInputComponent);
 	if (!PlayerInputComponent)
@@ -174,7 +186,9 @@ void AHuntedPlayerCharacter::SetupPlayerInputComponent(UInputComponent* InPlayer
 		ETriggerEvent::Completed, this, &ThisClass::Input_LookStopped);
 
 	PlayerInputComponent->BindNativeInputAction(InputConfigDataAsset, HuntedGameplayTags::InputTag_Crouch,
-		ETriggerEvent::Triggered, this, &ThisClass::Input_Crouch);
+		ETriggerEvent::Started, this, &ThisClass::Input_CrouchStarted);
+	PlayerInputComponent->BindNativeInputAction(InputConfigDataAsset, HuntedGameplayTags::InputTag_Crouch,
+		ETriggerEvent::Completed, this, &ThisClass::Input_CrouchReleased);
 	
 	PlayerInputComponent->BindNativeInputAction(InputConfigDataAsset, HuntedGameplayTags::InputTag_Aim,
 		ETriggerEvent::Triggered, this, &ThisClass::Input_Aim);
@@ -226,6 +240,14 @@ void AHuntedPlayerCharacter::BeginPlay()
 
 void AHuntedPlayerCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+	if (UEnhancedInputLocalPlayerSubsystem* InputSubsystem = GetEnhancedInputSubsystem())
+	{
+		InputSubsystem->OnMappingContextAdded.RemoveDynamic(
+			this, &ThisClass::HandleInputMappingContextChanged);
+		InputSubsystem->OnMappingContextRemoved.RemoveDynamic(
+			this, &ThisClass::HandleInputMappingContextChanged);
+	}
+
 	if (HuntedAbilitySystemComponent && SanityChangedDelegateHandle.IsValid())
 	{
 		HuntedAbilitySystemComponent
@@ -680,20 +702,20 @@ void AHuntedPlayerCharacter::Input_Sprint(const FInputActionValue& Sprint)
 	}
 }
 
-void AHuntedPlayerCharacter::Input_Crouch(const FInputActionValue& Crouch)
+void AHuntedPlayerCharacter::Input_CrouchStarted(const FInputActionValue&)
 {
-	IsCrouch = Crouch.Get<bool>();
-	if (IsCrouch)
-	{
-		// Character::Crouch keeps the capsule, movement component, replication, and animation in sync.
-		GetCharacterMovement()->MaxWalkSpeedCrouched = CrouchSpeed;
-		ACharacter::Crouch();
-	}
-	else
-	{
-		UnCrouch();
-		GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
-	}
+	IsCrouch = true;
+
+	// Character::Crouch keeps the capsule, movement component, replication, and animation in sync.
+	GetCharacterMovement()->MaxWalkSpeedCrouched = CrouchSpeed;
+	ACharacter::Crouch();
+}
+
+void AHuntedPlayerCharacter::Input_CrouchReleased(const FInputActionValue&)
+{
+	IsCrouch = false;
+	UnCrouch();
+	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
 }
 
 void AHuntedPlayerCharacter::Input_Aim(const FInputActionValue& Aim)
@@ -965,7 +987,10 @@ void AHuntedPlayerCharacter::DeactivateCurrentWeaponForSwitch()
 		if (UInputMappingContext* MappingContext =
 			PreviousWeapon->PlayerWeaponData.WeaponInputMappingContext)
 		{
-			InputSubsystem->RemoveMappingContext(MappingContext);
+			FModifyContextOptions Options;
+			// Switching weapons must not suppress Ctrl (or any other held input) until it is released.
+			Options.bIgnoreAllPressedKeysUntilRelease = false;
+			InputSubsystem->RemoveMappingContext(MappingContext, Options);
 		}
 	}
 
@@ -1062,6 +1087,24 @@ UEnhancedInputLocalPlayerSubsystem* AHuntedPlayerCharacter::GetEnhancedInputSubs
 	return LocalPlayer
 		? ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(LocalPlayer)
 		: nullptr;
+}
+
+void AHuntedPlayerCharacter::HandleInputMappingContextChanged(
+	const UInputMappingContext*)
+{
+	if (!IsCrouch)
+	{
+		return;
+	}
+
+	if (UEnhancedInputLocalPlayerSubsystem* InputSubsystem = GetEnhancedInputSubsystem())
+	{
+		FModifyContextOptions Options;
+		// Equip/unequip Blueprints rebuild their weapon mappings. Opt out of the engine default
+		// that ignores already-held keys, otherwise a held crouch is lost during that rebuild.
+		Options.bIgnoreAllPressedKeysUntilRelease = false;
+		InputSubsystem->RequestRebuildControlMappings(Options);
+	}
 }
 
 void AHuntedPlayerCharacter::EnterEcho()
