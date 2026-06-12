@@ -58,6 +58,8 @@ AHuntedPlayerCharacter::AHuntedPlayerCharacter()
 	GetCharacterMovement()->bOrientRotationToMovement = false;
 	//GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f);
 	GetCharacterMovement()->MaxWalkSpeed = 250.0f;
+	GetCharacterMovement()->MaxWalkSpeedCrouched = CrouchSpeed;
+	GetCharacterMovement()->GetNavAgentPropertiesRef().bCanCrouch = true;
 	GetCharacterMovement()->BrakingDecelerationWalking = 2000.0f;
 
 	PlayerCombatComponent = CreateDefaultSubobject<UPlayerCombatComponent>(TEXT("PlayerCombatComponent"));
@@ -680,14 +682,16 @@ void AHuntedPlayerCharacter::Input_Sprint(const FInputActionValue& Sprint)
 
 void AHuntedPlayerCharacter::Input_Crouch(const FInputActionValue& Crouch)
 {
-	//Debug::Print(TEXT("HuntedPlayerCharacter::Input_Crouch"));
 	IsCrouch = Crouch.Get<bool>();
 	if (IsCrouch)
 	{
-		GetCharacterMovement()->MaxWalkSpeed = CrouchSpeed;
+		// Character::Crouch keeps the capsule, movement component, replication, and animation in sync.
+		GetCharacterMovement()->MaxWalkSpeedCrouched = CrouchSpeed;
+		ACharacter::Crouch();
 	}
 	else
 	{
+		UnCrouch();
 		GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
 	}
 }
