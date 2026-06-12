@@ -16,7 +16,6 @@
 #include "AbilitySystem/HuntedAttributeSet.h"
 #include "AbilitySystem/Abilities/HuntedPlayerGameplayAbility.h"
 #include "Blueprint/UserWidget.h"
-#include "UObject/ConstructorHelpers.h"
 
 /** Components **/
 #include "Components/Combat/PlayerCombatComponent.h"
@@ -61,13 +60,6 @@ AHuntedPlayerCharacter::AHuntedPlayerCharacter()
 	
 	PlayerInventoryComponent = CreateDefaultSubobject<UPlayerInventoryComponent>(TEXT("PlayerInventoryComponent"));
 
-	static ConstructorHelpers::FClassFinder<UUserWidget> DefaultDeathWidgetClass(
-		TEXT("/Game/_Hunted/PlayerCharacter/Widgets/Death/WBP_Player_Death"));
-	if (DefaultDeathWidgetClass.Succeeded())
-	{
-		DeathWidgetClass = DefaultDeathWidgetClass.Class;
-	}
-	
 	UpdateStaticMeshList();
 }
 
@@ -480,8 +472,14 @@ bool AHuntedPlayerCharacter::ActivateZeroSanityAbility()
 
 void AHuntedPlayerCharacter::ShowDeathWidget()
 {
-	if (!IsLocallyControlled() || !DeathWidgetClass)
+	if (!IsLocallyControlled())
 	{
+		return;
+	}
+
+	if (!DeathWidgetClass)
+	{
+		Debug::Print(TEXT("DeathWidgetClass is not assigned on HuntedPlayerCharacter"), FColor::Red);
 		return;
 	}
 
@@ -540,6 +538,76 @@ void AHuntedPlayerCharacter::HideDeathWidget()
 	}
 
 	BP_OnDeathWidgetHidden(HiddenDeathWidget);
+}
+
+void AHuntedPlayerCharacter::ShowVictoryWidget()
+{
+	if (!IsLocallyControlled())
+	{
+		return;
+	}
+
+	if (!VictoryWidgetClass)
+	{
+		Debug::Print(TEXT("VictoryWidgetClass is not assigned on HuntedPlayerCharacter"), FColor::Red);
+		return;
+	}
+
+	APlayerController* OwningPlayerController = Cast<APlayerController>(GetController());
+	if (!OwningPlayerController)
+	{
+		return;
+	}
+
+	if (!VictoryWidget)
+	{
+		VictoryWidget = CreateWidget<UUserWidget>(OwningPlayerController, VictoryWidgetClass);
+	}
+
+	if (!VictoryWidget)
+	{
+		return;
+	}
+
+	if (!VictoryWidget->IsInViewport())
+	{
+		VictoryWidget->AddToViewport(VictoryWidgetZOrder);
+	}
+
+	VictoryWidget->SetVisibility(ESlateVisibility::Visible);
+
+	if (bSetUIOnlyInputModeOnVictory)
+	{
+		FInputModeUIOnly InputMode;
+		InputMode.SetWidgetToFocus(VictoryWidget->TakeWidget());
+		OwningPlayerController->SetInputMode(InputMode);
+		OwningPlayerController->bShowMouseCursor = true;
+	}
+
+	BP_OnVictoryWidgetShown(VictoryWidget);
+}
+
+void AHuntedPlayerCharacter::HideVictoryWidget()
+{
+	if (!VictoryWidget)
+	{
+		return;
+	}
+
+	UUserWidget* HiddenVictoryWidget = VictoryWidget;
+	VictoryWidget->RemoveFromParent();
+
+	if (bSetUIOnlyInputModeOnVictory)
+	{
+		if (APlayerController* OwningPlayerController = Cast<APlayerController>(GetController()))
+		{
+			FInputModeGameOnly InputMode;
+			OwningPlayerController->SetInputMode(InputMode);
+			OwningPlayerController->bShowMouseCursor = false;
+		}
+	}
+
+	BP_OnVictoryWidgetHidden(HiddenVictoryWidget);
 }
 
 void AHuntedPlayerCharacter::Input_Move(const FInputActionValue& InputActionValue)
