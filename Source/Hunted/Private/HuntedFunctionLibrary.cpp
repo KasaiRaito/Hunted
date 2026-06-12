@@ -6,9 +6,11 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystem/HuntedAbilitySystemComponent.h"
 #include "AI/NavigationSystemBase.h"
+#include "Characters/HuntedPlayerCharacter.h"
 #include "Components/WidgetComponent.h"
 #include "Interfaces/PawnCombatInterface.h"
 #include "GenericTeamAgentInterface.h"
+#include "Kismet/GameplayStatics.h"
 
 UHuntedAbilitySystemComponent* UHuntedFunctionLibrary::NativeGetHuntedASCFromActor(AActor* InActor)
 {
@@ -131,5 +133,16 @@ void UHuntedFunctionLibrary::ToggleInputMode(const UObject* WorldContextObject, 
 		
 	default:
 		break;
+	}
+}
+
+void UHuntedFunctionLibrary::ShowPlayerVictoryWidget(const UObject* WorldContextObject)
+{
+	AHuntedPlayerCharacter* PlayerCharacter =
+		Cast<AHuntedPlayerCharacter>(UGameplayStatics::GetPlayerCharacter(WorldContextObject, 0));
+
+	if (PlayerCharacter)
+	{
+		PlayerCharacter->ShowVictoryWidget();
 	}
 }

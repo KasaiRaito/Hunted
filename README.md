@@ -31,6 +31,8 @@ All programing sistems and elements have been recreated, modified or cited in th
 - PolyWear. (2026). Resizable Urban Adventure Hoodie Pants Boots for MetaHuman. FAB. https://www.fab.com/listings/b48ed7f4-81fd-4082-ab50-8a075cb01099
 - Pedro Hertz. (2026). Horror House - Sound Pack. FAB. https://www.fab.com/listings/8ad36f39-69ca-4178-9e22-2fe5ad9b483a
 
+### Sykher
+- Maarten Hof. (2026b, abril 23). Modular Rural Cabins. FAB. Recuperado 11 de junio de 2026, de https://www.fab.com/listings/508fe84a-4976-4cfe-9a40-c2b9533da601
 
 ## Investigation
 ### KasaiRaito:

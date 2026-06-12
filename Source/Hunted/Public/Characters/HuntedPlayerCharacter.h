@@ -140,6 +140,15 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI|Death")
 	bool bSetUIOnlyInputModeOnDeath = true;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI|Victory")
+	TSubclassOf<UUserWidget> VictoryWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI|Victory", meta = (ClampMin = "0"))
+	int32 VictoryWidgetZOrder = 100;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI|Victory")
+	bool bSetUIOnlyInputModeOnVictory = true;
 	
 	UPROPERTY(EditDefaultsOnly ,Category = "UI")
 	UUserWidget* InventoryWidget;
@@ -149,6 +158,9 @@ protected:
 
 	UPROPERTY(Transient, BlueprintReadOnly, Category = "UI|Death")
 	UUserWidget* DeathWidget;
+
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "UI|Victory")
+	UUserWidget* VictoryWidget;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UUserWidget> ItemWidgetClass;
@@ -322,11 +334,26 @@ public:
 	UFUNCTION(BlueprintPure, Category = "UI|Death")
 	FORCEINLINE UUserWidget* GetDeathWidget() const { return DeathWidget; }
 
+	UFUNCTION(BlueprintCallable, Category = "UI|Victory")
+	void ShowVictoryWidget();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|Victory")
+	void HideVictoryWidget();
+
+	UFUNCTION(BlueprintPure, Category = "UI|Victory")
+	FORCEINLINE UUserWidget* GetVictoryWidget() const { return VictoryWidget; }
+
 	UFUNCTION(BlueprintImplementableEvent, Category = "UI|Death", meta = (DisplayName = "On Death Widget Shown"))
 	void BP_OnDeathWidgetShown(UUserWidget* ShownDeathWidget);
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "UI|Death", meta = (DisplayName = "On Death Widget Hidden"))
 	void BP_OnDeathWidgetHidden(UUserWidget* HiddenDeathWidget);
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "UI|Victory", meta = (DisplayName = "On Victory Widget Shown"))
+	void BP_OnVictoryWidgetShown(UUserWidget* ShownVictoryWidget);
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "UI|Victory", meta = (DisplayName = "On Victory Widget Hidden"))
+	void BP_OnVictoryWidgetHidden(UUserWidget* HiddenVictoryWidget);
 	
 	UFUNCTION()
 	void OnBeginOverlap(class UPrimitiveComponent* HitComp, class AActor* OtherActor,
