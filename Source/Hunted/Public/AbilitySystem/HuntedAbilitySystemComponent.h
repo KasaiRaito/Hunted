@@ -16,8 +16,10 @@ class HUNTED_API UHuntedAbilitySystemComponent : public UAbilitySystemComponent
 	GENERATED_BODY()
 
 public:
-	void OnAbilityInputPressed(const FGameplayTag& InInputTag);
+	bool OnAbilityInputPressed(const FGameplayTag& InInputTag);
 	void OnAbilityInputReleased(const FGameplayTag& InInputTag);
+
+	void CancelAbilitiesByInputTag(const FGameplayTag& InInputTag);
 	
 	UFUNCTION(BlueprintCallable, Category = "Warrior|Ability", meta = (ApplyLevel = "1"))
 	void GrantPlayerWeaponAbilities(

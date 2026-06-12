@@ -38,8 +38,8 @@ protected:
 	UPROPERTY(Transient)
 	TArray<AHuntedInventoryItemBase*> Items;
 	
-	UPROPERTY(EditAnywhere, Category= "InventoryComponent Info | Item Counters")
-	int16 BaseBulletsCount;
+	UPROPERTY(VisibleInstanceOnly, Transient, Category= "InventoryComponent Info | Item Counters")
+	int16 BaseBulletsCount = 0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InventoryComponent | Combination")
 	TArray<FHuntedInventoryCombinationRecipe> CombinationRecipes;

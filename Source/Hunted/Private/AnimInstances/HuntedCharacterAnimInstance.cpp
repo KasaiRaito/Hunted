@@ -10,6 +10,8 @@
 
 void UHuntedCharacterAnimInstance::NativeInitializeAnimation()
 {
+	Super::NativeInitializeAnimation();
+
 	OwningCharacter = Cast<AHuntedBaseCharacter>(TryGetPawnOwner());
 
 	if (OwningCharacter)
@@ -29,7 +31,11 @@ void UHuntedCharacterAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSe
 
 	GroundSpeed = OwningCharacter->GetActorTransform().InverseTransformVectorNoScale(GlobalVelocity);
 
-	bHasAcceleration = (OwningMovementComponent->GetCurrentAcceleration().SizeSquared2D() > 0.f);
+	bIsCrouching = OwningCharacter->bIsCrouched;
+
+	// Keep locomotion active at zero speed so the crouch BlendSpace supplies its idle pose.
+	bHasAcceleration =
+		(OwningMovementComponent->GetCurrentAcceleration().SizeSquared2D() > 0.f) || bIsCrouching;
 	
 	//CurrentPitch = OwningCharacter->GetControlRotation().Pitch;
 	

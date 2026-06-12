@@ -7,6 +7,7 @@
 #include "HuntedPlayerLinkedAnimLayer.generated.h"
 
 class UHuntedPlayerAnimInstance;
+class UBlendSpace;
 /**
  * 
  */
@@ -16,6 +17,16 @@ class HUNTED_API UHuntedPlayerLinkedAnimLayer : public UHuntedBaseAnimInstance
 	GENERATED_BODY()
 
 public:
+	UHuntedPlayerLinkedAnimLayer();
+
 	UFUNCTION(BlueprintPure, meta = (NotBlueprintThreadSafe))
 	UHuntedPlayerAnimInstance* GetPlayerAnimInstance() const;
+
+protected:
+	virtual UBlendSpace* ResolveStandingLocomotionBlendSpace(
+		UBlendSpace* ConfiguredBlendSpace) const override;
+
+private:
+	UPROPERTY()
+	UBlendSpace* UnarmedLocomotionBlendSpace;
 };
