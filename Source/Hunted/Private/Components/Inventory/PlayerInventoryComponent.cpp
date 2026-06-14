@@ -31,6 +31,13 @@ bool UPlayerInventoryComponent::IsTileValid(FIntPoint Tile) const
 bool UPlayerInventoryComponent::RoomForItemInInventoryIgnoringItem(const AHuntedInventoryItemBase* ItemToAdd,
 	int8 TopLeftIndex, const AHuntedInventoryItemBase* IgnoredItem) const
 {
+	return RoomForItemInGridIgnoringItem(Items, ItemToAdd, TopLeftIndex, IgnoredItem);
+}
+
+bool UPlayerInventoryComponent::RoomForItemInGridIgnoringItem(
+	const TArray<AHuntedInventoryItemBase*>& GridItems, const AHuntedInventoryItemBase* ItemToAdd,
+	int8 TopLeftIndex, const AHuntedInventoryItemBase* IgnoredItem) const
+{
 	if (!IsValid(ItemToAdd))
 	{
 		return false;
@@ -50,12 +57,12 @@ bool UPlayerInventoryComponent::RoomForItemInInventoryIgnoringItem(const AHunted
 			}
 
 			const int8 Index = TileToIndex(CurrentTile);
-			if (!GetResultAtIndex(Index))
+			if (!GridItems.IsValidIndex(Index))
 			{
 				return false;
 			}
 
-			AHuntedInventoryItemBase* OccupyingItem = Items[Index];
+			AHuntedInventoryItemBase* OccupyingItem = GridItems[Index];
 			if (IsValid(OccupyingItem) && OccupyingItem != IgnoredItem)
 			{
 				return false;
@@ -64,6 +71,119 @@ bool UPlayerInventoryComponent::RoomForItemInInventoryIgnoringItem(const AHunted
 	}
 
 	return true;
+}
+
+const TArray<AHuntedInventoryItemBase*>& UPlayerInventoryComponent::GetGridItems(
+	EPlayerInventoryGridType GridType) const
+{
+	return GridType == EPlayerInventoryGridType::Discard ? DiscardItems : Items;
+}
+
+TArray<AHuntedInventoryItemBase*>& UPlayerInventoryComponent::GetMutableGridItems(
+	EPlayerInventoryGridType GridType)
+{
+	return GridType == EPlayerInventoryGridType::Discard ? DiscardItems : Items;
+}
+
+bool UPlayerInventoryComponent::FindItemTopLeftTileInItems(
+	const TArray<AHuntedInventoryItemBase*>& GridItems, const AHuntedInventoryItemBase* ItemToFind,
+	FIntPoint& OutTopLeftTile) const
+{
+	if (!IsValid(ItemToFind))
+	{
+		return false;
+	}
+
+	for (int32 Index = 0; Index < GridItems.Num(); Index++)
+	{
+		if (IsValid(GridItems[Index]) && GridItems[Index] == ItemToFind)
+		{
+			OutTopLeftTile = IndexToTile(static_cast<int8>(Index));
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool UPlayerInventoryComponent::FindItemGridType(const AHuntedInventoryItemBase* ItemToFind,
+	EPlayerInventoryGridType& OutGridType) const
+{
+	FIntPoint UnusedTile;
+	if (FindItemTopLeftTileInItems(Items, ItemToFind, UnusedTile))
+	{
+		OutGridType = EPlayerInventoryGridType::Inventory;
+		return true;
+	}
+
+	if (bOverflowResolutionActive && FindItemTopLeftTileInItems(DiscardItems, ItemToFind, UnusedTile))
+	{
+		OutGridType = EPlayerInventoryGridType::Discard;
+		return true;
+	}
+
+	return false;
+}
+
+void UPlayerInventoryComponent::AddItemToGridAtIndex(TArray<AHuntedInventoryItemBase*>& GridItems,
+	AHuntedInventoryItemBase* ItemToAdd, int8 TopLeftIndex, bool bPrepareForInventory)
+{
+	if (!IsValid(ItemToAdd) || !GridItems.IsValidIndex(TopLeftIndex))
+	{
+		return;
+	}
+
+	const FIntPoint Dimensions = ItemToAdd->GetItemInventorySize();
+	const FIntPoint Tile = IndexToTile(TopLeftIndex);
+	if (Dimensions.X <= 0 || Dimensions.Y <= 0)
+	{
+		return;
+	}
+
+	for (int32 X = Tile.X; X < Tile.X + Dimensions.X; X++)
+	{
+		for (int32 Y = Tile.Y; Y < Tile.Y + Dimensions.Y; Y++)
+		{
+			if (!IsTileValid(FIntPoint(X, Y)))
+			{
+				return;
+			}
+		}
+	}
+
+	if (bPrepareForInventory)
+	{
+		PrepareItemForInventory(ItemToAdd);
+	}
+
+	for (int32 X = Tile.X; X < Tile.X + Dimensions.X; X++)
+	{
+		for (int32 Y = Tile.Y; Y < Tile.Y + Dimensions.Y; Y++)
+		{
+			const int8 ItemIndex = TileToIndex(FIntPoint(X, Y));
+			if (GridItems.IsValidIndex(ItemIndex))
+			{
+				GridItems[ItemIndex] = ItemToAdd;
+			}
+		}
+	}
+}
+
+void UPlayerInventoryComponent::RemoveItemFromGrid(TArray<AHuntedInventoryItemBase*>& GridItems,
+	AHuntedInventoryItemBase* ItemToRemove)
+{
+	if (!ItemToRemove)
+	{
+		return;
+	}
+
+	for (AHuntedInventoryItemBase*& GridItem : GridItems)
+	{
+		if (GridItem == ItemToRemove)
+		{
+			GridItem = nullptr;
+		}
+	}
 }
 
 void UPlayerInventoryComponent::BeginPlay()
@@ -82,15 +202,21 @@ void UPlayerInventoryComponent::CompactInvalidInventoryItems()
 {
 	bool bRemovedInvalidReference = false;
 
-	for (AHuntedInventoryItemBase*& Item : Items)
+	auto RemoveInvalidReferences = [&bRemovedInvalidReference](TArray<AHuntedInventoryItemBase*>& GridItems)
 	{
-		if (Item && !IsValid(Item))
+		for (AHuntedInventoryItemBase*& Item : GridItems)
 		{
-			// Prevents later inventory queries from dereferencing actors that were destroyed by pickup/drop Blueprints.
-			Item = nullptr;
-			bRemovedInvalidReference = true;
+			if (Item && !IsValid(Item))
+			{
+				// Prevents later inventory queries from dereferencing actors destroyed by pickup/drop Blueprints.
+				Item = nullptr;
+				bRemovedInvalidReference = true;
+			}
 		}
-	}
+	};
+
+	RemoveInvalidReferences(Items);
+	RemoveInvalidReferences(DiscardItems);
 
 	if (PendingCombineItem && !IsValid(PendingCombineItem))
 	{
@@ -154,21 +280,33 @@ AHuntedInventoryItemBase* UPlayerInventoryComponent::ResolveInventoryStorageItem
 
 TMap<AHuntedInventoryItemBase*, FIntPoint> UPlayerInventoryComponent::GetAllItems()
 {
+	return GetAllItemsForGrid(EPlayerInventoryGridType::Inventory);
+}
+
+TMap<AHuntedInventoryItemBase*, FIntPoint> UPlayerInventoryComponent::GetAllItemsForGrid(
+	EPlayerInventoryGridType GridType)
+{
 	CompactInvalidInventoryItems();
-	AllItems.Reset();
+	TMap<AHuntedInventoryItemBase*, FIntPoint> GridItemMap;
+	const TArray<AHuntedInventoryItemBase*>& GridItems = GetGridItems(GridType);
 	
-	for (int32 i = 0; i < Items.Num(); i++)
+	for (int32 i = 0; i < GridItems.Num(); i++)
 	{
-		if (IsValid(Items[i]))
+		if (IsValid(GridItems[i]))
 		{
-			if (!AllItems.Contains(Items[i]))
+			if (!GridItemMap.Contains(GridItems[i]))
 			{
-				AllItems.Add(Items[i], IndexToTile(static_cast<int8>(i)));
+				GridItemMap.Add(GridItems[i], IndexToTile(static_cast<int8>(i)));
 			}
 		}
 	}
+
+	if (GridType == EPlayerInventoryGridType::Inventory)
+	{
+		AllItems = GridItemMap;
+	}
 	
-	return AllItems;
+	return GridItemMap;
 }
 
 bool UPlayerInventoryComponent::TryAddItem(AHuntedInventoryItemBase* ItemToAdd)
@@ -180,6 +318,13 @@ bool UPlayerInventoryComponent::TryAddItem(AHuntedInventoryItemBase* ItemToAdd)
 		Debug::Print(TEXT("Player Inventory Component - Try To Add Item: No Item To Add reference on call"), FColor::Red);
 		return false;
 	}
+
+	if (bOverflowResolutionActive)
+	{
+		return false;
+	}
+
+	const bool bIsVisibleWorldPickup = ItemToAdd->GetOwner() != GetOwner() && !ItemToAdd->IsHidden();
 
 	const bool bCanUseStacking = ItemToAdd->IsItemStackable()
 		&& ItemToAdd->GetItemInventorySize() == FIntPoint(1, 1)
@@ -203,6 +348,10 @@ bool UPlayerInventoryComponent::TryAddItem(AHuntedInventoryItemBase* ItemToAdd)
 		}
 	
 		Debug::Print(TEXT("Player Inventory Component - Try To Add Item: No Room in Inventory"), FColor::Red);
+		if (bIsVisibleWorldPickup)
+		{
+			TryBeginFullInventoryResolution(ItemToAdd);
+		}
 		return false;
 	}
 
@@ -284,6 +433,10 @@ bool UPlayerInventoryComponent::TryAddItem(AHuntedInventoryItemBase* ItemToAdd)
 		ItemToAdd->SetItemAmount(RemainingAmount);
 		Debug::Print(TEXT("Player Inventory Component - Try To Add Item: Partial stack, no more room"), FColor::Yellow);
 		RefreshInventoryGrid();
+		if (bIsVisibleWorldPickup)
+		{
+			TryBeginFullInventoryResolution(ItemToAdd);
+		}
 		return false;
 	}
 	
@@ -718,6 +871,181 @@ bool UPlayerInventoryComponent::TryGetCombinationResultItemDisplayData(AHuntedIn
 	return true;
 }
 
+bool UPlayerInventoryComponent::TryBeginFullInventoryResolution(AHuntedInventoryItemBase* PendingPickup)
+{
+	if (bOverflowResolutionActive)
+	{
+		return PendingOverflowPickup == PendingPickup;
+	}
+
+	if (!IsValid(PendingPickup) || IsItemInInventory(PendingPickup) || Items.Num() <= 0)
+	{
+		return false;
+	}
+
+	OverflowSnapshots.Reset();
+	const TMap<AHuntedInventoryItemBase*, FIntPoint> CurrentItems = GetAllItems();
+	OverflowSnapshots.Reserve(CurrentItems.Num());
+
+	for (const TPair<AHuntedInventoryItemBase*, FIntPoint>& ItemPair : CurrentItems)
+	{
+		if (!IsValid(ItemPair.Key))
+		{
+			continue;
+		}
+
+		FInventoryOverflowItemSnapshot Snapshot;
+		Snapshot.Item = ItemPair.Key;
+		Snapshot.TopLeftTile = ItemPair.Value;
+		Snapshot.ItemSize = ItemPair.Key->GetItemInventorySize();
+		Snapshot.ItemAmount = ItemPair.Key->GetItemAmount();
+		OverflowSnapshots.Add(Snapshot);
+	}
+
+	DiscardItems.Init(nullptr, Items.Num());
+
+	int8 PendingPickupIndex = INDEX_NONE;
+	for (int32 Index = 0; Index < DiscardItems.Num(); Index++)
+	{
+		if (RoomForItemInGridIgnoringItem(
+			DiscardItems, PendingPickup, static_cast<int8>(Index), nullptr))
+		{
+			PendingPickupIndex = static_cast<int8>(Index);
+			break;
+		}
+	}
+
+	if (PendingPickupIndex == INDEX_NONE)
+	{
+		DiscardItems.Reset();
+		OverflowSnapshots.Reset();
+		return false;
+	}
+
+	PendingOverflowPickup = PendingPickup;
+	PendingOverflowPickupOriginalSize = PendingPickup->GetItemInventorySize();
+	PendingOverflowPickupOriginalAmount = PendingPickup->GetItemAmount();
+	bOverflowResolutionActive = true;
+	AddedItem = false;
+
+	AddItemToGridAtIndex(DiscardItems, PendingPickup, PendingPickupIndex, false);
+	RefreshInventoryGrids();
+	OnInventoryOverflowRequested.Broadcast(PendingPickup);
+	return true;
+}
+
+bool UPlayerInventoryComponent::ConfirmFullInventoryResolution()
+{
+	CompactInvalidInventoryItems();
+
+	if (!bOverflowResolutionActive || !IsValid(PendingOverflowPickup))
+	{
+		return false;
+	}
+
+	const TMap<AHuntedInventoryItemBase*, FIntPoint> ItemsToDiscard =
+		GetAllItemsForGrid(EPlayerInventoryGridType::Discard);
+
+	for (const TPair<AHuntedInventoryItemBase*, FIntPoint>& ItemPair : ItemsToDiscard)
+	{
+		AHuntedInventoryItemBase* Item = ItemPair.Key;
+		if (Item != PendingOverflowPickup && (!IsValid(Item) || !Item->IsItemDroppable()))
+		{
+			return false;
+		}
+	}
+
+	FIntPoint PendingPickupTile;
+	const bool bPickupAccepted = FindItemTopLeftTileInItems(
+		Items, PendingOverflowPickup, PendingPickupTile);
+	const bool bPickupRejected = FindItemTopLeftTileInItems(
+		DiscardItems, PendingOverflowPickup, PendingPickupTile);
+
+	if (!bPickupAccepted && !bPickupRejected)
+	{
+		return false;
+	}
+
+	for (const TPair<AHuntedInventoryItemBase*, FIntPoint>& ItemPair : ItemsToDiscard)
+	{
+		AHuntedInventoryItemBase* Item = ItemPair.Key;
+		if (!IsValid(Item))
+		{
+			continue;
+		}
+
+		RemoveItemFromGrid(DiscardItems, Item);
+		if (Item == PendingOverflowPickup)
+		{
+			Item->SetItemInventorySize(PendingOverflowPickupOriginalSize);
+			Item->SetItemAmount(PendingOverflowPickupOriginalAmount);
+			continue;
+		}
+
+		if (PendingCombineItem == Item)
+		{
+			PendingCombineItem = nullptr;
+		}
+
+		Item->Destroy();
+	}
+
+	if (bPickupAccepted)
+	{
+		PrepareItemForInventory(PendingOverflowPickup);
+		AddedItem = true;
+	}
+
+	ResetOverflowResolutionState();
+	RefreshInventoryGrids();
+	OnInventoryOverflowClosed.Broadcast(bPickupAccepted);
+	return true;
+}
+
+void UPlayerInventoryComponent::CancelFullInventoryResolution()
+{
+	if (!bOverflowResolutionActive)
+	{
+		return;
+	}
+
+	const int32 GridSize = FMath::Max<int32>(Items.Num(), Columns * Rows);
+	Items.Init(nullptr, GridSize);
+
+	for (const FInventoryOverflowItemSnapshot& Snapshot : OverflowSnapshots)
+	{
+		if (!IsValid(Snapshot.Item))
+		{
+			continue;
+		}
+
+		Snapshot.Item->SetItemInventorySize(Snapshot.ItemSize);
+		Snapshot.Item->SetItemAmount(Snapshot.ItemAmount);
+		AddItemToGridAtIndex(
+			Items, Snapshot.Item, TileToIndex(Snapshot.TopLeftTile), true);
+	}
+
+	if (IsValid(PendingOverflowPickup))
+	{
+		PendingOverflowPickup->SetItemInventorySize(PendingOverflowPickupOriginalSize);
+		PendingOverflowPickup->SetItemAmount(PendingOverflowPickupOriginalAmount);
+	}
+
+	ResetOverflowResolutionState();
+	RefreshInventoryGrids();
+	OnInventoryOverflowClosed.Broadcast(false);
+}
+
+void UPlayerInventoryComponent::ResetOverflowResolutionState()
+{
+	bOverflowResolutionActive = false;
+	DiscardItems.Reset();
+	OverflowSnapshots.Reset();
+	PendingOverflowPickup = nullptr;
+	PendingOverflowPickupOriginalSize = FIntPoint::ZeroValue;
+	PendingOverflowPickupOriginalAmount = 0;
+}
+
 void UPlayerInventoryComponent::RequestDropItem(AHuntedInventoryItemBase* ItemToDrop)
 {
 	CompactInvalidInventoryItems();
@@ -796,21 +1124,18 @@ AHuntedInventoryItemBase* UPlayerInventoryComponent::GetItemAtIndex(int8 Index)
 
 bool UPlayerInventoryComponent::FindItemTopLeftTile(AHuntedInventoryItemBase* ItemToFind, FIntPoint& OutTopLeftTile) const
 {
-	if (!IsValid(ItemToFind))
+	return FindItemTopLeftTileInItems(Items, ItemToFind, OutTopLeftTile);
+}
+
+bool UPlayerInventoryComponent::FindItemTopLeftTileInGrid(AHuntedInventoryItemBase* ItemToFind,
+	EPlayerInventoryGridType GridType, FIntPoint& OutTopLeftTile) const
+{
+	if (GridType == EPlayerInventoryGridType::Discard && !bOverflowResolutionActive)
 	{
 		return false;
 	}
 
-	for (int32 Index = 0; Index < Items.Num(); Index++)
-	{
-		if (IsValid(Items[Index]) && Items[Index] == ItemToFind)
-		{
-			OutTopLeftTile = IndexToTile(static_cast<int8>(Index));
-			return true;
-		}
-	}
-
-	return false;
+	return FindItemTopLeftTileInItems(GetGridItems(GridType), ItemToFind, OutTopLeftTile);
 }
 
 void UPlayerInventoryComponent::AddItemAtIndex(AHuntedInventoryItemBase* ItemToAdd, int8 TopLeftIndex)
@@ -978,9 +1303,49 @@ AHuntedInventoryItemBase* UPlayerInventoryComponent::SpawnInventoryItemInstance(
 
 void UPlayerInventoryComponent::RefreshInventoryGrid() const
 {
+	RefreshInventoryGrids();
+}
+
+void UPlayerInventoryComponent::RefreshInventoryGrids() const
+{
 	if (IsValid(InventoryGridWidgetReference))
 	{
 		InventoryGridWidgetReference->RefreshItemWidgets();
+	}
+
+	if (IsValid(DiscardGridWidgetReference) && DiscardGridWidgetReference != InventoryGridWidgetReference)
+	{
+		DiscardGridWidgetReference->RefreshItemWidgets();
+	}
+}
+
+void UPlayerInventoryComponent::SetInventoryGridWidget(UPlayerInventoryGridWidget* GridWidget,
+	EPlayerInventoryGridType GridType)
+{
+	if (GridType == EPlayerInventoryGridType::Discard)
+	{
+		DiscardGridWidgetReference = GridWidget;
+		return;
+	}
+
+	InventoryGridWidgetReference = GridWidget;
+}
+
+void UPlayerInventoryComponent::ClearInventoryGridWidget(UPlayerInventoryGridWidget* GridWidget,
+	EPlayerInventoryGridType GridType)
+{
+	if (GridType == EPlayerInventoryGridType::Discard)
+	{
+		if (DiscardGridWidgetReference == GridWidget)
+		{
+			DiscardGridWidgetReference = nullptr;
+		}
+		return;
+	}
+
+	if (InventoryGridWidgetReference == GridWidget)
+	{
+		InventoryGridWidgetReference = nullptr;
 	}
 }
 
@@ -1104,6 +1469,11 @@ bool UPlayerInventoryComponent::CanPlaceOrStackItemAtIndex(AHuntedInventoryItemB
 
 bool UPlayerInventoryComponent::CanMoveItemToIndex(AHuntedInventoryItemBase* ItemToMove, int8 TargetIndex) const
 {
+	if (bOverflowResolutionActive)
+	{
+		return CanMoveItemToGridIndex(ItemToMove, EPlayerInventoryGridType::Inventory, TargetIndex);
+	}
+
 	if (!IsValid(ItemToMove) || !GetResultAtIndex(TargetIndex))
 	{
 		return false;
@@ -1155,6 +1525,12 @@ bool UPlayerInventoryComponent::TryStackItemAtIndex(AHuntedInventoryItemBase* It
 bool UPlayerInventoryComponent::TryMoveItemToIndex(AHuntedInventoryItemBase* ItemToMove, int TargetIndex,
 	bool& bOutSourceConsumed)
 {
+	if (bOverflowResolutionActive)
+	{
+		return TryMoveItemToGridIndex(
+			ItemToMove, EPlayerInventoryGridType::Inventory, TargetIndex, bOutSourceConsumed);
+	}
+
 	bOutSourceConsumed = false;
 
 	if (!IsValid(ItemToMove) || !GetResultAtIndex(TargetIndex))
@@ -1180,5 +1556,67 @@ bool UPlayerInventoryComponent::TryMoveItemToIndex(AHuntedInventoryItemBase* Ite
 
 	RemoveItem(ItemToMove);
 	AddItemAtIndex(ItemToMove, TargetIndex);
+	return true;
+}
+
+bool UPlayerInventoryComponent::CanMoveItemToGridIndex(AHuntedInventoryItemBase* ItemToMove,
+	EPlayerInventoryGridType TargetGridType, int8 TargetIndex) const
+{
+	if (!IsValid(ItemToMove))
+	{
+		return false;
+	}
+
+	if (!bOverflowResolutionActive)
+	{
+		return TargetGridType == EPlayerInventoryGridType::Inventory
+			&& CanMoveItemToIndex(ItemToMove, TargetIndex);
+	}
+
+	if (TargetGridType == EPlayerInventoryGridType::Discard
+		&& ItemToMove != PendingOverflowPickup
+		&& !ItemToMove->IsItemDroppable())
+	{
+		return false;
+	}
+
+	EPlayerInventoryGridType SourceGridType;
+	if (!FindItemGridType(ItemToMove, SourceGridType))
+	{
+		return false;
+	}
+
+	const TArray<AHuntedInventoryItemBase*>& TargetItems = GetGridItems(TargetGridType);
+	return RoomForItemInGridIgnoringItem(TargetItems, ItemToMove, TargetIndex,
+		SourceGridType == TargetGridType ? ItemToMove : nullptr);
+}
+
+bool UPlayerInventoryComponent::TryMoveItemToGridIndex(AHuntedInventoryItemBase* ItemToMove,
+	EPlayerInventoryGridType TargetGridType, int32 TargetIndex, bool& bOutSourceConsumed)
+{
+	bOutSourceConsumed = false;
+
+	if (!bOverflowResolutionActive)
+	{
+		return TargetGridType == EPlayerInventoryGridType::Inventory
+			&& TryMoveItemToIndex(ItemToMove, TargetIndex, bOutSourceConsumed);
+	}
+
+	if (!CanMoveItemToGridIndex(ItemToMove, TargetGridType, static_cast<int8>(TargetIndex)))
+	{
+		return false;
+	}
+
+	EPlayerInventoryGridType SourceGridType;
+	if (!FindItemGridType(ItemToMove, SourceGridType))
+	{
+		return false;
+	}
+
+	TArray<AHuntedInventoryItemBase*>& SourceItems = GetMutableGridItems(SourceGridType);
+	TArray<AHuntedInventoryItemBase*>& TargetItems = GetMutableGridItems(TargetGridType);
+	RemoveItemFromGrid(SourceItems, ItemToMove);
+	AddItemToGridAtIndex(TargetItems, ItemToMove, static_cast<int8>(TargetIndex), false);
+	RefreshInventoryGrids();
 	return true;
 }

@@ -9,6 +9,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Items/Inventory/HuntedInventoryItemBase.h"
 #include "Widget/Inventory/PlayerInventoryGridWidget.h"
+#include "Widget/Inventory/PlayerInventoryDiscardWidget.h"
 #include "Widget/Inventory/PlayerInventoryDropPopupWidget.h"
 #include "HuntedDebugHelper.h"
 
@@ -24,6 +25,9 @@ void UPlayerInventoryWidget::NativeConstruct()
 	{
 		InventoryComponent->OnItemDropRequested.RemoveAll(this);
 		InventoryComponent->OnItemDropRequested.AddDynamic(this, &UPlayerInventoryWidget::HandleDropRequested);
+		InventoryComponent->OnInventoryOverflowRequested.RemoveAll(this);
+		InventoryComponent->OnInventoryOverflowRequested.AddDynamic(
+			this, &UPlayerInventoryWidget::HandleInventoryOverflowRequested);
 	}
 
 	OnNativeVisibilityChanged.RemoveAll(this);
@@ -40,6 +44,19 @@ void UPlayerInventoryWidget::NativeDestruct()
 		: nullptr)
 	{
 		InventoryComponent->OnItemDropRequested.RemoveAll(this);
+		InventoryComponent->OnInventoryOverflowRequested.RemoveAll(this);
+
+		if (InventoryComponent->IsFullInventoryResolutionActive())
+		{
+			InventoryComponent->CancelFullInventoryResolution();
+		}
+	}
+
+	if (ActiveDiscardWidget)
+	{
+		ActiveDiscardWidget->OnResolutionClosed.RemoveAll(this);
+		ActiveDiscardWidget->RemoveFromParent();
+		ActiveDiscardWidget = nullptr;
 	}
 
 	ClearActiveDropPopup();
@@ -73,6 +90,11 @@ bool UPlayerInventoryWidget::NativeOnDrop(const FGeometry& InGeometry, const FDr
 		return false;
 	}
 
+	if (InventoryComponent->IsFullInventoryResolutionActive())
+	{
+		return false;
+	}
+
 	SpawnedItem = nullptr;
 	InOperation->Tag = TEXT("DropRequested");
 	InventoryComponent->RequestDropItem(PayloadItem);
@@ -80,13 +102,20 @@ bool UPlayerInventoryWidget::NativeOnDrop(const FGeometry& InGeometry, const FDr
 	return true;
 }
 
-void UPlayerInventoryWidget::HandleInventoryVisibilityChanged(ESlateVisibility /*InVisibility*/)
+void UPlayerInventoryWidget::HandleInventoryVisibilityChanged(ESlateVisibility InVisibility)
 {
 	UPlayerInventoryComponent* InventoryComponent = IsValid(CharacterReference)
 		? CharacterReference->GetPlayerInventoryComponent()
 		: nullptr;
 	if (!IsValid(InventoryComponent))
 	{
+		return;
+	}
+
+	if (InventoryComponent->IsFullInventoryResolutionActive()
+		&& (InVisibility == ESlateVisibility::Collapsed || InVisibility == ESlateVisibility::Hidden))
+	{
+		SetVisibility(ESlateVisibility::Visible);
 		return;
 	}
 
@@ -173,4 +202,108 @@ void UPlayerInventoryWidget::HandleDropPopupClosed()
 	ActiveDropPopup->OnDropConfirmed.RemoveAll(this);
 	ActiveDropPopup->OnPopupClosed.RemoveAll(this);
 	ActiveDropPopup = nullptr;
+}
+
+void UPlayerInventoryWidget::ShowDiscardWidgetForPickup(AHuntedInventoryItemBase* PendingPickup)
+{
+	if (!IsValid(PendingPickup) || !IsValid(CharacterReference))
+	{
+		return;
+	}
+
+	UPlayerInventoryComponent* InventoryComponent = CharacterReference->GetPlayerInventoryComponent();
+	if (!IsValid(InventoryComponent) || !InventoryComponent->IsFullInventoryResolutionActive())
+	{
+		return;
+	}
+
+	if (!DiscardWidgetClass)
+	{
+		Debug::Print(TEXT("Player Inventory Widget: DiscardWidgetClass is not assigned"), FColor::Red);
+		InventoryComponent->CancelFullInventoryResolution();
+		return;
+	}
+
+	if (ActiveDiscardWidget)
+	{
+		ActiveDiscardWidget->OnResolutionClosed.RemoveAll(this);
+		ActiveDiscardWidget->RemoveFromParent();
+		ActiveDiscardWidget = nullptr;
+	}
+
+	bInventoryWasVisibleBeforeOverflow =
+		GetVisibility() != ESlateVisibility::Collapsed && GetVisibility() != ESlateVisibility::Hidden;
+	SetVisibility(ESlateVisibility::Visible);
+
+	APlayerController* OwningPlayer = GetOwningPlayer();
+	ActiveDiscardWidget = CreateWidget<UPlayerInventoryDiscardWidget>(OwningPlayer, DiscardWidgetClass);
+	if (!ActiveDiscardWidget)
+	{
+		InventoryComponent->CancelFullInventoryResolution();
+		RestoreInputAfterOverflow();
+		return;
+	}
+
+	ActiveDiscardWidget->OnResolutionClosed.AddDynamic(
+		this, &UPlayerInventoryWidget::HandleOverflowResolutionClosed);
+	ActiveDiscardWidget->AddToViewport(DiscardWidgetZOrder);
+	ActiveDiscardWidget->ConfigureForOverflow(InventoryComponent, PendingPickup);
+
+	if (OwningPlayer)
+	{
+		bPreviousMouseCursorVisible = OwningPlayer->bShowMouseCursor;
+		OwningPlayer->bShowMouseCursor = true;
+
+		FInputModeUIOnly InputMode;
+		InputMode.SetWidgetToFocus(ActiveDiscardWidget->TakeWidget());
+		InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+		OwningPlayer->SetInputMode(InputMode);
+	}
+}
+
+void UPlayerInventoryWidget::RestoreInputAfterOverflow()
+{
+	if (!bInventoryWasVisibleBeforeOverflow)
+	{
+		SetVisibility(ESlateVisibility::Collapsed);
+	}
+
+	if (APlayerController* OwningPlayer = GetOwningPlayer())
+	{
+		OwningPlayer->bShowMouseCursor = bPreviousMouseCursorVisible;
+
+		if (bInventoryWasVisibleBeforeOverflow)
+		{
+			FInputModeGameAndUI InputMode;
+			InputMode.SetWidgetToFocus(TakeWidget());
+			InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+			OwningPlayer->SetInputMode(InputMode);
+		}
+		else
+		{
+			FInputModeGameOnly InputMode;
+			OwningPlayer->SetInputMode(InputMode);
+		}
+	}
+}
+
+void UPlayerInventoryWidget::HandleInventoryOverflowRequested(AHuntedInventoryItemBase* PendingPickup)
+{
+	ShowDiscardWidgetForPickup(PendingPickup);
+}
+
+void UPlayerInventoryWidget::HandleOverflowResolutionClosed(bool bPickupAccepted)
+{
+	if (ActiveDiscardWidget)
+	{
+		ActiveDiscardWidget->OnResolutionClosed.RemoveAll(this);
+		ActiveDiscardWidget = nullptr;
+	}
+
+	if (bPickupAccepted && IsValid(CharacterReference))
+	{
+		CharacterReference->ClearCachedItem();
+	}
+
+	RestoreInputAfterOverflow();
 }

@@ -109,7 +109,10 @@ void UPlayerInventoryItemWidget::NativeOnMouseEnter(const FGeometry& InGeometry,
 		: nullptr;
 	if (IsValid(InventoryComponent))
 	{
-		if (UPlayerInventoryGridWidget* InventoryGrid = InventoryComponent->GetPlayerInventoryGridWidget())
+		UPlayerInventoryGridWidget* InventoryGrid = IsValid(OwningInventoryGrid)
+			? OwningInventoryGrid
+			: InventoryComponent->GetPlayerInventoryGridWidget();
+		if (InventoryGrid)
 		{
 			InventoryGrid->SetHoveredInventoryItem(Item);
 		}
@@ -138,7 +141,10 @@ void UPlayerInventoryItemWidget::NativeOnMouseLeave(const FPointerEvent& InMouse
 		: nullptr;
 	if (IsValid(InventoryComponent))
 	{
-		if (UPlayerInventoryGridWidget* InventoryGrid = InventoryComponent->GetPlayerInventoryGridWidget())
+		UPlayerInventoryGridWidget* InventoryGrid = IsValid(OwningInventoryGrid)
+			? OwningInventoryGrid
+			: InventoryComponent->GetPlayerInventoryGridWidget();
+		if (InventoryGrid)
 		{
 			InventoryGrid->ClearHoveredInventoryItem(Item);
 		}
@@ -188,9 +194,16 @@ void UPlayerInventoryItemWidget::NativeOnDragDetected(const FGeometry& InGeometr
 	// Remove the widget from the grid while keeping the inventory data intact until drop resolution.
 	if (UPlayerInventoryComponent* InventoryComponent = CharacterReference->GetPlayerInventoryComponent())
 	{
-		bHasDragStartTile = InventoryComponent->FindItemTopLeftTile(Item, DragStartTopLeftTile);
+		const EPlayerInventoryGridType SourceGridType = IsValid(OwningInventoryGrid)
+			? OwningInventoryGrid->GetInventoryGridType()
+			: EPlayerInventoryGridType::Inventory;
+		bHasDragStartTile = InventoryComponent->FindItemTopLeftTileInGrid(
+			Item, SourceGridType, DragStartTopLeftTile);
 		
-		if (UPlayerInventoryGridWidget* InventoryGrid = InventoryComponent->GetPlayerInventoryGridWidget())
+		UPlayerInventoryGridWidget* InventoryGrid = IsValid(OwningInventoryGrid)
+			? OwningInventoryGrid
+			: InventoryComponent->GetPlayerInventoryGridWidget();
+		if (InventoryGrid)
 		{
 			InventoryGrid->SetDraggedInventoryItem(Item);
 			InventoryGrid->ClearHoveredInventoryItem(Item);
@@ -218,7 +231,10 @@ void UPlayerInventoryItemWidget::NativeOnDragDetected(const FGeometry& InGeometr
 		}
 	}
 
-	DragOperation->InitializeInventoryDrag(Item, bHasDragStartTile, DragStartTopLeftTile);
+	const EPlayerInventoryGridType SourceGridType = IsValid(OwningInventoryGrid)
+		? OwningInventoryGrid->GetInventoryGridType()
+		: EPlayerInventoryGridType::Inventory;
+	DragOperation->InitializeInventoryDrag(Item, bHasDragStartTile, DragStartTopLeftTile, SourceGridType);
 	
 	OutOperation = DragOperation;
 	
@@ -234,18 +250,26 @@ FReply UPlayerInventoryItemWidget::NativeOnMouseButtonDown(const FGeometry& InGe
 	}
 
 	UPlayerInventoryComponent* InventoryComponent = CharacterReference->GetPlayerInventoryComponent();
+	const bool bIsDiscardGrid = IsValid(OwningInventoryGrid)
+		&& OwningInventoryGrid->GetInventoryGridType() == EPlayerInventoryGridType::Discard;
+	const bool bOverflowResolutionActive = InventoryComponent->IsFullInventoryResolutionActive();
 	if (ActiveInventoryContextMenuOwner.IsValid() && ActiveInventoryContextMenuOwner.Get() != this)
 	{
 		ActiveInventoryContextMenuOwner->HideContextMenu();
 	}
 
-	if (InMouseEvent.GetEffectingButton() == EKeys::RightMouseButton)
+	if (InMouseEvent.GetEffectingButton() == EKeys::RightMouseButton
+		&& !bIsDiscardGrid
+		&& !bOverflowResolutionActive)
 	{
 		ToggleContextMenu();
 		return FReply::Handled();
 	}
 
-	if (InMouseEvent.GetEffectingButton() == EKeys::LeftMouseButton && InventoryComponent->IsCombineModeActive())
+	if (InMouseEvent.GetEffectingButton() == EKeys::LeftMouseButton
+		&& !bIsDiscardGrid
+		&& !bOverflowResolutionActive
+		&& InventoryComponent->IsCombineModeActive())
 	{
 		HideContextMenu();
 
@@ -288,14 +312,18 @@ void UPlayerInventoryItemWidget::HandleDragOperationFinished(UDragDropOperation*
 
 	if (UPlayerInventoryComponent* InventoryComponent = CharacterReference->GetPlayerInventoryComponent())
 	{
-		if (UPlayerInventoryGridWidget* InventoryGrid = InventoryComponent->GetPlayerInventoryGridWidget())
+		UPlayerInventoryGridWidget* InventoryGrid = IsValid(OwningInventoryGrid)
+			? OwningInventoryGrid
+			: InventoryComponent->GetPlayerInventoryGridWidget();
+		if (InventoryGrid)
 		{
 			InventoryGrid->ClearDraggedInventoryItem(Item);
 			InventoryGrid->ClearHoveredInventoryItem(Item);
 			InventoryGrid->ClearDraggedSourceTiles();
 			InventoryGrid->ClearDraggedTargetTiles();
-			InventoryGrid->RefreshItemWidgets();
 		}
+
+		InventoryComponent->RefreshInventoryGrids();
 	}
 
 	SetDragVisualState(EInventoryDragVisualState::Idle);
@@ -410,6 +438,17 @@ void UPlayerInventoryItemWidget::RebuildContextMenuEntries()
 	}
 
 	ContextMenuActions.Reset();
+	const UPlayerInventoryComponent* InventoryComponent = IsValid(CharacterReference)
+		? CharacterReference->GetPlayerInventoryComponent()
+		: nullptr;
+	if ((IsValid(OwningInventoryGrid)
+			&& OwningInventoryGrid->GetInventoryGridType() == EPlayerInventoryGridType::Discard)
+		|| (IsValid(InventoryComponent) && InventoryComponent->IsFullInventoryResolutionActive()))
+	{
+		ContextMenuBox->ClearChildren();
+		return;
+	}
+
 	if (IsValid(Item) && Item->IsItemUsable())
 	{
 		ContextMenuActions.Add(MakeContextActionEntry(EInventoryContextAction::Use, FText::FromString(TEXT("Use")), UseActionIcon));
@@ -546,7 +585,10 @@ void UPlayerInventoryItemWidget::RaiseContextMenuLayer()
 {
 	if (IsValid(CharacterReference) && IsValid(CharacterReference->GetPlayerInventoryComponent()))
 	{
-		if (UPlayerInventoryGridWidget* InventoryGrid = CharacterReference->GetPlayerInventoryComponent()->GetPlayerInventoryGridWidget())
+		UPlayerInventoryGridWidget* InventoryGrid = IsValid(OwningInventoryGrid)
+			? OwningInventoryGrid
+			: CharacterReference->GetPlayerInventoryComponent()->GetPlayerInventoryGridWidget();
+		if (InventoryGrid)
 		{
 			if (UCanvasPanelSlot* GridCanvasSlot = Cast<UCanvasPanelSlot>(InventoryGrid->Slot))
 			{
@@ -585,7 +627,10 @@ void UPlayerInventoryItemWidget::RestoreContextMenuLayer()
 {
 	if (bHasCachedInventoryGridSlotZOrder && IsValid(CharacterReference) && IsValid(CharacterReference->GetPlayerInventoryComponent()))
 	{
-		if (UPlayerInventoryGridWidget* InventoryGrid = CharacterReference->GetPlayerInventoryComponent()->GetPlayerInventoryGridWidget())
+		UPlayerInventoryGridWidget* InventoryGrid = IsValid(OwningInventoryGrid)
+			? OwningInventoryGrid
+			: CharacterReference->GetPlayerInventoryComponent()->GetPlayerInventoryGridWidget();
+		if (InventoryGrid)
 		{
 			if (UCanvasPanelSlot* GridCanvasSlot = Cast<UCanvasPanelSlot>(InventoryGrid->Slot))
 			{
@@ -704,9 +749,11 @@ void UPlayerInventoryItemWidget::HandleDiscardClicked()
 	CharacterReference->GetPlayerInventoryComponent()->RequestDropItem(Item);
 }
 
-void UPlayerInventoryItemWidget::InitializeInventoryItem(AHuntedInventoryItemBase* ItemToAdd)
+void UPlayerInventoryItemWidget::InitializeInventoryItem(AHuntedInventoryItemBase* ItemToAdd,
+	UPlayerInventoryGridWidget* InOwningInventoryGrid)
 {
 	Item = ItemToAdd;
+	OwningInventoryGrid = InOwningInventoryGrid;
 
 	if (IsValid(CharacterReference) && IsValid(Item))
 	{
@@ -745,11 +792,12 @@ void UPlayerInventoryItemWidget::SetDragVisualState(EInventoryDragVisualState Ne
 }
 
 void UPlayerInventoryDragDropOperation::InitializeInventoryDrag(AHuntedInventoryItemBase* InDraggedItem,
-	bool bInHasDragStartTile, FIntPoint InDragStartTopLeftTile)
+	bool bInHasDragStartTile, FIntPoint InDragStartTopLeftTile, EPlayerInventoryGridType InSourceGridType)
 {
 	DraggedItem = InDraggedItem;
 	bHasDragStartTile = bInHasDragStartTile;
 	DragStartTopLeftTile = InDragStartTopLeftTile;
+	SourceGridType = InSourceGridType;
 	OriginalItemSize = IsValid(DraggedItem) ? DraggedItem->GetItemInventorySize() : FIntPoint::ZeroValue;
 	bWasRightMouseButtonDown = false;
 	bIsRotated = false;

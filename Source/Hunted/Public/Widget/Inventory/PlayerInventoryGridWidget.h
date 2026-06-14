@@ -10,6 +10,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "HuntedTypes/HuntedEnumTypes.h"
 #include "HuntedTypes/HuntedStructTypes.h"
 #include "PlayerInventoryGridWidget.generated.h"
 
@@ -87,6 +88,9 @@ protected:
 	
 	UPROPERTY()
 	TArray<float> EndY;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Inventory|Grid")
+	EPlayerInventoryGridType GridType = EPlayerInventoryGridType::Inventory;
 	
 	UPROPERTY(EditDefaultsOnly, meta = (BindWidget), Category= "UI")
 	FLinearColor CustomLineColor = FLinearColor(0.5f, 0.5f, 0.5f, 0.5f);
@@ -182,6 +186,8 @@ protected:
 protected:
 	UFUNCTION()
 	virtual void NativeConstruct() override;
+
+	virtual void NativeDestruct() override;
 	
 	UFUNCTION()
 	void SetUpInventoryGrid();
@@ -214,6 +220,9 @@ protected:
 	void SetDraggedItemVisualState(UDragDropOperation* InOperation, EInventoryDragVisualState NewState) const;
 	
 public:
+	UFUNCTION(BlueprintPure, Category = "Inventory|Grid")
+	EPlayerInventoryGridType GetInventoryGridType() const { return GridType; }
+
 	UFUNCTION(BlueprintCallable)
 	void AddItemWidget();
 

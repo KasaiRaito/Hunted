@@ -12,6 +12,7 @@ class UBackgroundBlur;
 class AHuntedPlayerCharacter;
 class AHuntedInventoryItemBase;
 class UPlayerInventoryComponent;
+class UPlayerInventoryDiscardWidget;
 class UPlayerInventoryDropPopupWidget;
 
 UCLASS()
@@ -31,19 +32,33 @@ public:
 	
 	UPROPERTY(Transient)
 	AHuntedInventoryItemBase* SpawnedItem = nullptr;
-	
-protected:
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI|Drop Popup")
 	TSubclassOf<UPlayerInventoryDropPopupWidget> DropPopupWidgetClass;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI|Drop Popup")
 	int32 DropPopupZOrder = 1000;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI|Inventory Overflow",
+		meta = (DisplayName = "Discard Widget Class", ToolTip = "Widget Blueprint shown when a world pickup does not fit in the inventory."))
+	TSubclassOf<UPlayerInventoryDiscardWidget> DiscardWidgetClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI|Inventory Overflow",
+		meta = (DisplayName = "Discard Widget Z Order", ClampMin = "0"))
+	int32 DiscardWidgetZOrder = 900;
+
+protected:
 	UPROPERTY(Transient)
 	AHuntedPlayerCharacter* CharacterReference = nullptr;
 
 	UPROPERTY(Transient)
 	UPlayerInventoryDropPopupWidget* ActiveDropPopup = nullptr;
+
+	UPROPERTY(Transient)
+	UPlayerInventoryDiscardWidget* ActiveDiscardWidget = nullptr;
+
+	bool bInventoryWasVisibleBeforeOverflow = false;
+	bool bPreviousMouseCursorVisible = false;
 	
 	virtual void NativeConstruct() override;
 
@@ -57,6 +72,8 @@ protected:
 
 	void ShowDropPopupForItem(AHuntedInventoryItemBase* Item);
 	void ClearActiveDropPopup();
+	void ShowDiscardWidgetForPickup(AHuntedInventoryItemBase* PendingPickup);
+	void RestoreInputAfterOverflow();
 
 	UFUNCTION()
 	void HandleDropRequested(AHuntedInventoryItemBase* Item);
@@ -66,4 +83,10 @@ protected:
 
 	UFUNCTION()
 	void HandleDropPopupClosed();
+
+	UFUNCTION()
+	void HandleInventoryOverflowRequested(AHuntedInventoryItemBase* PendingPickup);
+
+	UFUNCTION()
+	void HandleOverflowResolutionClosed(bool bPickupAccepted);
 };

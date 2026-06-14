@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Blueprint/DragDropOperation.h"
 #include "Styling/SlateColor.h"
+#include "HuntedTypes/HuntedEnumTypes.h"
 #include "HuntedTypes/HuntedStructTypes.h"
 #include "Widget/UI/HuntedWidgetBase.h"
 #include "PlayerInventoryItemWidget.generated.h"
@@ -19,6 +20,7 @@ class UVerticalBox;
 class UHorizontalBox;
 class AHuntedPlayerCharacter;
 class AHuntedInventoryItemBase;
+class UPlayerInventoryGridWidget;
 
 UCLASS()
 class HUNTED_API UPlayerInventoryDragDropOperation : public UDragDropOperation
@@ -44,9 +46,12 @@ public:
 	UPROPERTY(Transient)
 	bool bIsRotated = false;
 
+	UPROPERTY(Transient)
+	EPlayerInventoryGridType SourceGridType = EPlayerInventoryGridType::Inventory;
+
 	UFUNCTION()
 	void InitializeInventoryDrag(AHuntedInventoryItemBase* InDraggedItem, bool bInHasDragStartTile,
-		FIntPoint InDragStartTopLeftTile);
+		FIntPoint InDragStartTopLeftTile, EPlayerInventoryGridType InSourceGridType);
 
 	UFUNCTION()
 	bool ToggleDraggedItemRotation();
@@ -96,6 +101,9 @@ protected:
 	
 	UPROPERTY(Transient)
 	AHuntedInventoryItemBase* Item = nullptr;
+
+	UPROPERTY(Transient)
+	UPlayerInventoryGridWidget* OwningInventoryGrid = nullptr;
 	
 	UPROPERTY(VisibleDefaultsOnly, meta = (BindWidget), Category= "UI")
 	FVector2D Size;	
@@ -234,7 +242,8 @@ protected:
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
-	void InitializeInventoryItem(AHuntedInventoryItemBase* ItemToAdd);
+	void InitializeInventoryItem(AHuntedInventoryItemBase* ItemToAdd,
+		UPlayerInventoryGridWidget* InOwningInventoryGrid = nullptr);
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	void SetDragVisualState(EInventoryDragVisualState NewState);
