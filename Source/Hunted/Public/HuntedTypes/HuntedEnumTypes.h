@@ -29,3 +29,10 @@ enum class EHuntedInputMode: uint8
 	GameOnly,
 	UIOnly
 };
+
+UENUM(BlueprintType)
+enum class EPlayerInventoryGridType : uint8
+{
+	Inventory,
+	Discard
+};

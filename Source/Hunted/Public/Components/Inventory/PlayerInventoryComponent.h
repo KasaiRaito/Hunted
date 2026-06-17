@@ -6,6 +6,7 @@
 #include "GameplayTagContainer.h"
 #include "Components/ActorComponent.h"
 #include "Components/PawnExtensionComponentBase.h"
+#include "HuntedTypes/HuntedEnumTypes.h"
 #include "HuntedTypes/HuntedStructTypes.h"
 #include "PlayerInventoryComponent.generated.h"
 
@@ -15,6 +16,26 @@ class AHuntedInventoryItemBase;
 class UMaterialInterface;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInventoryItemDropRequestDelegate, AHuntedInventoryItemBase*, Item);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInventoryOverflowRequestDelegate, AHuntedInventoryItemBase*, PendingPickup);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInventoryOverflowClosedDelegate, bool, bPickupAccepted);
+
+USTRUCT()
+struct FInventoryOverflowItemSnapshot
+{
+	GENERATED_BODY()
+
+	UPROPERTY(Transient)
+	AHuntedInventoryItemBase* Item = nullptr;
+
+	UPROPERTY(Transient)
+	FIntPoint TopLeftTile = FIntPoint::ZeroValue;
+
+	UPROPERTY(Transient)
+	FIntPoint ItemSize = FIntPoint::ZeroValue;
+
+	UPROPERTY(Transient)
+	int32 ItemAmount = 0;
+};
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class HUNTED_API UPlayerInventoryComponent : public UPawnExtensionComponentBase
@@ -37,6 +58,23 @@ protected:
 	
 	UPROPERTY(Transient)
 	TArray<AHuntedInventoryItemBase*> Items;
+
+	UPROPERTY(Transient)
+	TArray<AHuntedInventoryItemBase*> DiscardItems;
+
+	UPROPERTY(Transient)
+	TArray<FInventoryOverflowItemSnapshot> OverflowSnapshots;
+
+	UPROPERTY(Transient)
+	AHuntedInventoryItemBase* PendingOverflowPickup = nullptr;
+
+	UPROPERTY(Transient)
+	FIntPoint PendingOverflowPickupOriginalSize = FIntPoint::ZeroValue;
+
+	UPROPERTY(Transient)
+	int32 PendingOverflowPickupOriginalAmount = 0;
+
+	bool bOverflowResolutionActive = false;
 	
 	UPROPERTY(VisibleInstanceOnly, Transient, Category= "InventoryComponent Info | Item Counters")
 	int16 BaseBulletsCount = 0;
@@ -51,10 +89,26 @@ protected:
 	
 	UPROPERTY(Transient)
 	UPlayerInventoryGridWidget* InventoryGridWidgetReference = nullptr;
+
+	UPROPERTY(Transient)
+	UPlayerInventoryGridWidget* DiscardGridWidgetReference = nullptr;
 	
 	bool IsTileValid(FIntPoint Tile) const;
 	bool RoomForItemInInventoryIgnoringItem(const AHuntedInventoryItemBase* ItemToAdd, int8 TopLeftIndex,
 		const AHuntedInventoryItemBase* IgnoredItem) const;
+	bool RoomForItemInGridIgnoringItem(const TArray<AHuntedInventoryItemBase*>& GridItems,
+		const AHuntedInventoryItemBase* ItemToAdd, int8 TopLeftIndex,
+		const AHuntedInventoryItemBase* IgnoredItem) const;
+	const TArray<AHuntedInventoryItemBase*>& GetGridItems(EPlayerInventoryGridType GridType) const;
+	TArray<AHuntedInventoryItemBase*>& GetMutableGridItems(EPlayerInventoryGridType GridType);
+	bool FindItemTopLeftTileInItems(const TArray<AHuntedInventoryItemBase*>& GridItems,
+		const AHuntedInventoryItemBase* ItemToFind, FIntPoint& OutTopLeftTile) const;
+	bool FindItemGridType(const AHuntedInventoryItemBase* ItemToFind, EPlayerInventoryGridType& OutGridType) const;
+	void AddItemToGridAtIndex(TArray<AHuntedInventoryItemBase*>& GridItems, AHuntedInventoryItemBase* ItemToAdd,
+		int8 TopLeftIndex, bool bPrepareForInventory);
+	void RemoveItemFromGrid(TArray<AHuntedInventoryItemBase*>& GridItems, AHuntedInventoryItemBase* ItemToRemove);
+	bool TryBeginFullInventoryResolution(AHuntedInventoryItemBase* PendingPickup);
+	void ResetOverflowResolutionState();
 	void CompactInvalidInventoryItems();
 	void PrepareItemForInventory(AHuntedInventoryItemBase* ItemToPrepare) const;
 	AHuntedInventoryItemBase* ResolveInventoryStorageItem(AHuntedInventoryItemBase* SourceItem);
@@ -121,7 +175,14 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Inventory|Drop")
 	FInventoryItemDropRequestDelegate OnItemDropRequested;
 
+	UPROPERTY(BlueprintAssignable, Category = "Inventory|Overflow")
+	FInventoryOverflowRequestDelegate OnInventoryOverflowRequested;
+
+	UPROPERTY(BlueprintAssignable, Category = "Inventory|Overflow")
+	FInventoryOverflowClosedDelegate OnInventoryOverflowClosed;
+
 	TMap<AHuntedInventoryItemBase*, FIntPoint> GetAllItems();
+	TMap<AHuntedInventoryItemBase*, FIntPoint> GetAllItemsForGrid(EPlayerInventoryGridType GridType);
 	
 	UFUNCTION(BlueprintCallable)
 	bool TryAddItem(AHuntedInventoryItemBase* ItemToAdd);
@@ -178,6 +239,18 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	bool DiscardItem(AHuntedInventoryItemBase* ItemToDiscard);
+
+	UFUNCTION(BlueprintPure, Category = "Inventory|Overflow")
+	bool IsFullInventoryResolutionActive() const { return bOverflowResolutionActive; }
+
+	UFUNCTION(BlueprintPure, Category = "Inventory|Overflow")
+	AHuntedInventoryItemBase* GetPendingOverflowPickup() const { return PendingOverflowPickup; }
+
+	UFUNCTION(BlueprintCallable, Category = "Inventory|Overflow")
+	bool ConfirmFullInventoryResolution();
+
+	UFUNCTION(BlueprintCallable, Category = "Inventory|Overflow")
+	void CancelFullInventoryResolution();
 	
 	UFUNCTION()
 	bool RoomForItemInInventory(AHuntedInventoryItemBase* ItemToAdd, int8 TopLeftIndex) const;
@@ -196,6 +269,9 @@ public:
 
 	UFUNCTION()
 	bool FindItemTopLeftTile(AHuntedInventoryItemBase* ItemToFind, FIntPoint& OutTopLeftTile) const;
+
+	bool FindItemTopLeftTileInGrid(AHuntedInventoryItemBase* ItemToFind, EPlayerInventoryGridType GridType,
+		FIntPoint& OutTopLeftTile) const;
 	
 	UFUNCTION()
 	void AddItemAtIndex(AHuntedInventoryItemBase* ItemToAdd, int8 TopLeftIndex);
@@ -211,9 +287,20 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	bool TryMoveItemToIndex(AHuntedInventoryItemBase* ItemToMove, int TargetIndex, bool& bOutSourceConsumed);
+
+	bool CanMoveItemToGridIndex(AHuntedInventoryItemBase* ItemToMove, EPlayerInventoryGridType TargetGridType,
+		int8 TargetIndex) const;
+
+	bool TryMoveItemToGridIndex(AHuntedInventoryItemBase* ItemToMove, EPlayerInventoryGridType TargetGridType,
+		int32 TargetIndex, bool& bOutSourceConsumed);
 	
 	UFUNCTION(BlueprintCallable)
-	void SetInventoryGridWidget(UPlayerInventoryGridWidget* GridWidget) { InventoryGridWidgetReference = GridWidget; };
+	void SetInventoryGridWidget(UPlayerInventoryGridWidget* GridWidget,
+		EPlayerInventoryGridType GridType = EPlayerInventoryGridType::Inventory);
+
+	void ClearInventoryGridWidget(UPlayerInventoryGridWidget* GridWidget, EPlayerInventoryGridType GridType);
+
+	void RefreshInventoryGrids() const;
 	
 	void RemoveItem(AHuntedInventoryItemBase* ItemToRemove);
 };

@@ -35,6 +35,16 @@ void UPlayerInventoryGridWidget::NativeConstruct()
 	RefreshItemWidgets();
 }
 
+void UPlayerInventoryGridWidget::NativeDestruct()
+{
+	if (IsValid(InventoryComponent))
+	{
+		InventoryComponent->ClearInventoryGridWidget(this, GridType);
+	}
+
+	Super::NativeDestruct();
+}
+
 void UPlayerInventoryGridWidget::SetUpInventoryGrid()
 {
 	PlayerReference = Cast<AHuntedPlayerCharacter>(GetOwningPlayerPawn());
@@ -52,7 +62,7 @@ void UPlayerInventoryGridWidget::SetUpInventoryGrid()
 		return;
 	}
 	
-	InventoryComponent->SetInventoryGridWidget(this);
+	InventoryComponent->SetInventoryGridWidget(this, GridType);
 	
 	Columns = InventoryComponent->GetColumns();
 	Rows = InventoryComponent->GetRows();
@@ -219,7 +229,7 @@ bool UPlayerInventoryGridWidget::NativeOnDrop(const FGeometry& InGeometry, const
 	const int8 TargetIndex = InventoryComponent->TileToIndex(DraggedItemTopLeftTile);
 
 	bool bSourceConsumed = false;
-	if (InventoryComponent->TryMoveItemToIndex(DropedItem, TargetIndex, bSourceConsumed))
+	if (InventoryComponent->TryMoveItemToGridIndex(DropedItem, GridType, TargetIndex, bSourceConsumed))
 	{
 		InOperation->Tag = TEXT("DroppedToGrid");
 		SetDraggedItemVisualState(InOperation, EInventoryDragVisualState::ValidPlacement);
@@ -316,7 +326,8 @@ bool UPlayerInventoryGridWidget::IsRoomAvailableFroPayload(AHuntedInventoryItemB
 		return false;
 	}
 	
-	return InventoryComponent->CanMoveItemToIndex(Item, InventoryComponent->TileToIndex(DraggedItemTopLeftTile));
+	return InventoryComponent->CanMoveItemToGridIndex(
+		Item, GridType, InventoryComponent->TileToIndex(DraggedItemTopLeftTile));
 }
 
 FMousePositionInTile UPlayerInventoryGridWidget::MousePositionInTileResult(FVector2D MousePosition)
@@ -682,7 +693,7 @@ void UPlayerInventoryGridWidget::RefreshItemWidgets()
 
 	GridCanvasPanel->ClearChildren();
 
-	TMap<AHuntedInventoryItemBase*, FIntPoint> AllItems = InventoryComponent->GetAllItems();
+	TMap<AHuntedInventoryItemBase*, FIntPoint> AllItems = InventoryComponent->GetAllItemsForGrid(GridType);
 	TArray<AHuntedInventoryItemBase*> ItemsInInventory;
 	AllItems.GetKeys(ItemsInInventory);
 
@@ -710,7 +721,7 @@ void UPlayerInventoryGridWidget::RefreshItemWidgets()
 		ItemWidget->SetOwningPlayer(GetOwningPlayer());
 		if (UPlayerInventoryItemWidget* InventoryItemWidget = Cast<UPlayerInventoryItemWidget>(ItemWidget))
 		{
-			InventoryItemWidget->InitializeInventoryItem(AddedItem);
+			InventoryItemWidget->InitializeInventoryItem(AddedItem, this);
 		}
 
 		PanelSlot = GridCanvasPanel->AddChild(ItemWidget);
